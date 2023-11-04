@@ -5,12 +5,13 @@
 
 #include <vulkan/vulkan.hpp>
 #include "InstanceBuilder.hpp"
+#include "VulkanLib/InstanceLogger/InstanceLogger.hpp"
 
 class Instance {
 public:
-    Instance(InstanceBuilder *pBuilder) {
+    Instance(InstanceBuilder &pBuilder) {
         vk::ApplicationInfo appInfo(
-                pBuilder->applicationName,
+                pBuilder.applicationName,
                 VK_MAKE_VERSION(1, 0, 0),
                 "VulkanLib",
                 VK_API_VERSION_1_3
@@ -18,11 +19,15 @@ public:
         vk::InstanceCreateInfo createInfo(
                 vk::InstanceCreateFlags(),
                 &appInfo,
-                pBuilder->layers.size(), pBuilder->layers.data(),
-                pBuilder->extensions.size(), pBuilder->extensions.data()
+                pBuilder.layers.size(), pBuilder.layers.data(),
+                pBuilder.extensions.size(), pBuilder.extensions.data()
         );
         try {
             instance = vk::createInstance(createInfo, nullptr);
+            dynamicLoader = vk::DispatchLoaderDynamic(instance, vkGetInstanceProcAddr);
+            if(pBuilder.debugEnabled){
+                logger = new InstanceLogger(instance, dynamicLoader);
+            }
         } catch (vk::SystemError &error) {
             std::cerr << error.what() << std::endl;
         }
@@ -30,6 +35,17 @@ public:
 
 private:
     vk::Instance instance{nullptr};
+    vk::DispatchLoaderDynamic dynamicLoader;
+    InstanceLogger* logger = nullptr;
+public:
+    InstanceLogger *getLogger() const {
+        return logger;
+    }
+
+    virtual ~Instance() {
+        delete logger;
+        instance.destroy();
+    }
 };
 
 

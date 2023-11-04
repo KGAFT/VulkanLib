@@ -41,6 +41,7 @@ public:
 
     void presetForDebug() {
         layers.push_back("VK_LAYER_KHRONOS_validation");
+        extensions.push_back("VK_EXT_debug_utils");
         debugEnabled = true;
     }
 

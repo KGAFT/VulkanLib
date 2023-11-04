@@ -4,8 +4,10 @@
 #include <GLFW/glfw3.h>
 int main() {
     glfwInit();
-    VulkanLib::InstanceBuilder builder;
+    InstanceBuilder builder;
     builder.presetForGlfw();
-    VulkanLib::Instance instance(&builder);
+    builder.presetForDebug();
+    Instance instance(builder);
+
     return 0;
 }
