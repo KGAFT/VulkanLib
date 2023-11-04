@@ -1,0 +1,11 @@
+/out
+/.vs
+/cmake-build-debug
+/cmake-build-release
+/LibNativeWin
+/LibNativeLin
+/.idea
+/build
+/.vscode
+/modules
+/.cache
