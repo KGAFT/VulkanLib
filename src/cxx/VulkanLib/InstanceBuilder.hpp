@@ -17,7 +17,7 @@ private:
     std::vector<const char *> layers;
     std::vector<const char *> extensions;
     bool debugEnabled = false;
-    const char *applicationName;
+    const char *applicationName = nullptr;
 public:
     void addLayer(const char *layer) {
         layers.push_back(layer);

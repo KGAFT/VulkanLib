@@ -25,7 +25,7 @@ public:
         try {
             instance = vk::createInstance(createInfo, nullptr);
             dynamicLoader = vk::DispatchLoaderDynamic(instance, vkGetInstanceProcAddr);
-            if(pBuilder.debugEnabled){
+            if (pBuilder.debugEnabled) {
                 logger = new InstanceLogger(instance, dynamicLoader);
             }
         } catch (vk::SystemError &error) {
@@ -36,10 +36,14 @@ public:
 private:
     vk::Instance instance{nullptr};
     vk::DispatchLoaderDynamic dynamicLoader;
-    InstanceLogger* logger = nullptr;
+    InstanceLogger *logger = nullptr;
 public:
     InstanceLogger *getLogger() const {
         return logger;
+    }
+
+    vk::Instance &getInstance() {
+        return instance;
     }
 
     virtual ~Instance() {
