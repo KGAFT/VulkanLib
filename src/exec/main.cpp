@@ -1,9 +1,9 @@
 
 #include "VulkanLib/Instance.hpp"
 #include <GLFW/glfw3.h>
-#include "VulkanLib/Device/LogicalDevice/PhysicalDevice.hpp"
+#include "VulkanLib/Device/PhysicalDevice/PhysicalDevice.hpp"
 #include "VulkanLib/Device/DeviceBuilder.hpp"
-#include "VulkanLib/Device/LogicalDevice/DeviceSuitability.hpp"
+#include "VulkanLib/Device/PhysicalDevice/DeviceSuitability.hpp"
 
 int main() {
     glfwInit();
@@ -23,9 +23,10 @@ int main() {
     devBuilder.addExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     devBuilder.requestGraphicsSupport();
     devBuilder.requestPresentSupport(surfaceKhr);
-
     for(auto& el : devices){
-        if(DeviceSuitability::isDeviceSuitable(devBuilder, el)){
+        DeviceSuitabilityResults results;
+
+        if(DeviceSuitability::isDeviceSuitable(devBuilder, el, &results)){
             std::cout<<el->properties.deviceName<<std::endl;
         }
     }

@@ -27,6 +27,7 @@ public:
             dynamicLoader = vk::DispatchLoaderDynamic(instance, vkGetInstanceProcAddr);
             if (pBuilder.debugEnabled) {
                 logger = new InstanceLogger(instance, dynamicLoader);
+                enabledLayers = pBuilder.layers;
             }
         } catch (vk::SystemError &error) {
             std::cerr << error.what() << std::endl;
@@ -36,6 +37,7 @@ public:
 private:
     vk::Instance instance{nullptr};
     vk::DispatchLoaderDynamic dynamicLoader;
+    std::vector<const char*> enabledLayers;
     InstanceLogger *logger = nullptr;
 public:
     InstanceLogger *getLogger() const {
@@ -44,6 +46,10 @@ public:
 
     vk::Instance &getInstance() {
         return instance;
+    }
+
+    const std::vector<const char *> &getEnabledLayers() const {
+        return enabledLayers;
     }
 
     virtual ~Instance() {
