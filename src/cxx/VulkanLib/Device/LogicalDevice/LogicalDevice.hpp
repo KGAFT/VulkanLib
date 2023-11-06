@@ -5,6 +5,7 @@
 
 #include "VulkanLib/Device/PhysicalDevice/DeviceSuitability.hpp"
 #include "VulkanLib/MemoryUtils/MemoryUtils.hpp"
+#include "LogicalQueue.hpp"
 
 class LogicalDevice {
 private:
@@ -12,17 +13,38 @@ private:
     static inline float priority = 1.0f;
     static inline unsigned int usedQueueCreateInfos;
 public:
-    LogicalDevice(Instance& instance, DeviceBuilder &builder, DeviceSuitabilityResults *results) {
+    LogicalDevice(Instance& instance, PhysicalDevice* device, DeviceBuilder &builder, DeviceSuitabilityResults *results) :baseDevice(device) {
         sanitizeQueueCreateInfos(results);
 
         vk::DeviceCreateInfo deviceInfo = vk::DeviceCreateInfo(
                 vk::DeviceCreateFlags(),
                 usedQueueCreateInfos, queueCreateInfos.data(),
                 instance.getEnabledLayers().size(), instance.getEnabledLayers().data(),
-                0, nullptr,
+                builder.requestExtensions.size(), builder.requestExtensions.data(),
                 nullptr
         );
+        try{
+            LogicalDevice::device = device->getBase().createDevice(deviceInfo, nullptr);
+            for (const auto &item: results->queuesInfo){
+                queues.push_back(LogicalQueue(LogicalDevice::device.getQueue(item.index, 0), item.supportPresentation, item.properties.queueFlags&vk::QueueFlagBits::eGraphics?vk::QueueFlagBits::eGraphics:vk::QueueFlagBits::eCompute));
+            }
+        }catch (vk::SystemError& error){
+            std::cerr<<error.what()<<std::endl;
+        }
 
+
+    }
+private:
+    vk::Device device;
+    std::vector<LogicalQueue> queues;
+    PhysicalDevice* baseDevice;
+public:
+    const vk::Device &getDevice() const {
+        device;
+    }
+
+    PhysicalDevice *getBaseDevice() const {
+        return baseDevice;
     }
 
 private:
@@ -44,6 +66,13 @@ private:
         }
         usedQueueCreateInfos = counter;
     }
+
+public:
+    ~LogicalDevice() {
+
+        device.destroy();
+    }
+
 };
 
 
