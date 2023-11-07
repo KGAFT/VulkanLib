@@ -13,7 +13,8 @@ private:
     static inline float priority = 1.0f;
     static inline unsigned int usedQueueCreateInfos;
 public:
-    LogicalDevice(Instance& instance, PhysicalDevice* device, DeviceBuilder &builder, DeviceSuitabilityResults *results) :baseDevice(device) {
+    LogicalDevice(Instance &instance, PhysicalDevice *device, DeviceBuilder &builder, DeviceSuitabilityResults *results)
+            : baseDevice(device) {
         sanitizeQueueCreateInfos(results);
 
         vk::DeviceCreateInfo deviceInfo = vk::DeviceCreateInfo(
@@ -23,28 +24,51 @@ public:
                 builder.requestExtensions.size(), builder.requestExtensions.data(),
                 nullptr
         );
-        try{
+        try {
             LogicalDevice::device = device->getBase().createDevice(deviceInfo, nullptr);
-            for (const auto &item: results->queuesInfo){
-                queues.push_back(LogicalQueue(LogicalDevice::device.getQueue(item.index, 0), item.supportPresentation, item.properties.queueFlags&vk::QueueFlagBits::eGraphics?vk::QueueFlagBits::eGraphics:vk::QueueFlagBits::eCompute));
+            for (const auto &item: results->queuesInfo) {
+                queues.push_back(LogicalQueue(LogicalDevice::device.getQueue(item.index, 0), item.supportPresentation,
+                                              item.properties.queueFlags & vk::QueueFlagBits::eGraphics
+                                              ? vk::QueueFlagBits::eGraphics : vk::QueueFlagBits::eCompute,
+                                              item.index));
             }
-        }catch (vk::SystemError& error){
-            std::cerr<<error.what()<<std::endl;
+        } catch (vk::SystemError &error) {
+            std::cerr << error.what() << std::endl;
         }
 
 
     }
+
 private:
     vk::Device device;
     std::vector<LogicalQueue> queues;
-    PhysicalDevice* baseDevice;
+    PhysicalDevice *baseDevice;
 public:
     const vk::Device &getDevice() const {
-        device;
+        return device;
     }
 
     PhysicalDevice *getBaseDevice() const {
         return baseDevice;
+    }
+
+    LogicalQueue &getQueueByType(vk::QueueFlagBits queueType) {
+        for (auto &item: queues) {
+            if (item.queueType & queueType) {
+                return item;
+            }
+        }
+    }
+
+    LogicalQueue &getPresentQueue() {
+        for (auto &item: queues) {
+            if (item.supportPresentation) {
+                return item;
+            }
+        }
+    }
+    unsigned int getQueuesAmount(){
+        return queues.size();
     }
 
 private:

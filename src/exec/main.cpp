@@ -5,8 +5,12 @@
 #include "VulkanLib/Device/DeviceBuilder.hpp"
 #include "VulkanLib/Device/PhysicalDevice/DeviceSuitability.hpp"
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
+#include "VulkanLib/MemoryUtils/VectorUtils.hpp"
+#include "VulkanLib/Device/SwapChain/SwapChain.hpp"
 
 int main() {
+
+
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -36,7 +40,7 @@ int main() {
     int devIndex;
     std::cin>>devIndex;
     LogicalDevice device(instance, devices[devIndex], devBuilder, &results[devIndex]);
-
+    SwapChain swapChain(device, surfaceKhr, 800, 600);
     while(!glfwWindowShouldClose(window)){
         glfwPollEvents();
     }
