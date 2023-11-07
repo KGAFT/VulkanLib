@@ -8,13 +8,13 @@
 #include <VulkanLib/MemoryUtils/VectorUtils.hpp>
 #include <vulkan/vulkan.hpp>
 
-struct SwapChainSupportDetails {
+struct SwapChainSupportDetails{
     vk::SurfaceCapabilitiesKHR capabilities;
     std::vector<vk::SurfaceFormatKHR> formats;
     std::vector<vk::PresentModeKHR> presentModes;
 };
 
-class SwapChain {
+class SwapChain : IDestroyableObject{
 public:
     SwapChain(LogicalDevice &device, const vk::SurfaceKHR &surface,
               uint32_t width, uint32_t height)
@@ -67,7 +67,6 @@ private:
         createInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
         try {
             swapchainKhr = device.getDevice().createSwapchainKHR(createInfo);
-            uint32_t imageAmount;
             std::vector<vk::Image> images = device.getDevice().getSwapchainImagesKHR(swapchainKhr);
             swapchainImages.resize(images.size());
             for (int i = 0; i < images.size(); ++i) {
@@ -137,7 +136,9 @@ private:
             return extent;
         }
     }
+    virtual void destroy() override{
+        device.getDevice().destroySwapchainKHR(swapchainKhr);
+        destroyed = true;
+    }
 
-public:
-    ~SwapChain() { device.getDevice().destroySwapchainKHR(swapchainKhr); }
 };

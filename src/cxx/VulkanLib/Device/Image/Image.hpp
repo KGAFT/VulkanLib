@@ -7,10 +7,10 @@
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
 #include <vulkan/vulkan_structs.hpp>
 
-class Image {
+class Image : IDestroyableObject {
 public:
     Image(LogicalDevice *&device, vk::Image base) : device(device), base(base) {
-
+        castCreated = true;
     }
 
     Image(LogicalDevice &device, vk::ImageCreateInfo &createInfo) : imageInfo(createInfo), device(&device) {
@@ -25,7 +25,7 @@ private:
     vk::Image base;
     vk::ImageCreateInfo imageInfo;
     std::vector<ImageView> imageViews;
-
+    bool castCreated = false;
 public:
     ImageView &createImageView(vk::ImageViewCreateInfo &createInfo) {
         imageViews.push_back(ImageView(
@@ -38,5 +38,10 @@ public:
     }
     const std::vector<ImageView> &getImageViews() const { return imageViews; }
 
-    ~Image() { device->getDevice().destroyImage(base); }
+private:
+    void destroy() override {
+        device->getDevice().destroyImage(base);
+        destroyed = true;
+    }
+
 };

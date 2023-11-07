@@ -6,8 +6,9 @@
 #include <vulkan/vulkan.hpp>
 #include "InstanceBuilder.hpp"
 #include "VulkanLib/InstanceLogger/InstanceLogger.hpp"
+#include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
 
-class Instance {
+class Instance : IDestroyableObject{
 public:
     Instance(InstanceBuilder &pBuilder) {
         vk::ApplicationInfo appInfo(
@@ -52,10 +53,13 @@ public:
         return enabledLayers;
     }
 
-    virtual ~Instance() {
+protected:
+    void destroy() override {
         delete logger;
         instance.destroy();
+        destroyed = true;
     }
+
 };
 
 

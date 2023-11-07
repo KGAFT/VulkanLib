@@ -6,8 +6,9 @@
 #include <vulkan/vulkan.hpp>
 #include "IInstanceLoggerCallback.hpp"
 #include "DefaultVulkanLoggerCallback.hpp"
+#include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
 
-class InstanceLogger {
+class InstanceLogger : IDestroyableObject{
 public:
     static inline std::vector<InstanceLogger *> loggers = std::vector<InstanceLogger *>();
 
@@ -50,10 +51,6 @@ private:
 public:
     void addCallback(IInstanceLoggerCallback* loggerCallback){
         loggerCallbacks.push_back(loggerCallback);
-    }
-
-    virtual ~InstanceLogger() {
-        instance.destroyDebugUtilsMessengerEXT(messenger, nullptr, loaderDynamic);
     }
 
 private:
@@ -139,5 +136,10 @@ private:
                 break;
         }
         return res;
+    }
+protected:
+    void destroy() override {
+        instance.destroyDebugUtilsMessengerEXT(messenger, nullptr, loaderDynamic);
+        destroyed = true;
     }
 };

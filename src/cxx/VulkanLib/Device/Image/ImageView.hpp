@@ -5,7 +5,7 @@
 
 #include <vulkan/vulkan.hpp>
 #include <VulkanLib/Device/LogicalDevice/LogicalDevice.hpp>
-class ImageView {
+class ImageView : IDestroyableObject{
 public:
     ImageView(LogicalDevice& device, vk::ImageView base, vk::ImageViewCreateInfo &createInfo) : base(base),
                                                                                       createInfo(createInfo), device(device) {}
@@ -23,9 +23,13 @@ public:
         return createInfo;
     }
 
-     ~ImageView() {
+private:
+    void destroy() override {
         device.getDevice().destroyImageView(base);
+        destroyed = true;
     }
+
+
 };
 
 
