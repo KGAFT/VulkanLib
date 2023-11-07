@@ -38,6 +38,9 @@ public:
 
 
     }
+    LogicalDevice(){
+
+    }
 
 private:
     vk::Device device;
