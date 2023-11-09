@@ -8,13 +8,13 @@
 #include <VulkanLib/MemoryUtils/VectorUtils.hpp>
 #include <vulkan/vulkan.hpp>
 
-struct SwapChainSupportDetails{
+struct SwapChainSupportDetails {
     vk::SurfaceCapabilitiesKHR capabilities;
     std::vector<vk::SurfaceFormatKHR> formats;
     std::vector<vk::PresentModeKHR> presentModes;
 };
 
-class SwapChain : IDestroyableObject{
+class SwapChain : IDestroyableObject {
 public:
     SwapChain(LogicalDevice &device, const vk::SurfaceKHR &surface,
               uint32_t width, uint32_t height)
@@ -30,6 +30,7 @@ private:
     vk::PresentModeKHR presentMode;
     vk::Extent2D extent;
     std::vector<Image> swapchainImages;
+    std::vector<ImageView *> swapchainImageViews;
     uint32_t width;
     uint32_t height;
 
@@ -71,6 +72,21 @@ private:
             swapchainImages.resize(images.size());
             for (int i = 0; i < images.size(); ++i) {
                 swapchainImages[i].initialize(&device, images[i]);
+                vk::ImageViewCreateInfo viewCreateInfo = {};
+                viewCreateInfo.image = images[i];
+                viewCreateInfo.viewType = vk::ImageViewType::e2D;
+                viewCreateInfo.format = format.format;
+                viewCreateInfo.components.r = vk::ComponentSwizzle::eIdentity;
+                viewCreateInfo.components.g = vk::ComponentSwizzle::eIdentity;
+                viewCreateInfo.components.b = vk::ComponentSwizzle::eIdentity;
+                viewCreateInfo.components.a = vk::ComponentSwizzle::eIdentity;
+                viewCreateInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+                viewCreateInfo.subresourceRange.baseMipLevel = 0;
+                viewCreateInfo.subresourceRange.levelCount = 1;
+                viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+                viewCreateInfo.subresourceRange.layerCount = 1;
+                swapchainImageViews.push_back(&swapchainImages[i].createImageView(viewCreateInfo));
+
             }
         } catch (vk::SystemError &err) {
             std::cerr << err.what() << std::endl;
@@ -78,18 +94,19 @@ private:
     }
 
     void gatherSwapChainSupportDetails(SwapChainSupportDetails &output) {
-        device.getBaseDevice()->getBase().getSurfaceCapabilitiesKHR(
+        vk::Result res;
+        res = device.getBaseDevice()->getBase().getSurfaceCapabilitiesKHR(
                 surface, &output.capabilities);
         uint32_t formatCount;
-        device.getBaseDevice()->getBase().getSurfaceFormatsKHR(
+        res = device.getBaseDevice()->getBase().getSurfaceFormatsKHR(
                 surface, &formatCount, nullptr);
         output.formats.resize(formatCount);
-        device.getBaseDevice()->getBase().getSurfaceFormatsKHR(
+        res = device.getBaseDevice()->getBase().getSurfaceFormatsKHR(
                 surface, &formatCount, output.formats.data());
-        device.getBaseDevice()->getBase().getSurfacePresentModesKHR(
+        res = device.getBaseDevice()->getBase().getSurfacePresentModesKHR(
                 surface, &formatCount, nullptr);
         output.presentModes.resize(formatCount);
-        device.getBaseDevice()->getBase().getSurfacePresentModesKHR(
+        res = device.getBaseDevice()->getBase().getSurfacePresentModesKHR(
                 surface, &formatCount, output.presentModes.data());
     }
 
@@ -136,7 +153,8 @@ private:
             return extent;
         }
     }
-    virtual void destroy() override{
+
+    virtual void destroy() override {
         device.getDevice().destroySwapchainKHR(swapchainKhr);
         destroyed = true;
     }

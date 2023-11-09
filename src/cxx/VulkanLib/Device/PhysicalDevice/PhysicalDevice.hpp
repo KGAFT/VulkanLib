@@ -45,11 +45,12 @@ private:
 
     }
     void init(vk::PhysicalDevice base){
+        vk::Result res;
         PhysicalDevice::base = base;
         uint32_t propertyCount;
-        base.enumerateDeviceExtensionProperties(nullptr, &propertyCount, nullptr);
+        res = base.enumerateDeviceExtensionProperties(nullptr, &propertyCount, nullptr);
         extensionProperties.resize(propertyCount);
-        base.enumerateDeviceExtensionProperties(nullptr, &propertyCount, extensionProperties.data());
+        res = base.enumerateDeviceExtensionProperties(nullptr, &propertyCount, extensionProperties.data());
         base.getFeatures(&features);
         base.getProperties(&properties);
     }

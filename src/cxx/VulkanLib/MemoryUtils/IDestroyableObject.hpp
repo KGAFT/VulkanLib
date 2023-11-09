@@ -6,7 +6,9 @@
 class IDestroyableObject{
 protected:
     bool destroyed = false;
-    virtual void destroy() = 0;
+    virtual void destroy(){
+
+    }
 public:
     IDestroyableObject(){
         if(!destroyed){

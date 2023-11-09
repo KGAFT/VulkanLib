@@ -61,6 +61,7 @@ public:
                 return item;
             }
         }
+        throw std::runtime_error("Error: no such queue");
     }
 
     LogicalQueue &getPresentQueue() {
@@ -69,6 +70,7 @@ public:
                 return item;
             }
         }
+        throw std::runtime_error("Error: no such queue");
     }
     unsigned int getQueuesAmount(){
         return queues.size();

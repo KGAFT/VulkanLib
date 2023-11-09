@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.00)
 project(VulkanLib)
 
 find_package(Vulkan REQUIRED shaderc_combined)
-
 set(CMAKE_CXX_STANDARD 23)
 
 file(GLOB_RECURSE H_FILES src/cxx/*.hpp)
