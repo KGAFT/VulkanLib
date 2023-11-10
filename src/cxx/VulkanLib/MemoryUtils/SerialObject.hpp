@@ -13,7 +13,7 @@ private:
     std::map<T*, bool> objectInstances;
     unsigned int releasedObjectCount = 0;
 public:
-    T* getObjectInstance(){
+     T* getObjectInstance()  {
         for (auto &item: objectInstances){
             if(!item.second){
                 item.second = true;
@@ -25,7 +25,7 @@ public:
         objectInstances[res] = true;
         return res;
     }
-    void releaseObjectInstance(T* instance){
+    void releaseObjectInstance( T* instance){
         objectInstances[instance] = false;
         releasedObjectCount ++;
         if(releasedObjectCount>2){

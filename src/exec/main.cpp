@@ -7,6 +7,7 @@
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
 #include "VulkanLib/MemoryUtils/VectorUtils.hpp"
 #include "VulkanLib/Device/SwapChain/SwapChain.hpp"
+#include "VulkanLib/Shader/ShaderLoader.hpp"
 
 int main() {
 
@@ -41,6 +42,10 @@ int main() {
     std::cin>>devIndex;
     LogicalDevice device(instance, devices[devIndex], devBuilder, &results[devIndex]);
     SwapChain swapChain(device, surfaceKhr, 800, 600);
+    auto* loaderInstance = ShaderLoader::getInstance();
+    size_t shaderSize;
+    std::vector<uint32_t> shader;
+    loaderInstance->compileShader("main.frag", "main.frag", shaderc_fragment_shader, shader);
     while(!glfwWindowShouldClose(window)){
         glfwPollEvents();
     }

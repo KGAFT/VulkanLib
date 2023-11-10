@@ -8,13 +8,18 @@
 #include <iostream>
 #include <VulkanLib/MemoryUtils/SerialObject.hpp>
 #include <cstring>
+#include <vulkan/vulkan.hpp>
+#include "ShaderLoaderIncluder.hpp"
+#include "VulkanLib/MemoryUtils/FileReader.hpp"
+#include "ShaderCreateInfo.hpp"
 
 struct ShaderCompileResult {
     const char *binary;
     size_t shaderSize;
 };
 
-class ShaderLoader {
+
+class ShaderLoader{
 private:
     static inline ShaderLoader *instance = nullptr;
 
@@ -28,49 +33,66 @@ public:
 
 private:
     ShaderLoader() {
-        compiler = shaderc_compiler_initialize();
-        shaderc_compile_options_set_include_callbacks(nullptr, GetInclude,
-                                                      ReleaseInclude, nullptr);
+        compileOptions.SetIncluder(std::unique_ptr<shaderc::CompileOptions::IncluderInterface>{std::make_unique<ShaderLoaderIncluder>(ShaderLoaderIncluder())});
+
     }
 
 private:
-    shaderc_compiler_t compiler;
-private:
-    static SerialObject<shaderc_include_result> includes;
-    static shaderc_include_result *GetInclude(void* user_data, const char* requested_source, int type,
-                                              const char* requesting_source, size_t include_depth) {
-        auto *result = (shaderc_include_result *) includes.getObjectInstance();
-        size_t codeLength;
-        const char* code = readCode(requested_source, &codeLength);
-        if(!code){
-            throw std::runtime_error(std::string("Include error: no such file: ")+requested_source+" included in "+requesting_source);
+    shaderc::Compiler compiler;
+    vk::ShaderModuleCreateInfo shaderCreateInfo;
+    shaderc::CompileOptions compileOptions;
+    std::vector<uint32_t> shaderBuffer;
+    const char* shaderBinaryBuffer;
+    size_t binarySize;
+public:
+    vk::ShaderModule createShaderModule(LogicalDevice& device, ShaderCreateInfo& createInfo){
+        if(createInfo.fileType == BINARY_FILE){
+            FileReader::readBinary(createInfo.pathToFile, &binarySize);
+        } else{
+            compileShader(createInfo.pathToFile, createInfo.fileName, vkTypeToShadercType(createInfo.stage), shaderBuffer);
         }
-        result->content = code;
-        result->content_length = codeLength;
-        result->source_name = requested_source;
-        result->source_name_length = strlen(requested_source);
-        return result;
+        MemoryUtils::memClear(&shaderCreateInfo, sizeof(vk::ShaderModuleCreateInfo));
+        shaderCreateInfo.sType = vk::StructureType::eShaderCreateInfoEXT;
+        shaderCreateInfo.pCode = createInfo.fileType==SRC_FILE?shaderBuffer.data():reinterpret_cast<const uint32_t*>(shaderBinaryBuffer);
+        shaderCreateInfo.codeSize = createInfo.fileType==SRC_FILE?shaderBuffer.size():binarySize;
+        vk::ShaderModule result = device.getDevice().createShaderModule(shaderCreateInfo);
+        if(createInfo.fileType == BINARY_FILE){
+            free((void *) shaderBinaryBuffer);
+        } else{
+            shaderBuffer.clear();
+        }
+    }
+    void compileShader(const char* filePath, const char* fileName, shaderc_shader_kind shaderKind, std::vector<uint32_t>& output) const{
+        size_t codeSize;
+        const char* shaderCode = FileReader::readText(filePath, &codeSize);
+
+        shaderc::CompilationResult<uint32_t> result = compiler.CompileGlslToSpv(shaderCode,
+                                                                       codeSize * sizeof(char),
+                                                                       shaderKind, fileName, compileOptions);
+        if (result.GetCompilationStatus() != shaderc_compilation_status_success)
+        {
+            throw std::runtime_error("Failed to compile shader " + std::string(filePath) + " into SPIR-V:\n " +
+                                             result.GetErrorMessage());
+        }
+        free((void *) shaderCode);
+        output = std::vector<uint32_t>(result.cbegin(), result.cend());
+    }
+public:
+    static shaderc_shader_kind vkTypeToShadercType(vk::ShaderStageFlagBits shaderType){
+        switch (shaderType) {
+            case vk::ShaderStageFlagBits::eCompute:
+                return shaderc_compute_shader;
+            case vk::ShaderStageFlagBits::eFragment:
+                return shaderc_fragment_shader;
+            case vk::ShaderStageFlagBits::eVertex:
+                return shaderc_vertex_shader;
+            case vk::ShaderStageFlagBits::eGeometry:
+                return shaderc_geometry_shader;
+            case vk::ShaderStageFlagBits::eMeshEXT:
+                return shaderc_mesh_shader;
+        }
     }
 
-    static void ReleaseInclude(void* userData, shaderc_include_result* data){
-        delete data->content;
-        includes.releaseObjectInstance(data);
-    }
-
-    static const char *readCode(const char *filePath, size_t* sizeOutput) {
-        std::ifstream fileReader(filePath, std::ios::binary);
-        if (fileReader) {
-            char *content;
-            fileReader.seekg(0, std::ios::end);
-            size_t size = fileReader.tellg();
-            content = new char[size];
-            fileReader.seekg(0, std::ios::beg);
-            fileReader.read(&content[0], size);
-            fileReader.close();
-            return content;
-        }
-        return nullptr;
-    }
 
 };
 
