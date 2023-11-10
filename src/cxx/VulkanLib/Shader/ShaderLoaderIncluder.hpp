@@ -30,7 +30,7 @@ public:
 
 
     void ReleaseInclude(shaderc_include_result* data) override{
-        delete data->content;
+        free((void *) data->content);
         includes.releaseObjectInstance(data);
     }
 };
