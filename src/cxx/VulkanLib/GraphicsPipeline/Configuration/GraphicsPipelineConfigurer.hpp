@@ -10,7 +10,7 @@
 #include "GraphicsPipelineBuilder.hpp"
 
 class GraphicsPipelineConfigurer : public IDestroyableObject{
-
+    friend class GraphicsPipeline;
 
 public:
      GraphicsPipelineConfigurer(LogicalDevice &device, GraphicsPipelineBuilder* builder) : device(device) {

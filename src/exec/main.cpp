@@ -10,6 +10,14 @@
 #include "VulkanLib/Shader/ShaderLoader.hpp"
 #include "VulkanLib/GraphicsPipeline/Configuration/GraphicsPipelineBuilder.hpp"
 #include "VulkanLib/GraphicsPipeline/RenderPass.hpp"
+#include "VulkanLib/GraphicsPipeline/GraphicsPipeline.hpp"
+
+#include <glm/glm.hpp>
+
+struct PCS {
+    glm::vec4 colorAmplifier;
+    glm::vec4 colorAdder;
+};
 
 int main() {
 
@@ -87,14 +95,25 @@ int main() {
     }
 
     auto *loaderInstance = ShaderLoader::getInstance();
+    std::vector<ShaderCreateInfo> createInfos;
+    createInfos.push_back(
+            {"shaders/main.vert", "main.vert", ShaderFileType::SRC_FILE, vk::ShaderStageFlagBits::eVertex});
+    createInfos.push_back(
+            {"shaders/main.frag", "main.frag", ShaderFileType::SRC_FILE, vk::ShaderStageFlagBits::eFragment});
 
+    Shader *shader = loaderInstance->createShader(device, createInfos);
 
     GraphicsPipelineBuilder gPipelineBuilder;
     gPipelineBuilder.addColorAttachments(const_cast<ImageView **>(swapChain.getSwapchainImageViews().data()),
                                          swapChain.getSwapchainImageViews().size());
     gPipelineBuilder.addDepthAttachments(depthImageViews.data(), depthImageViews.size());
-    RenderPass renderPass(true, 1, gPipelineBuilder, device);
+    gPipelineBuilder.addVertexInput({0, 3, sizeof(float), vk::Format::eR32G32B32Sfloat});
+    gPipelineBuilder.addVertexInput({1, 2, sizeof(float), vk::Format::eR32G32Sfloat});
+    gPipelineBuilder.addSamplerInfo({1, vk::ShaderStageFlagBits::eFragment});
+    gPipelineBuilder.addPushConstantInfo({vk::ShaderStageFlagBits::eFragment, sizeof(PCS)});
 
+    RenderPass renderPass(true, 1, gPipelineBuilder, device);
+    GraphicsPipeline pipeline(device, shader, gPipelineBuilder, 1, 800, 600, renderPass);
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
     }

@@ -12,11 +12,8 @@
 #include "ShaderLoaderIncluder.hpp"
 #include "VulkanLib/MemoryUtils/FileReader.hpp"
 #include "ShaderCreateInfo.hpp"
+#include "VulkanLib/GraphicsPipeline/Shader.hpp"
 
-struct ShaderCompileResult {
-    const char *binary;
-    size_t shaderSize;
-};
 
 
 class ShaderLoader{
@@ -24,7 +21,7 @@ private:
     static inline ShaderLoader *instance = nullptr;
 
 public:
-    static const ShaderLoader *getInstance() {
+    static ShaderLoader *getInstance() {
         if (!instance) {
             instance = new ShaderLoader;
         }
@@ -45,6 +42,20 @@ private:
     const char* shaderBinaryBuffer;
     size_t binarySize;
 public:
+    Shader * createShader(LogicalDevice& device, std::vector<ShaderCreateInfo>& createInfos)  {
+        std::vector<vk::PipelineShaderStageCreateInfo> infos;
+        unsigned int counter = 0;
+        infos.resize(createInfos.size());
+        for (auto &item: createInfos){
+            vk::ShaderModule module = createShaderModule(device, item);
+            infos[counter].stage = item.stage;
+            infos[counter].module = module;
+            infos[counter].pName = "main";
+            counter++;
+        }
+        return new Shader(infos, device);
+    }
+
     vk::ShaderModule createShaderModule(LogicalDevice& device, ShaderCreateInfo& createInfo){
         if(createInfo.fileType == BINARY_FILE){
             FileReader::readBinary(createInfo.pathToFile, &binarySize);
@@ -52,15 +63,16 @@ public:
             compileShader(createInfo.pathToFile, createInfo.fileName, vkTypeToShadercType(createInfo.stage), shaderBuffer);
         }
         MemoryUtils::memClear(&shaderCreateInfo, sizeof(vk::ShaderModuleCreateInfo));
-        shaderCreateInfo.sType = vk::StructureType::eShaderCreateInfoEXT;
+        shaderCreateInfo.sType = vk::StructureType::eShaderModuleCreateInfo;
         shaderCreateInfo.pCode = createInfo.fileType==SRC_FILE?shaderBuffer.data():reinterpret_cast<const uint32_t*>(shaderBinaryBuffer);
-        shaderCreateInfo.codeSize = createInfo.fileType==SRC_FILE?shaderBuffer.size():binarySize;
+        shaderCreateInfo.codeSize = createInfo.fileType==SRC_FILE?shaderBuffer.size()*sizeof(uint32_t):binarySize;
         vk::ShaderModule result = device.getDevice().createShaderModule(shaderCreateInfo);
         if(createInfo.fileType == BINARY_FILE){
             free((void *) shaderBinaryBuffer);
         } else{
             shaderBuffer.clear();
         }
+        return result;
     }
     void compileShader(const char* filePath, const char* fileName, shaderc_shader_kind shaderKind, std::vector<uint32_t>& output) const{
         size_t codeSize;
@@ -75,6 +87,7 @@ public:
                                              result.GetErrorMessage());
         }
         free((void *) shaderCode);
+
         output = std::vector<uint32_t>(result.cbegin(), result.cend());
     }
 public:
