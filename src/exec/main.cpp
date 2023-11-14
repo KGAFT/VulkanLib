@@ -9,7 +9,7 @@
 #include "VulkanLib/Device/SwapChain/SwapChain.hpp"
 #include "VulkanLib/Shader/ShaderLoader.hpp"
 #include "VulkanLib/GraphicsPipeline/Configuration/GraphicsPipelineBuilder.hpp"
-#include "VulkanLib/GraphicsPipeline/RenderPass.hpp"
+#include "VulkanLib/GraphicsPipeline/RenderPass/RenderPass.hpp"
 #include "VulkanLib/GraphicsPipeline/GraphicsPipeline.hpp"
 
 #include <glm/glm.hpp>

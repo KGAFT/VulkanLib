@@ -10,7 +10,7 @@ protected:
 
     }
 public:
-    IDestroyableObject(){
+    ~IDestroyableObject(){
         if(!destroyed){
             destroy();
         }

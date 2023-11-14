@@ -6,17 +6,21 @@
 #include "Configuration/GraphicsPipelineConfig.hpp"
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
 #include "Configuration/GraphicsPipelineBuilder.hpp"
-#include "RenderPass.hpp"
+#include "VulkanLib/GraphicsPipeline/RenderPass/RenderPass.hpp"
 #include "VulkanLib/GraphicsPipeline/Configuration/GraphicsPipelineConfigurer.hpp"
+#include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
+#include "VulkanLib/MemoryUtils/SerialObject.hpp"
 #include "Shader.hpp"
 
-class GraphicsPipeline {
+class GraphicsPipeline : public IDestroyableObject {
 private:
-    static inline GraphicsPipelineConfig config = GraphicsPipelineConfig();
+    static inline SerialObject<GraphicsPipelineConfig> configInstancer = SerialObject<GraphicsPipelineConfig>();
 public:
-    GraphicsPipeline(LogicalDevice& device, Shader* shader, GraphicsPipelineBuilder &builder, unsigned int attachmentPerStepAmount,
+    GraphicsPipeline(LogicalDevice &device, Shader *shader, GraphicsPipelineBuilder &builder,
+                     unsigned int attachmentPerStepAmount,
                      unsigned int width, unsigned int height,
-                     RenderPass &renderPass) : configurer(device, &builder){
+                     RenderPass &renderPass) : device(device), configurer(device, &builder) {
+        GraphicsPipelineConfig *config = configInstancer.getObjectInstance();
         GraphicsPipelineConfig::createConfig(config, attachmentPerStepAmount, true, width, height);
 
         vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
@@ -27,34 +31,46 @@ public:
 
         vk::PipelineViewportStateCreateInfo viewportInfo{};
         viewportInfo.viewportCount = 1;
-        viewportInfo.pViewports = &config.viewport;
+        viewportInfo.pViewports = &config->viewport;
         viewportInfo.scissorCount = 1;
-        viewportInfo.pScissors = &config.scissor;
+        viewportInfo.pScissors = &config->scissor;
 
         vk::GraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.stageCount = shader->getCreateInfos().size();
         pipelineInfo.pStages = shader->getCreateInfos().data();
         pipelineInfo.pVertexInputState = &vertexInputInfo;
-        pipelineInfo.pInputAssemblyState = &config.inputAssemblyInfo;
+        pipelineInfo.pInputAssemblyState = &config->inputAssemblyInfo;
         pipelineInfo.pViewportState = &viewportInfo;
-        pipelineInfo.pRasterizationState = &config.rasterizationInfo;
-        pipelineInfo.pMultisampleState = &config.multisampleInfo;
-        pipelineInfo.pColorBlendState = &config.colorBlendInfo;
-        pipelineInfo.pDepthStencilState = &config.depthStencilInfo;
+        pipelineInfo.pRasterizationState = &config->rasterizationInfo;
+        pipelineInfo.pMultisampleState = &config->multisampleInfo;
+        pipelineInfo.pColorBlendState = &config->colorBlendInfo;
+        pipelineInfo.pDepthStencilState = &config->depthStencilInfo;
         pipelineInfo.pDynamicState = nullptr;
 
         pipelineInfo.layout = configurer.pipelineLayout;
         pipelineInfo.renderPass = renderPass.getRenderPass();
-        pipelineInfo.subpass = config.subpass;
+        pipelineInfo.subpass = config->subpass;
 
         pipelineInfo.basePipelineIndex = -1;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
         graphicsPipeline = device.getDevice().createGraphicsPipeline(nullptr, pipelineInfo).value;
-
+        configInstancer.releaseObjectInstance(config);
     }
+
 private:
     GraphicsPipelineConfigurer configurer;
     vk::Pipeline graphicsPipeline;
+    LogicalDevice &device;
+public:
+    vk::Pipeline getGraphicsPipeline() {
+        return graphicsPipeline;
+    }
+
+protected:
+    void destroy() override {
+        destroyed = true;
+        device.getDevice().destroyPipeline(graphicsPipeline);
+    }
 };
 
 

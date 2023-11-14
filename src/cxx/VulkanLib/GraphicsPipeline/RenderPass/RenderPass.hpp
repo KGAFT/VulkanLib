@@ -5,8 +5,8 @@
 
 #include <vector>
 #include <vulkan/vulkan.hpp>
-#include "Configuration/GraphicsPipelineBuilder.hpp"
-#include <VulkanLib/Device/SwapChain/SwapChain.hpp>
+#include "VulkanLib/GraphicsPipeline/Configuration/GraphicsPipelineBuilder.hpp"
+#include "VulkanLib/Device/SwapChain/SwapChain.hpp"
 
 class RenderPass : IDestroyableObject{
 public:
