@@ -8,6 +8,8 @@
 #include "VulkanLib/MemoryUtils/VectorUtils.hpp"
 #include "VulkanLib/Device/SwapChain/SwapChain.hpp"
 #include "VulkanLib/Shader/ShaderLoader.hpp"
+#include "VulkanLib/GraphicsPipeline/Configuration/GraphicsPipelineBuilder.hpp"
+#include "VulkanLib/GraphicsPipeline/RenderPass.hpp"
 
 int main() {
 
@@ -15,14 +17,15 @@ int main() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "tes", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(800, 600, "tes", nullptr, nullptr);
 
     InstanceBuilder builder;
     builder.presetForGlfw();
     builder.presetForDebug();
     builder.setApplicationName("TestEngine");
     Instance instance(builder);
-    std::vector<PhysicalDevice *> devices = PhysicalDevice::getDevices(instance);
+    std::vector<PhysicalDevice *> &devices = const_cast<std::vector<PhysicalDevice *> &>(PhysicalDevice::getDevices(
+            instance));
     VkSurfaceKHR surfaceKhr;
     glfwCreateWindowSurface(instance.getInstance(), window, nullptr, &surfaceKhr);
     DeviceBuilder devBuilder;
@@ -32,21 +35,67 @@ int main() {
 
     std::vector<DeviceSuitabilityResults> results;
 
-    for(auto& el : devices){
+    for (auto &el: devices) {
         results.push_back(DeviceSuitabilityResults());
-        if(DeviceSuitability::isDeviceSuitable(devBuilder, el, &results[results.size()-1])){
-            std::cout<<el->properties.deviceName<<std::endl;
+        if (DeviceSuitability::isDeviceSuitable(devBuilder, el, &results[results.size() - 1])) {
+            std::cout << el->properties.deviceName << std::endl;
         }
     }
     int devIndex;
-    std::cin>>devIndex;
+    std::cin >> devIndex;
     LogicalDevice device(instance, devices[devIndex], devBuilder, &results[devIndex]);
+
+    PhysicalDevice::releaseUnusedDevicesInfos(&devices[devIndex], 1);
+    results.clear();
+
+
     SwapChain swapChain(device, surfaceKhr, 800, 600);
-    auto* loaderInstance = ShaderLoader::getInstance();
-    size_t shaderSize;
-    std::vector<uint32_t> shader;
-    loaderInstance->compileShader("main.frag", "main.frag", shaderc_fragment_shader, shader);
-    while(!glfwWindowShouldClose(window)){
+    std::vector<Image> depthImages;
+    depthImages.resize(swapChain.getSwapchainImageViews().size());
+    vk::Format depthFormat = device.findDepthFormat();
+
+    vk::ImageCreateInfo imageInfo{};
+    imageInfo.imageType = vk::ImageType::e2D;
+    imageInfo.extent.width = 800;
+    imageInfo.extent.height = 600;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = depthFormat;
+    imageInfo.tiling = vk::ImageTiling::eOptimal;
+    imageInfo.initialLayout = vk::ImageLayout::eUndefined;
+    imageInfo.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferSrc;
+    imageInfo.samples = vk::SampleCountFlagBits::e1;
+    imageInfo.sharingMode = vk::SharingMode::eExclusive;
+    imageInfo.flags = vk::ImageCreateFlags();
+
+    vk::ImageViewCreateInfo viewInfo{};
+    viewInfo.viewType = vk::ImageViewType::e2D;
+    viewInfo.format = depthFormat;
+    viewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    std::vector<ImageView *> depthImageViews;
+
+    for (unsigned int i = 0; i < swapChain.getSwapchainImageViews().size(); ++i) {
+        depthImages[i].initialize(&device, imageInfo);
+        viewInfo.image = depthImages[i].getBase();
+        depthImageViews.push_back(&depthImages[i].createImageView(viewInfo));
+    }
+
+    auto *loaderInstance = ShaderLoader::getInstance();
+
+
+    GraphicsPipelineBuilder gPipelineBuilder;
+    gPipelineBuilder.addColorAttachments(const_cast<ImageView **>(swapChain.getSwapchainImageViews().data()),
+                                         swapChain.getSwapchainImageViews().size());
+    gPipelineBuilder.addDepthAttachments(depthImageViews.data(), depthImageViews.size());
+    RenderPass renderPass(true, 1, gPipelineBuilder, device);
+
+    while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
     }
     return 0;

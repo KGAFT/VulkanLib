@@ -15,6 +15,13 @@ struct SwapChainSupportDetails {
 };
 
 class SwapChain : IDestroyableObject {
+private:
+    static inline vk::SurfaceFormatKHR format = {};
+public:
+    static const vk::SurfaceFormatKHR &getFormat() {
+        return format;
+    }
+
 public:
     SwapChain(LogicalDevice &device, const vk::SurfaceKHR &surface,
               uint32_t width, uint32_t height)
@@ -26,13 +33,16 @@ private:
     LogicalDevice &device;
     vk::SwapchainKHR swapchainKhr;
     vk::SurfaceKHR surface;
-    vk::SurfaceFormatKHR format;
     vk::PresentModeKHR presentMode;
     vk::Extent2D extent;
     std::vector<Image> swapchainImages;
     std::vector<ImageView *> swapchainImageViews;
     uint32_t width;
     uint32_t height;
+public:
+    const std::vector<ImageView *> &getSwapchainImageViews() const {
+        return swapchainImageViews;
+    }
 
 private:
     void createSwapChain(uint32_t width, uint32_t height) {

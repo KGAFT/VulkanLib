@@ -5,13 +5,17 @@
 
 #include <vulkan/vulkan.hpp>
 #include <VulkanLib/Device/LogicalDevice/LogicalDevice.hpp>
-class ImageView : IDestroyableObject{
+
+class ImageView : IDestroyableObject {
+    friend class Image;
 public:
-    ImageView(LogicalDevice& device, vk::ImageView base, vk::ImageViewCreateInfo &createInfo) : base(base),
-                                                                                      createInfo(createInfo), device(device) {}
+    ImageView(vk::ImageCreateInfo &parentInfo, LogicalDevice &device, vk::ImageView base,
+              vk::ImageViewCreateInfo &createInfo) : base(base),
+                                                     createInfo(createInfo), device(device), parentInfo(parentInfo) {}
 
 private:
-    LogicalDevice& device;
+    vk::ImageCreateInfo &parentInfo;
+    LogicalDevice &device;
     vk::ImageView base;
     vk::ImageViewCreateInfo createInfo;
 public:
@@ -21,6 +25,10 @@ public:
 
     const vk::ImageViewCreateInfo &getCreateInfo() const {
         return createInfo;
+    }
+
+    vk::ImageCreateInfo &getParentInfo() const {
+        return parentInfo;
     }
 
 private:

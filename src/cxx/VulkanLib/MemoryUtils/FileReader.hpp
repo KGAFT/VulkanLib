@@ -36,5 +36,6 @@ namespace FileReader{
         file.read(buffer, fileSize);
         *sizeOutput = fileSize;
         file.close();
+        return buffer;
     }
 }

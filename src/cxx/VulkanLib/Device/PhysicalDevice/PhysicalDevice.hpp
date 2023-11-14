@@ -15,11 +15,11 @@ public:
     static const std::vector<PhysicalDevice*>& getDevices(Instance& instance) {
         if(physicalDevices.empty()){
             uint32_t physDevCount;
-            instance.getInstance().enumeratePhysicalDevices(&physDevCount, nullptr);
+            vk::Result res = instance.getInstance().enumeratePhysicalDevices(&physDevCount, nullptr);
             physicalDevices.resize(physDevCount);
             std::vector<vk::PhysicalDevice> tempDevices;
             tempDevices.resize(physDevCount);
-            instance.getInstance().enumeratePhysicalDevices(&physDevCount,
+            res = instance.getInstance().enumeratePhysicalDevices(&physDevCount,
                                                             tempDevices.data());
             for (int i = 0; i < tempDevices.size(); ++i){
                 physicalDevices[i] = new PhysicalDevice(tempDevices[i]);
@@ -27,6 +27,23 @@ public:
         }
         return physicalDevices;
     }
+
+    static void releaseUnusedDevicesInfos(PhysicalDevice** usedDevices, uint32_t deviceInUsingCount){
+        for (unsigned int ii = 0; ii<physicalDevices.size(); ii++){
+            bool doNotRelease = false;
+            for (int i = 0; i < deviceInUsingCount; ++i){
+                if(physicalDevices[ii]==usedDevices[i]){
+                    doNotRelease = true;
+                    break;
+                }
+            }
+            if(!doNotRelease){
+                delete physicalDevices[ii];
+                physicalDevices.erase(physicalDevices.begin()+ii);
+            }
+        }
+    };
+
 private:
     PhysicalDevice(){
 
