@@ -1,0 +1,129 @@
+//
+// Created by kgaft on 11/18/23.
+//
+#pragma once
+
+#include <vector>
+#include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
+#include "VulkanLib/Device/SwapChain/SwapChain.hpp"
+
+#define MAX_FRAMES_IN_FLIGHT 2
+
+class ThreeFrameSynchronization : IDestroyableObject {
+public:
+    ThreeFrameSynchronization(LogicalDevice &device, LogicalQueue &graphicsQueue) : device(device),
+                                                                                    presentQueue(graphicsQueue) {
+        createSyncObjects();
+    }
+
+private:
+    std::vector<vk::Semaphore> imageAvailableSemaphores;
+    std::vector<vk::Semaphore> renderFinishedSemaphores;
+    std::vector<vk::Fence> inFlightFences;
+    std::vector<vk::Fence> imagesInFlight;
+    LogicalDevice &device;
+    LogicalQueue &presentQueue;
+    int currentFrame = 0;
+
+    vk::Semaphore waitSemaphores[1];
+    vk::PipelineStageFlags waitStages[1];
+    vk::Semaphore signalSemaphores[1];
+    vk::SwapchainKHR swapChains[1];
+public:
+    unsigned int prepareForNextImage(SwapChain &swapChain) {
+        unsigned int result = 0;
+        device.getDevice().waitForFences(1,
+                                         &inFlightFences[currentFrame],
+                                         VK_TRUE,
+                                         std::numeric_limits<uint64_t>::max());
+        device.getDevice().acquireNextImageKHR(swapChain.getSwapchainKhr(), std::numeric_limits<uint64_t>::max(),
+                                               imageAvailableSemaphores[currentFrame],
+                                               VK_NULL_HANDLE,
+                                               &result);
+        while (result > 2) {
+            device.getDevice().waitForFences(1,
+                                             &inFlightFences[currentFrame],
+                                             VK_TRUE,
+                                             std::numeric_limits<uint64_t>::max());
+            device.getDevice().acquireNextImageKHR(swapChain.getSwapchainKhr(),
+                                                   std::numeric_limits<uint64_t>::max(),
+                                                   imageAvailableSemaphores[currentFrame],
+                                                   VK_NULL_HANDLE,
+                                                   &result);
+        }
+
+        return result;
+    }
+
+    void submitCommandBuffers(vk::CommandBuffer *buffers, SwapChain &swapChain, uint32_t *currentImage) {
+        if (imagesInFlight[*currentImage] != VK_NULL_HANDLE) {
+            device.getDevice().waitForFences(1,
+                                             &imagesInFlight[currentFrame],
+                                             VK_TRUE,
+                                             UINT64_MAX);
+        }
+        imagesInFlight[*currentImage] = inFlightFences[currentFrame];
+
+        vk::SubmitInfo submitInfo = {};
+
+        waitSemaphores[0] = imageAvailableSemaphores[currentFrame];
+        waitStages[0] = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
+
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = buffers;
+
+        signalSemaphores[0] = renderFinishedSemaphores[currentFrame];
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = signalSemaphores;
+
+        device.getDevice().resetFences(1, &inFlightFences[currentFrame]);
+
+        presentQueue.getQueue().submit(1, &submitInfo, inFlightFences[currentFrame]);
+
+        vk::PresentInfoKHR presentInfo = {};
+
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = signalSemaphores;
+
+        swapChains[0] = swapChain.getSwapchainKhr();
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = swapChains;
+
+        presentInfo.pImageIndices = currentImage;
+
+        auto result = presentQueue.getQueue().presentKHR(presentInfo);
+
+        currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    }
+
+private:
+    void createSyncObjects() {
+        imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+        renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+        inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+        imagesInFlight.resize(3, VK_NULL_HANDLE);
+        vk::SemaphoreCreateInfo semaphoreInfo = {};
+        vk::FenceCreateInfo fenceInfo = {};
+        fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            imageAvailableSemaphores[i] = device.getDevice().createSemaphore(semaphoreInfo);
+            renderFinishedSemaphores[i] = device.getDevice().createSemaphore(semaphoreInfo);
+            inFlightFences[i] = device.getDevice().createFence(fenceInfo);
+        }
+    }
+
+    void destroy() override {
+        device.getDevice().waitIdle();
+        for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+            device.getDevice().destroySemaphore(imageAvailableSemaphores[i]);
+            device.getDevice().destroySemaphore(renderFinishedSemaphores[i]);
+            device.getDevice().destroyFence(inFlightFences[i]);
+        }
+        destroyed = true;
+    }
+};
+
+

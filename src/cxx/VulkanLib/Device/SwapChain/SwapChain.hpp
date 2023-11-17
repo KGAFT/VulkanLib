@@ -44,6 +44,10 @@ public:
         return swapchainImageViews;
     }
 
+    const vk::SwapchainKHR &getSwapchainKhr() const {
+        return swapchainKhr;
+    }
+
 private:
     void createSwapChain(uint32_t width, uint32_t height) {
         SwapChainSupportDetails support{};
