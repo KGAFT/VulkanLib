@@ -21,6 +21,7 @@ private:
     std::vector<vk::Framebuffer> frameBuffers;
     LogicalDevice &device;
     vk::RenderPass renderPass;
+    vk::ClearColorValue clearColorValues{1.0f,0.0f,0.0f,1.0f};
 private:
     void createRenderPass(std::vector<ImageView *> &colorAttachments, bool isSwapChainImages,
                           unsigned int attachmentPerStepAmount, ImageView *depthAttachment) {
@@ -97,10 +98,14 @@ public:
         for (int i = 0; i < attachmentCount; ++i)
         {
 
-            result[i].color = {1.0f, 0.0f, 0.0f, 1.0f};
+            result[i].color = clearColorValues;
         }
         result[attachmentCount].depthStencil = vk::ClearDepthStencilValue{1.0f, (uint32_t)0};
         return attachmentCount+1;
+    }
+
+    void setClearColorValues(const vk::ClearColorValue &clearColorValues) {
+        RenderPass::clearColorValues = clearColorValues;
     }
 
 private:
