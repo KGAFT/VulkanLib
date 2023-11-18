@@ -7,6 +7,7 @@
 #include <vulkan/vulkan.hpp>
 #include "VulkanLib/GraphicsPipeline/Configuration/GraphicsPipelineBuilder.hpp"
 #include "VulkanLib/Device/SwapChain/SwapChain.hpp"
+#include "FrameBuffer.hpp"
 
 class RenderPass : IDestroyableObject{
 public:
@@ -64,8 +65,42 @@ private:
         renderPass = device.getDevice().createRenderPass(renderPassInfo);
     }
 public:
-    const vk::RenderPass &getRenderPass() const {
+    vk::RenderPass &getRenderPass()  {
         return renderPass;
+    }
+
+    void begin(vk::CommandBuffer cmd, FrameBuffer& frameBuffer, uint32_t width, uint32_t height, uint32_t attachmentCount){
+        std::vector<vk::ClearValue> clearValues;
+        clearValues.resize(prepareClearValues(nullptr, attachmentCount));
+        prepareClearValues(clearValues.data(), attachmentCount);
+        vk::RenderPassBeginInfo beginInfo{};
+        beginInfo.renderPass = renderPass;
+        beginInfo.framebuffer = frameBuffer.getFrameBuffer();
+        beginInfo.renderArea.extent = vk::Extent2D{width, height};
+        beginInfo.renderArea.offset = vk::Offset2D{0,0};
+        beginInfo.pClearValues = clearValues.data();
+        beginInfo.clearValueCount = clearValues.size();
+        cmd.beginRenderPass(beginInfo, vk::SubpassContents::eInline);
+
+    }
+
+    void end(vk::CommandBuffer cmd){
+        cmd.endRenderPass();
+    }
+
+    unsigned int prepareClearValues(vk::ClearValue *result, uint32_t attachmentCount) const
+    {
+        if (result == nullptr)
+        {
+            return attachmentCount + 1;
+        }
+        for (int i = 0; i < attachmentCount; ++i)
+        {
+
+            result[i].color = {1.0f, 0.0f, 0.0f, 1.0f};
+        }
+        result[attachmentCount].depthStencil = vk::ClearDepthStencilValue{1.0f, (uint32_t)0};
+        return attachmentCount+1;
     }
 
 private:

@@ -27,10 +27,11 @@ public:
         try {
             LogicalDevice::device = device->getBase().createDevice(deviceInfo, nullptr);
             for (const auto &item: results->queuesInfo) {
-                queues.push_back(LogicalQueue(LogicalDevice::device.getQueue(item.index, 0), item.supportPresentation,
-                                              item.properties.queueFlags & vk::QueueFlagBits::eGraphics
-                                              ? vk::QueueFlagBits::eGraphics : vk::QueueFlagBits::eCompute,
-                                              item.index));
+                queues.push_back(
+                        LogicalQueue(LogicalDevice::device.getQueue(item.index, 0), LogicalDevice::device, item.supportPresentation,
+                                     item.properties.queueFlags & vk::QueueFlagBits::eGraphics
+                                     ? vk::QueueFlagBits::eGraphics : vk::QueueFlagBits::eCompute,
+                                     item.index));
             }
         } catch (vk::SystemError &error) {
             std::cerr << error.what() << std::endl;
@@ -81,21 +82,19 @@ public:
                 vk::FormatFeatureFlagBits::eDepthStencilAttachment);
     }
 
-    unsigned int findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
-    {
+    unsigned int findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
         vk::PhysicalDeviceMemoryProperties memProperties;
         baseDevice->getBase().getMemoryProperties(&memProperties);
-        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
-        {
+        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
             if ((typeFilter & (1 << i)) &&
-                (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
-            {
+                (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
                 return i;
             }
         }
 
         throw std::runtime_error("failed to find suitable memory type!");
     }
+
     vk::Format findSupportedFormat(
             const std::vector<vk::Format> &candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) {
         for (vk::Format format: candidates) {

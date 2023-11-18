@@ -11,7 +11,8 @@
 #include "VulkanLib/GraphicsPipeline/Configuration/GraphicsPipelineBuilder.hpp"
 #include "VulkanLib/GraphicsPipeline/RenderPass/RenderPass.hpp"
 #include "VulkanLib/GraphicsPipeline/GraphicsPipeline.hpp"
-
+#include "VulkanLib/Device/Synchronization/SyncManager.hpp"
+#include "VulkanLib/GraphicsPipeline/RenderPass/FrameBuffer.hpp"
 #include <glm/glm.hpp>
 
 struct PCS {
@@ -113,8 +114,31 @@ int main() {
     gPipelineBuilder.addPushConstantInfo({vk::ShaderStageFlagBits::eFragment, sizeof(PCS)});
 
     RenderPass renderPass(true, 1, gPipelineBuilder, device);
+    std::vector<FrameBuffer> frameBuffers;
+    std::vector<ImageView*> attachments;
+    uint32_t c = 0;
+    for (auto &item: swapChain.getSwapchainImageViews()){
+        attachments.push_back(item);
+        attachments.push_back(depthImageViews[c]);
+        c++;
+    }
+
+    for (int i = 0; i < attachments.size(); i+=2){
+        frameBuffers.push_back(FrameBuffer(device, renderPass.getRenderPass(), &attachments[i], 2, 800, 600));
+    }
+
     GraphicsPipeline pipeline(device, shader, gPipelineBuilder, 1, 800, 600, renderPass);
+
+    SyncManager syncManager(device, swapChain, device.getPresentQueue());
+
+
     while (!glfwWindowShouldClose(window)) {
+        uint32_t currentImage;
+        vk::CommandBuffer commandBuffer = syncManager.beginRender(currentImage);
+        renderPass.begin(commandBuffer, frameBuffers[currentImage], 800, 600, 1);
+        renderPass.end(commandBuffer);
+
+        syncManager.endRender();
         glfwPollEvents();
     }
     return 0;

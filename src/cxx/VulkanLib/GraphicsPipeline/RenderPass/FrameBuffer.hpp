@@ -9,14 +9,14 @@
 
 class FrameBuffer : IDestroyableObject {
 public:
-    FrameBuffer(LogicalDevice &device, RenderPass &renderPass, ImageView **pImages, uint32_t imageCount, uint32_t width,
+    FrameBuffer(LogicalDevice &device, vk::RenderPass &renderPass, ImageView **pImages, uint32_t imageCount, uint32_t width,
                 uint32_t height) : device(device), renderPass(renderPass) {
         create(pImages, imageCount, width, height);
     }
 
 private:
     vk::Framebuffer frameBuffer;
-    RenderPass &renderPass;
+    vk::RenderPass &renderPass;
     LogicalDevice &device;
 public:
     void recreate(ImageView **pImages, uint32_t imageCount,
@@ -25,6 +25,11 @@ public:
         destroyed = false;
         create(pImages, imageCount, width, height);
     }
+
+    const vk::Framebuffer &getFrameBuffer() const {
+        return frameBuffer;
+    }
+
 private:
     void create(ImageView **pImages, uint32_t imageCount,
                 uint32_t width, uint32_t height) {
@@ -35,7 +40,7 @@ private:
         }
         vk::FramebufferCreateInfo framebufferInfo;
         framebufferInfo.flags = vk::FramebufferCreateFlags();
-        framebufferInfo.renderPass = renderPass.getRenderPass();
+        framebufferInfo.renderPass = renderPass;
         framebufferInfo.attachmentCount = views.size();
         framebufferInfo.pAttachments = views.data();
         framebufferInfo.width = width;
@@ -46,7 +51,7 @@ private:
 
     void destroy() override {
         destroyed = true;
-        device.getDevice().destroyFramebuffer(item);
+        device.getDevice().destroyFramebuffer(frameBuffer);
 
     }
 };

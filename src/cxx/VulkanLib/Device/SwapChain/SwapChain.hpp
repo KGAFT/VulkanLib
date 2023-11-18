@@ -35,6 +35,7 @@ private:
     vk::SurfaceKHR surface;
     vk::PresentModeKHR presentMode;
     vk::Extent2D extent;
+    std::vector<vk::Image> baseImages;
     std::vector<Image> swapchainImages;
     std::vector<ImageView *> swapchainImageViews;
     uint32_t width;
@@ -46,6 +47,10 @@ public:
 
     const vk::SwapchainKHR &getSwapchainKhr() const {
         return swapchainKhr;
+    }
+
+    const std::vector<Image> &getSwapchainImages() const {
+        return swapchainImages;
     }
 
 private:
@@ -82,12 +87,12 @@ private:
         createInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
         try {
             swapchainKhr = device.getDevice().createSwapchainKHR(createInfo);
-            std::vector<vk::Image> images = device.getDevice().getSwapchainImagesKHR(swapchainKhr);
-            swapchainImages.resize(images.size());
-            for (int i = 0; i < images.size(); ++i) {
-                swapchainImages[i].initialize(&device, images[i]);
+            baseImages = device.getDevice().getSwapchainImagesKHR(swapchainKhr);
+            swapchainImages.resize(baseImages.size());
+            for (int i = 0; i < baseImages.size(); ++i) {
+                swapchainImages[i].initialize(&device, baseImages[i]);
                 vk::ImageViewCreateInfo viewCreateInfo = {};
-                viewCreateInfo.image = images[i];
+                viewCreateInfo.image = baseImages[i];
                 viewCreateInfo.viewType = vk::ImageViewType::e2D;
                 viewCreateInfo.format = format.format;
                 viewCreateInfo.components.r = vk::ComponentSwizzle::eIdentity;

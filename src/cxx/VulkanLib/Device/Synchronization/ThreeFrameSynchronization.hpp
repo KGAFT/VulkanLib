@@ -24,11 +24,9 @@ private:
     LogicalDevice &device;
     LogicalQueue &presentQueue;
     int currentFrame = 0;
-
-    vk::Semaphore waitSemaphores[1];
+    vk::SwapchainKHR swapchains[1];
     vk::PipelineStageFlags waitStages[1];
-    vk::Semaphore signalSemaphores[1];
-    vk::SwapchainKHR swapChains[1];
+
 public:
     unsigned int prepareForNextImage(SwapChain &swapChain) {
         unsigned int result = 0;
@@ -58,7 +56,7 @@ public:
     void submitCommandBuffers(vk::CommandBuffer *buffers, SwapChain &swapChain, uint32_t *currentImage) {
         if (imagesInFlight[*currentImage] != VK_NULL_HANDLE) {
             device.getDevice().waitForFences(1,
-                                             &imagesInFlight[currentFrame],
+                                             &imagesInFlight[*currentImage],
                                              VK_TRUE,
                                              UINT64_MAX);
         }
@@ -66,31 +64,27 @@ public:
 
         vk::SubmitInfo submitInfo = {};
 
-        waitSemaphores[0] = imageAvailableSemaphores[currentFrame];
         waitStages[0] = vk::PipelineStageFlagBits::eColorAttachmentOutput;
         submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitSemaphores = &imageAvailableSemaphores[currentFrame];
         submitInfo.pWaitDstStageMask = waitStages;
 
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = buffers;
 
-        signalSemaphores[0] = renderFinishedSemaphores[currentFrame];
         submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = signalSemaphores;
+        submitInfo.pSignalSemaphores = &renderFinishedSemaphores[currentFrame];
 
         device.getDevice().resetFences(1, &inFlightFences[currentFrame]);
 
         presentQueue.getQueue().submit(1, &submitInfo, inFlightFences[currentFrame]);
 
         vk::PresentInfoKHR presentInfo = {};
-
+        swapchains[0] = swapChain.getSwapchainKhr();
         presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = signalSemaphores;
-
-        swapChains[0] = swapChain.getSwapchainKhr();
+        presentInfo.pWaitSemaphores = &renderFinishedSemaphores[currentFrame];
         presentInfo.swapchainCount = 1;
-        presentInfo.pSwapchains = swapChains;
+        presentInfo.pSwapchains = swapchains;
 
         presentInfo.pImageIndices = currentImage;
 
@@ -104,7 +98,7 @@ private:
         imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-        imagesInFlight.resize(3, VK_NULL_HANDLE);
+        imagesInFlight.resize(3);
         vk::SemaphoreCreateInfo semaphoreInfo = {};
         vk::FenceCreateInfo fenceInfo = {};
         fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
@@ -112,6 +106,7 @@ private:
             imageAvailableSemaphores[i] = device.getDevice().createSemaphore(semaphoreInfo);
             renderFinishedSemaphores[i] = device.getDevice().createSemaphore(semaphoreInfo);
             inFlightFences[i] = device.getDevice().createFence(fenceInfo);
+            imagesInFlight[i] = nullptr;
         }
     }
 

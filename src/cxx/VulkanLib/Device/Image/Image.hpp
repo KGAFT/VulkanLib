@@ -35,7 +35,8 @@ public:
         return imageViews[imageViews.size() - 1];
     }
 
-    void initialize(LogicalDevice *device, vk::Image base) {
+    void
+    initialize(LogicalDevice *device, vk::Image base) {
         Image::device = device;
         Image::base = base;
     }
