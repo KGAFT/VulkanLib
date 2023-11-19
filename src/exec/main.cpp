@@ -20,13 +20,36 @@ struct PCS {
     glm::vec4 colorAdder;
 };
 
+
+double lastTime, currentTime;
+int numFrames;
+float frameTime;
+
+
+void setFrameRate(GLFWwindow* window){
+    currentTime = glfwGetTime();
+    double delta = currentTime - lastTime;
+
+    if (delta >= 1) {
+        int framerate{ std::max(1, int(numFrames / delta)) };
+        std::stringstream title;
+        title << "Running at " << framerate << " fps.";
+        glfwSetWindowTitle(window, title.str().c_str());
+        lastTime = currentTime;
+        numFrames = -1;
+        frameTime = float(1000.0 / framerate);
+    }
+
+    ++numFrames;
+};
+
 int main() {
 
 
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "tes", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(640, 480, "tes", nullptr, nullptr);
 
     InstanceBuilder builder;
     builder.presetForGlfw();
@@ -58,15 +81,15 @@ int main() {
     results.clear();
 
 
-    SwapChain swapChain(device, surfaceKhr, 800, 600);
+    SwapChain swapChain(device, surfaceKhr, 640, 480, false);
     std::vector<Image> depthImages;
     depthImages.resize(swapChain.getSwapchainImageViews().size());
     vk::Format depthFormat = device.findDepthFormat();
 
     vk::ImageCreateInfo imageInfo{};
     imageInfo.imageType = vk::ImageType::e2D;
-    imageInfo.extent.width = 800;
-    imageInfo.extent.height = 600;
+    imageInfo.extent.width = 640;
+    imageInfo.extent.height = 480;
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
@@ -108,10 +131,6 @@ int main() {
     gPipelineBuilder.addColorAttachments(const_cast<ImageView **>(swapChain.getSwapchainImageViews().data()),
                                          swapChain.getSwapchainImageViews().size());
     gPipelineBuilder.addDepthAttachments(depthImageViews.data(), depthImageViews.size());
-    gPipelineBuilder.addVertexInput({0, 3, sizeof(float), vk::Format::eR32G32B32Sfloat});
-    gPipelineBuilder.addVertexInput({1, 2, sizeof(float), vk::Format::eR32G32Sfloat});
-    gPipelineBuilder.addSamplerInfo({1, vk::ShaderStageFlagBits::eFragment});
-    gPipelineBuilder.addPushConstantInfo({vk::ShaderStageFlagBits::eFragment, sizeof(PCS)});
 
     RenderPass renderPass(true, 1, gPipelineBuilder, device);
     std::vector<FrameBuffer> frameBuffers;
@@ -124,18 +143,21 @@ int main() {
     }
 
     for (int i = 0; i < attachments.size(); i+=2){
-        frameBuffers.push_back(FrameBuffer(device, renderPass.getRenderPass(), &attachments[i], 2, 800, 600));
+        frameBuffers.push_back(FrameBuffer(device, renderPass.getRenderPass(), &attachments[i], 2, 640, 480));
     }
 
-    GraphicsPipeline pipeline(device, shader, gPipelineBuilder, 1, 800, 600, renderPass);
-
-    SyncManager syncManager(device, swapChain, device.getPresentQueue());
+    GraphicsPipeline pipeline(device, shader, gPipelineBuilder, 1,  640, 480, renderPass);
+    renderPass.setClearColorValues({0.0f, 0.0f, 0.0f, 1.0f});
+    SyncManager syncManager(device, swapChain, device.getPresentQueue(), frameBuffers.size());
 
 
     while (!glfwWindowShouldClose(window)) {
+        setFrameRate(window);
         uint32_t currentImage;
         vk::CommandBuffer commandBuffer = syncManager.beginRender(currentImage);
-        renderPass.begin(commandBuffer, frameBuffers[currentImage], 800, 600, 1);
+        renderPass.begin(commandBuffer, frameBuffers[currentImage],  640, 480, 1);
+        commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.getGraphicsPipeline());
+        commandBuffer.draw(3, 1, 0, 0);
         renderPass.end(commandBuffer);
 
         syncManager.endRender();

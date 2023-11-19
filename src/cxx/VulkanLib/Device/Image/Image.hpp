@@ -42,6 +42,7 @@ public:
     }
 
     void initialize(LogicalDevice *device, vk::ImageCreateInfo &createInfo) {
+        vk::Result res;
         Image::device = device;
         Image::imageInfo = createInfo;
         base = device->getDevice().createImage(createInfo);
@@ -54,7 +55,7 @@ public:
         allocInfo.memoryTypeIndex = device->findMemoryType(requirements.memoryTypeBits,
                                                            vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-        device->getDevice().allocateMemory(&allocInfo, nullptr, &imageMemory);
+        res = device->getDevice().allocateMemory(&allocInfo, nullptr, &imageMemory);
         device->getDevice().bindImageMemory(base, imageMemory, 0);
 
     }

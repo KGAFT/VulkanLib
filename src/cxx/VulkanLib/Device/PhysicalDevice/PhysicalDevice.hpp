@@ -50,9 +50,10 @@ private:
     }
     PhysicalDevice(vk::PhysicalDevice base) : base(base) {
         uint32_t propertyCount;
-        base.enumerateDeviceExtensionProperties(nullptr, &propertyCount, nullptr);
+        vk::Result res;
+        res = base.enumerateDeviceExtensionProperties(nullptr, &propertyCount, nullptr);
         extensionProperties.resize(propertyCount);
-        base.enumerateDeviceExtensionProperties(nullptr, &propertyCount, extensionProperties.data());
+        res = base.enumerateDeviceExtensionProperties(nullptr, &propertyCount, extensionProperties.data());
         base.getFeatures(&features);
         base.getProperties(&properties);
         uint32_t queueFamilyCount;

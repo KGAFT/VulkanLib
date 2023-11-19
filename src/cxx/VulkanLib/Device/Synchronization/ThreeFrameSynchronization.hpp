@@ -7,16 +7,16 @@
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
 #include "VulkanLib/Device/SwapChain/SwapChain.hpp"
 
-#define MAX_FRAMES_IN_FLIGHT 2
 
 class ThreeFrameSynchronization : IDestroyableObject {
 public:
-    ThreeFrameSynchronization(LogicalDevice &device, LogicalQueue &graphicsQueue) : device(device),
+    ThreeFrameSynchronization(LogicalDevice &device, LogicalQueue &graphicsQueue, uint32_t maxFramesInFlight) : maxFramesInFlight(maxFramesInFlight), device(device),
                                                                                     presentQueue(graphicsQueue) {
         createSyncObjects();
     }
 
 private:
+    uint32_t maxFramesInFlight;
     std::vector<vk::Semaphore> imageAvailableSemaphores;
     std::vector<vk::Semaphore> renderFinishedSemaphores;
     std::vector<vk::Fence> inFlightFences;
@@ -38,17 +38,7 @@ public:
                                                imageAvailableSemaphores[currentFrame],
                                                VK_NULL_HANDLE,
                                                &result);
-        while (result > 2) {
-            device.getDevice().waitForFences(1,
-                                             &inFlightFences[currentFrame],
-                                             VK_TRUE,
-                                             std::numeric_limits<uint64_t>::max());
-            device.getDevice().acquireNextImageKHR(swapChain.getSwapchainKhr(),
-                                                   std::numeric_limits<uint64_t>::max(),
-                                                   imageAvailableSemaphores[currentFrame],
-                                                   VK_NULL_HANDLE,
-                                                   &result);
-        }
+
 
         return result;
     }
@@ -90,19 +80,19 @@ public:
 
         auto result = presentQueue.getQueue().presentKHR(presentInfo);
 
-        currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+        currentFrame = (currentFrame + 1) % maxFramesInFlight;
     }
 
 private:
     void createSyncObjects() {
-        imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-        renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-        inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+        imageAvailableSemaphores.resize(maxFramesInFlight);
+        renderFinishedSemaphores.resize(maxFramesInFlight);
+        inFlightFences.resize(maxFramesInFlight);
         imagesInFlight.resize(3);
         vk::SemaphoreCreateInfo semaphoreInfo = {};
         vk::FenceCreateInfo fenceInfo = {};
         fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        for (size_t i = 0; i < maxFramesInFlight; i++) {
             imageAvailableSemaphores[i] = device.getDevice().createSemaphore(semaphoreInfo);
             renderFinishedSemaphores[i] = device.getDevice().createSemaphore(semaphoreInfo);
             inFlightFences[i] = device.getDevice().createFence(fenceInfo);
@@ -112,7 +102,7 @@ private:
 
     void destroy() override {
         device.getDevice().waitIdle();
-        for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+        for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             device.getDevice().destroySemaphore(imageAvailableSemaphores[i]);
             device.getDevice().destroySemaphore(renderFinishedSemaphores[i]);
             device.getDevice().destroyFence(inFlightFences[i]);

@@ -24,9 +24,9 @@ public:
 
 public:
     SwapChain(LogicalDevice &device, const vk::SurfaceKHR &surface,
-              uint32_t width, uint32_t height)
-            : device(device), surface(surface), width(width), height(height) {
-        createSwapChain(width, height);
+              uint32_t width, uint32_t height, bool enableFrameLock)
+            : device(device), surface(surface), width(width), height(height), enableFrameLock(enableFrameLock){
+        createSwapChain(width, height, enableFrameLock);
     }
 
 private:
@@ -40,6 +40,7 @@ private:
     std::vector<ImageView *> swapchainImageViews;
     uint32_t width;
     uint32_t height;
+    bool enableFrameLock;
 public:
     const std::vector<ImageView *> &getSwapchainImageViews() const {
         return swapchainImageViews;
@@ -54,13 +55,13 @@ public:
     }
 
 private:
-    void createSwapChain(uint32_t width, uint32_t height) {
+    void createSwapChain(uint32_t width, uint32_t height, bool enableFrameLock) {
         SwapChainSupportDetails support{};
         MemoryUtils::memClear(&support, sizeof(SwapChainSupportDetails));
         gatherSwapChainSupportDetails(support);
 
         format = chooseSurfaceFormat(support.formats);
-        presentMode = choosePresentMode(support.presentModes);
+        presentMode = choosePresentMode(support.presentModes, enableFrameLock);
         extent = chooseSwapchainExtent(width, height, support.capabilities);
 
         uint32_t imageCount = std::min(support.capabilities.maxImageCount,
@@ -143,9 +144,9 @@ private:
     }
 
     vk::PresentModeKHR
-    choosePresentMode(std::vector<vk::PresentModeKHR> &presentModes) {
+    choosePresentMode(std::vector<vk::PresentModeKHR> &presentModes, bool enableFrameLock) {
         for (vk::PresentModeKHR presentMode: presentModes) {
-            if (presentMode == vk::PresentModeKHR::eMailbox) {
+            if (presentMode == (enableFrameLock?vk::PresentModeKHR::eMailbox:vk::PresentModeKHR::eImmediate)) {
                 return presentMode;
             }
         }

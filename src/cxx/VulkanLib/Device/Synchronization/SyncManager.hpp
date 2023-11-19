@@ -7,7 +7,7 @@
 
 class SyncManager {
 public:
-    SyncManager(LogicalDevice &device, SwapChain &swapChain, LogicalQueue &queue) : sync(device, queue), device(device),
+    SyncManager(LogicalDevice &device, SwapChain &swapChain, LogicalQueue &queue, uint32_t maxFramesInFlight) : sync(device, queue, maxFramesInFlight), device(device),
                                                                                     swapChain(swapChain), queue(queue) {
         createCommandBuffers();
     }

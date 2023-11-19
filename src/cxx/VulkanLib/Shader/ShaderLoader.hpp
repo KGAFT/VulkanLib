@@ -103,6 +103,8 @@ public:
                 return shaderc_geometry_shader;
             case vk::ShaderStageFlagBits::eMeshEXT:
                 return shaderc_mesh_shader;
+            default:
+                return shaderc_vertex_shader;
         }
     }
 

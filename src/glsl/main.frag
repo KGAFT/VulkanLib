@@ -1,17 +1,9 @@
 #version 450
 
-layout(location = 0) in vec2 uvs;
+layout(location = 0) in vec3 fragColor;
 
-
-layout(set = 0, binding = 1) uniform sampler2D GameLayer;
-
-layout(location = 0) out vec4 FragColor;
-
-layout(push_constant) uniform ColorCorrect{
-    vec4 colorAmplifier;
-    vec4 colorAdder;
-} correct;
+layout(location = 0) out vec4 outColor;
 
 void main() {
-    FragColor = texture(GameLayer, uvs)*correct.colorAmplifier+correct.colorAdder;
+    outColor = vec4(fragColor, 1.0);
 }
