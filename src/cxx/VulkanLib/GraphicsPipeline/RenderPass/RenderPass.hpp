@@ -12,9 +12,9 @@
 class RenderPass : IDestroyableObject{
 public:
     RenderPass(bool isForSwapChain, unsigned int attachmentPerStepAmount,
-               GraphicsPipelineBuilder &builder, LogicalDevice &device) : device(device) {
-        createRenderPass(builder.colorAttachments, isForSwapChain, attachmentPerStepAmount,
-                         builder.depthAttachments[0]);
+               GraphicsPipelineBuilder *builder, LogicalDevice &device) : device(device) {
+        createRenderPass(builder->colorAttachments, isForSwapChain, attachmentPerStepAmount,
+                         builder->depthAttachments[0]);
     }
 
 private:
@@ -146,7 +146,7 @@ private:
         output[attachmentPerStepAmount].layout = vk::ImageLayout::eGeneral;
         output[attachmentPerStepAmount].attachment = attachmentPerStepAmount;
     }
-
+public:
     void destroy() override {
         destroyed = true;
         device.getDevice().destroyRenderPass(renderPass);

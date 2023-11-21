@@ -50,6 +50,13 @@ public:
         return swapchainKhr;
     }
 
+    void recreate(uint32_t width, uint32_t height, bool refreshRateLock){
+        destroy();
+        destroyed = false;
+        enableFrameLock = refreshRateLock;
+        createSwapChain(width, height, refreshRateLock);
+    }
+
     const std::vector<Image> &getSwapchainImages() const {
         return swapchainImages;
     }
@@ -175,6 +182,11 @@ private:
     }
 
     virtual void destroy() override {
+        for (const auto &item: swapchainImageViews){
+            item->destroy();
+        }
+        swapchainImageViews.clear();
+        swapchainImages.clear();
         device.getDevice().destroySwapchainKHR(swapchainKhr);
         destroyed = true;
     }

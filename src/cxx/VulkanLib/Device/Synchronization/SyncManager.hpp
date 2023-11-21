@@ -20,17 +20,35 @@ private:
     LogicalQueue &queue;
     uint32_t currentCmd;
     vk::CommandBufferBeginInfo beginInfo{};
+    bool stop = false;
 public:
     vk::CommandBuffer beginRender(uint32_t& outCurrentCmd) {
-        currentCmd = sync.prepareForNextImage(swapChain);
-        commandBuffers[currentCmd].begin(beginInfo);
-        outCurrentCmd = currentCmd;
-        return commandBuffers[currentCmd];
+        if(!stop){
+            currentCmd = sync.prepareForNextImage(swapChain);
+            commandBuffers[currentCmd].begin(beginInfo);
+            outCurrentCmd = currentCmd;
+            return commandBuffers[currentCmd];
+        }
+
     }
 
     void endRender() {
-        commandBuffers[currentCmd].end();
-        sync.submitCommandBuffers(&commandBuffers[currentCmd], swapChain, &currentCmd);
+        if(!stop){
+            commandBuffers[currentCmd].end();
+            sync.submitCommandBuffers(&commandBuffers[currentCmd], swapChain, &currentCmd);
+        }
+
+    }
+
+    bool isStop() const {
+        return stop;
+    }
+
+    void setStop(bool stop) {
+        if(stop){
+            sync.waitStop();
+        }
+        SyncManager::stop = stop;
     }
 
 private:

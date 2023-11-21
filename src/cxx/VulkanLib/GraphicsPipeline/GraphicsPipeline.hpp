@@ -16,10 +16,30 @@ class GraphicsPipeline : public IDestroyableObject {
 private:
     static inline SerialObject<GraphicsPipelineConfig> configInstancer = SerialObject<GraphicsPipelineConfig>();
 public:
-    GraphicsPipeline(LogicalDevice &device, Shader *shader, GraphicsPipelineBuilder &builder,
+    GraphicsPipeline(LogicalDevice &device, Shader *shader, GraphicsPipelineBuilder *builder,
                      unsigned int attachmentPerStepAmount,
                      unsigned int width, unsigned int height,
-                     RenderPass &renderPass) : device(device), configurer(device, &builder) {
+                     RenderPass &renderPass) : device(device), configurer(device, builder), shader(shader), attachmentPerStepAmount(attachmentPerStepAmount) {
+        create(attachmentPerStepAmount, width, height, shader, renderPass);
+    }
+
+private:
+    GraphicsPipelineConfigurer configurer;
+    vk::Pipeline graphicsPipeline;
+    LogicalDevice &device;
+    Shader* shader;
+    unsigned int attachmentPerStepAmount;
+public:
+    vk::Pipeline getGraphicsPipeline() {
+        return graphicsPipeline;
+    }
+    void recreate( RenderPass& renderPass, unsigned int width, unsigned int height){
+        destroy();
+        destroyed = false;
+        create(attachmentPerStepAmount, width, height, shader, renderPass);
+    }
+private:
+    void create(unsigned int attachmentPerStepAmount, unsigned int width, unsigned int height, Shader* shader, RenderPass& renderPass){
         GraphicsPipelineConfig *config = configInstancer.getObjectInstance();
         GraphicsPipelineConfig::createConfig(config, attachmentPerStepAmount, true, width, height);
 
@@ -56,17 +76,7 @@ public:
         graphicsPipeline = device.getDevice().createGraphicsPipeline(nullptr, pipelineInfo).value;
         configInstancer.releaseObjectInstance(config);
     }
-
-private:
-    GraphicsPipelineConfigurer configurer;
-    vk::Pipeline graphicsPipeline;
-    LogicalDevice &device;
 public:
-    vk::Pipeline getGraphicsPipeline() {
-        return graphicsPipeline;
-    }
-
-protected:
     void destroy() override {
         destroyed = true;
         device.getDevice().destroyPipeline(graphicsPipeline);

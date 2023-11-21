@@ -20,7 +20,11 @@ file(REMOVE ${UNNECESSARY_CPP})
 target_link_libraries(VulkanLib PUBLIC Vulkan::Vulkan Vulkan::shaderc_combined glfw glm)
 target_include_directories(VulkanLib PUBLIC src/cxx)
 
-add_executable(VulkanTest src/exec/main.cpp)
+file(GLOB_RECURSE EXEC_SRC_FILES src/exec/*.cpp)
+file(GLOB_RECURSE EXEC_DEF_FILES src/exec/*.hpp)
+
+
+add_executable(VulkanTest ${EXEC_SRC_FILES} ${EXEC_DEF_FILES})
 
 target_link_libraries(VulkanTest PUBLIC VulkanLib)
 

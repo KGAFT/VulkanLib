@@ -31,7 +31,7 @@ public:
         return parentInfo;
     }
 
-private:
+public:
     void destroy() override {
         device.getDevice().destroyImageView(base);
         destroyed = true;

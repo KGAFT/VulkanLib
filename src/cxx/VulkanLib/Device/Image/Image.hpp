@@ -60,13 +60,27 @@ public:
 
     }
 
-    const vk::Image &getBase() const {
+    vk::Image &getBase() {
         return base;
     }
 
-    [[nodiscard]] const std::vector<ImageView> &getImageViews() const { return imageViews; }
+    [[nodiscard]]  std::vector<ImageView> &getImageViews()  { return imageViews; }
 
-    const vk::ImageCreateInfo &getImageInfo() const {
+    void resize(uint32_t width, uint32_t height) {
+        if (!castCreated) {
+            destroy();
+            destroyed = false;
+            imageInfo.extent = vk::Extent3D{width, height};
+            initialize(device, imageInfo);
+            for (auto &item: imageViews) {
+                item.base = device->getDevice().createImageView(item.createInfo);
+                item.parentInfo = imageInfo;
+            }
+        }
+
+    }
+
+    vk::ImageCreateInfo &getImageInfo() {
         if (castCreated) {
             throw std::runtime_error("Error: you cannot get image info, from image created via cast");
         }
@@ -79,7 +93,6 @@ private:
             for (auto &item: imageViews) {
                 item.destroy();
             }
-
             device->getDevice().destroyImage(base);
 
         }
