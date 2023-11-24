@@ -26,7 +26,7 @@ file(GLOB_RECURSE EXEC_SRC_FILES src/exec/*.cpp)
 file(GLOB_RECURSE EXEC_DEF_FILES src/exec/*.hpp)
 
 
-add_executable(VulkanTest ${EXEC_SRC_FILES} ${EXEC_DEF_FILES})
+add_executable(VulkanExec ${EXEC_SRC_FILES} ${EXEC_DEF_FILES})
 
-target_link_libraries(VulkanTest PUBLIC VulkanLib)
+target_link_libraries(VulkanExec PUBLIC VulkanLib)
 

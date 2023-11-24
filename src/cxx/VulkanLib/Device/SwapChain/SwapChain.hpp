@@ -142,7 +142,7 @@ private:
     chooseSurfaceFormat(std::vector<vk::SurfaceFormatKHR> &formats) {
 
         for (vk::SurfaceFormatKHR format: formats) {
-            if (format.format == vk::Format::eB8G8R8A8Unorm &&
+            if (format.format == vk::Format::eB8G8R8A8Srgb &&
                 format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
                 return format;
             }

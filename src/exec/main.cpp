@@ -47,11 +47,11 @@ int main() {
     glfwInit();
     std::vector<Monitor*> monitors;
     Monitor::enumerateMonitors(monitors);
-    Window *window = Window::createWindow(1920, 1080, "Vulkan test app", monitors[0], false);
+    Window *window = Window::createWindow(640, 480, "Vulkan test app", nullptr, false);
     window->enableRefreshRateInfo();
     InstanceBuilder builder;
     builder.presetForGlfw();
-    builder.presetForDebug();
+  //  builder.presetForDebug();
     builder.setApplicationName("TestEngine");
     Instance instance(builder);
     auto devices = PhysicalDevice::getDevices(
@@ -114,7 +114,7 @@ int main() {
 
     frameBufferManager.initializeFrameBuffers(renderPipeline.getRenderPass());
 
-    renderPipeline.setClearColorValues(0.0f, 0.25f, 0.0f, 1.0f);
+    renderPipeline.setClearColorValues(0.0f, 0.0f, 0.0f, 1.0f);
 
     SyncManager syncManager(*device, *swapChain, *device->getPresentQueue(),
                             swapChain->getSwapchainImageViews().size());
