@@ -4,12 +4,12 @@
 #pragma once
 
 #include <shaderc/shaderc.hpp>
-#include <VulkanLib/MemoryUtils/SerialObject.hpp>
+#include <VulkanLib/MemoryUtils/SeriesObject.hpp>
 #include <cstring>
 #include <VulkanLib/MemoryUtils/FileReader.hpp>
 class ShaderLoaderIncluder : public shaderc::CompileOptions::IncluderInterface{
 private:
-    SerialObject<shaderc_include_result> includes;
+    SeriesObject<shaderc_include_result> includes;
 
 public:
     shaderc_include_result *

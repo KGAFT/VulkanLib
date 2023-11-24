@@ -10,12 +10,12 @@
 
 class Image : IDestroyableObject {
 public:
-    Image(LogicalDevice *device, vk::Image base) : device(device), base(base) {
+    Image(std::shared_ptr<LogicalDevice> device, vk::Image base) : device(std::move(device)), base(base) {
         castCreated = true;
     }
 
-    Image(LogicalDevice &device, vk::ImageCreateInfo &createInfo) : imageInfo(createInfo), device(&device) {
-        initialize(&device, createInfo);
+    Image(std::shared_ptr<LogicalDevice>& device, vk::ImageCreateInfo &createInfo) : imageInfo(createInfo) {
+        initialize(device, createInfo);
     }
 
     Image() {
@@ -23,7 +23,7 @@ public:
     }
 
 private:
-    LogicalDevice *device;
+    std::shared_ptr<LogicalDevice> device;
     vk::Image base;
     vk::ImageCreateInfo imageInfo;
     std::vector<std::shared_ptr<ImageView>> imageViews;
@@ -31,33 +31,34 @@ private:
     bool castCreated = false;
 public:
     std::shared_ptr<ImageView> createImageView(vk::ImageViewCreateInfo &createInfo) {
+        vk::ImageView view = Image::device->getDevice().createImageView(createInfo);
         imageViews.push_back(std::make_shared<ImageView>(imageInfo,
-                                       *device, device->getDevice().createImageView(createInfo), createInfo));
+                                                         Image::device, view, createInfo));
         return imageViews[imageViews.size() - 1];
     }
 
     void
-    initialize(LogicalDevice *device, vk::Image base) {
+    initialize(std::shared_ptr<LogicalDevice> device, vk::Image base) {
         Image::device = device;
         Image::base = base;
     }
 
-    void initialize(LogicalDevice *device, vk::ImageCreateInfo &createInfo) {
+    void initialize(std::shared_ptr<LogicalDevice>& device, vk::ImageCreateInfo &createInfo) {
         vk::Result res;
         Image::device = device;
         Image::imageInfo = createInfo;
-        base = device->getDevice().createImage(createInfo);
+        base =  Image::device->getDevice().createImage(createInfo);
 
         vk::MemoryRequirements requirements;
-        device->getDevice().getImageMemoryRequirements(base, &requirements);
+        Image::device->getDevice().getImageMemoryRequirements(base, &requirements);
 
         vk::MemoryAllocateInfo allocInfo{};
         allocInfo.allocationSize = requirements.size;
-        allocInfo.memoryTypeIndex = device->findMemoryType(requirements.memoryTypeBits,
+        allocInfo.memoryTypeIndex =  Image::device->findMemoryType(requirements.memoryTypeBits,
                                                            vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-        res = device->getDevice().allocateMemory(&allocInfo, nullptr, &imageMemory);
-        device->getDevice().bindImageMemory(base, imageMemory, 0);
+        res =  Image::device->getDevice().allocateMemory(&allocInfo, nullptr, &imageMemory);
+        Image::device->getDevice().bindImageMemory(base, imageMemory, 0);
 
     }
 
@@ -65,7 +66,7 @@ public:
         return base;
     }
 
-    std::vector<std::shared_ptr<ImageView>> &getImageViews()  { return imageViews; }
+    std::vector<std::shared_ptr<ImageView>> &getImageViews() { return imageViews; }
 
     void resize(uint32_t width, uint32_t height) {
         if (!castCreated) {
@@ -74,6 +75,7 @@ public:
             imageInfo.extent = vk::Extent3D{width, height};
             initialize(device, imageInfo);
             for (auto &item: imageViews) {
+                item->createInfo.image = base;
                 item->base = device->getDevice().createImageView(item->createInfo);
                 item->parentInfo = imageInfo;
             }

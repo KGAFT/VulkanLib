@@ -6,7 +6,6 @@
 #include <vulkan/vulkan.hpp>
 #include <vector>
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
-#include "VulkanLib/MemoryUtils/SerialObject.hpp"
 #include "GraphicsPipelineBuilder.hpp"
 
 class GraphicsPipelineConfigurer : public IDestroyableObject{

@@ -17,43 +17,27 @@
 #include "Window/Window.hpp"
 #include "RenderPipeline/RenderPipelineBuilder.hpp"
 #include "RenderPipeline/RenderPipeline.hpp"
+#include "RenderPipeline/FrameBufferManager.hpp"
 
-class ResizeCallback : public IWindowResizeCallback {
+class ResizeCallback : public IWindowResizeCallback{
 public:
-    ResizeCallback(RenderPipeline *renderPipeline, std::vector<FrameBuffer> &frameBuffers,
-                   std::vector<Image> &depthImages, SwapChain *swapChain, LogicalDevice &device, SyncManager& syncManager) : renderPipeline(
-            renderPipeline), frameBuffers(frameBuffers), depthImages(depthImages), swapChain(swapChain),
-                                                                                                   device(device), syncManager(syncManager) {}
+    ResizeCallback(RenderPipeline *renderPipeline, FrameBufferManager *frameBufferManager, SyncManager *syncManager,
+                   const std::shared_ptr<LogicalDevice> &device) : renderPipeline(renderPipeline),
+                                                                   frameBufferManager(frameBufferManager),
+                                                                   syncManager(syncManager), device(device) {}
 
 private:
-    RenderPipeline *renderPipeline;
-    std::vector<FrameBuffer> &frameBuffers;
-    std::vector<Image> &depthImages;
-    SwapChain *swapChain;
-    LogicalDevice &device;
-    SyncManager& syncManager;
+    RenderPipeline* renderPipeline;
+    FrameBufferManager* frameBufferManager;
+    SyncManager* syncManager;
+    std::shared_ptr<LogicalDevice> device;
 public:
     void resized(int width, int height) override {
-        device.getDevice().waitIdle();
-        syncManager.setStop(true);
-        swapChain->recreate(width, height, true);
+        device->getDevice().waitIdle();
+        syncManager->setStop(true);
         renderPipeline->recreateForResize(width, height);
-        std::vector<std::shared_ptr<ImageView>> attachments;
-        for (auto &item: depthImages) {
-            item.resize(width, height);
-        }
-        uint32_t c = 0;
-        for (auto &item: swapChain->getSwapchainImageViews()) {
-            attachments.push_back(item);
-            attachments.push_back(depthImages[c].getImageViews()[0]);
-            c++;
-        }
-        c = 0;
-        for (auto &item: frameBuffers) {
-            item.recreate(&attachments[c], 2, width, height);
-            c += 2;
-        }
-        syncManager.setStop(false);
+        frameBufferManager->resize(width, height);
+        syncManager->setStop(false);
     }
 };
 
@@ -61,7 +45,9 @@ int main() {
 
 
     glfwInit();
-    Window *window = Window::createWindow(640, 480, "Vulkan test app", nullptr, false);
+    std::vector<Monitor*> monitors;
+    Monitor::enumerateMonitors(monitors);
+    Window *window = Window::createWindow(1920, 1080, "Vulkan test app", monitors[0], false);
     window->enableRefreshRateInfo();
     InstanceBuilder builder;
     builder.presetForGlfw();
@@ -84,15 +70,17 @@ int main() {
             std::cout << el->properties.deviceName << std::endl;
         }
     }
-    int devIndex;
+    int devIndex=0;
     std::cin >> devIndex;
-    LogicalDevice device(instance, (*devices)[devIndex], devBuilder, &results[devIndex]);
+    std::shared_ptr<LogicalDevice> device = std::make_shared<LogicalDevice>
+            (instance, (*devices)[devIndex], devBuilder, &results[devIndex]);
 
     devices->clear();
     results.clear();
 
 
-    SwapChain swapChain(device, surfaceKhr, window->getWidth(), window->getHeight(), false);
+    std::shared_ptr<SwapChain> swapChain(
+            new SwapChain(device, surfaceKhr, window->getWidth(), window->getHeight(), false));
 
 
     auto *loaderInstance = ShaderLoader::getInstance();
@@ -102,13 +90,16 @@ int main() {
     createInfos.push_back(
             {"shaders/main.frag", "main.frag", ShaderFileType::SRC_FILE, vk::ShaderStageFlagBits::eFragment});
 
-    Shader *shader = loaderInstance->createShader(device, createInfos);
+    Shader *shader = loaderInstance->createShader(*device, createInfos);
+
+    FrameBufferManager frameBufferManager(device, swapChain, swapChain->getSwapchainImageViews().size(),
+                                          window->getWidth(), window->getHeight());
 
     GraphicsPipelineBuilder *gPipelineBuilder = GraphicsPipelineBuilder::getInstance();
     gPipelineBuilder->addColorAttachments(
-            const_cast<std::shared_ptr<ImageView> *>(swapChain.getSwapchainImageViews().data()),
-            swapChain.getSwapchainImageViews().size());
-    gPipelineBuilder->addDepthAttachments(depthImageViews.data(), depthImageViews.size());
+            const_cast<std::shared_ptr<ImageView> *>(swapChain->getSwapchainImageViews().data()),
+            swapChain->getSwapchainImageViews().size());
+    gPipelineBuilder->addDepthAttachments(frameBufferManager.getDepthAttachments(), 1);
 
 
     RenderPipelineBuilder rpBuilder;
@@ -117,44 +108,34 @@ int main() {
     rpBuilder.setImagePerStepAmount(1);
     rpBuilder.setWidth(window->getWidth());
     rpBuilder.setHeight(window->getHeight());
-    rpBuilder.setSwapChain(&swapChain);
+    rpBuilder.setSwapChain(swapChain.get());
 
-    RenderPipeline renderPipeline(device, rpBuilder);
+    RenderPipeline renderPipeline(*device, rpBuilder);
 
-    std::vector<FrameBuffer> frameBuffers;
-    std::vector<std::shared_ptr<ImageView>> attachments;
-    uint32_t c = 0;
-    for (auto &item: swapChain.getSwapchainImageViews()) {
-        attachments.push_back(item);
-        attachments.push_back(depthImageViews[c]);
-        c++;
-    }
+    frameBufferManager.initializeFrameBuffers(renderPipeline.getRenderPass());
 
-    for (int i = 0; i < attachments.size(); i += 2) {
-        frameBuffers.push_back(FrameBuffer(device, renderPipeline.getRenderPass()->getRenderPass(), &attachments[i], 2,
-                                           window->getWidth(), window->getHeight()));
-    }
+    renderPipeline.setClearColorValues(0.0f, 0.25f, 0.0f, 1.0f);
 
+    SyncManager syncManager(*device, *swapChain, *device->getPresentQueue(),
+                            swapChain->getSwapchainImageViews().size());
 
-    renderPipeline.setClearColorValues(0, 0, 0, 1);
+    window->addResizeCallback(new ResizeCallback(&renderPipeline, &frameBufferManager, &syncManager, device));
 
-    SyncManager syncManager(device, swapChain, *device.getPresentQueue(), frameBuffers.size());
-    window->addResizeCallback(new ResizeCallback(&renderPipeline, frameBuffers, depthImages, &swapChain, device, syncManager));
     while (!window->needToClose()) {
-        try{
+        try {
             window->preRenderEvents();
-            if(!syncManager.isStop()){
+            if (!syncManager.isStop()) {
                 uint32_t currentImage;
                 vk::CommandBuffer commandBuffer = syncManager.beginRender(currentImage);
-                renderPipeline.beginRender(commandBuffer, frameBuffers[currentImage]);
+                renderPipeline.beginRender(commandBuffer, *frameBufferManager.getFrameBuffer(currentImage));
 
-                //commandBuffer.draw(3, 1, 0, 0);
+                commandBuffer.draw(3, 1, 0, 0);
                 renderPipeline.endRender(commandBuffer);
                 syncManager.endRender();
                 window->postRenderEvents();
             }
 
-        }catch(std::exception& exception){
+        } catch (std::exception &exception) {
 
         }
 

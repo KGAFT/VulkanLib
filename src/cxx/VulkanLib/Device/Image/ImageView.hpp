@@ -9,13 +9,13 @@
 class ImageView : IDestroyableObject {
     friend class Image;
 public:
-    ImageView(vk::ImageCreateInfo &parentInfo, LogicalDevice &device, vk::ImageView base,
+    ImageView(vk::ImageCreateInfo &parentInfo, std::shared_ptr<LogicalDevice> device, vk::ImageView base,
               vk::ImageViewCreateInfo &createInfo) : base(base),
                                                      createInfo(createInfo), device(device), parentInfo(parentInfo) {}
 
 private:
     vk::ImageCreateInfo &parentInfo;
-    LogicalDevice &device;
+    std::shared_ptr<LogicalDevice> device;
     vk::ImageView base;
     vk::ImageViewCreateInfo createInfo;
 public:
@@ -33,7 +33,7 @@ public:
 
 public:
     void destroy() override {
-        device.getDevice().destroyImageView(base);
+        device->getDevice().destroyImageView(base);
         destroyed = true;
     }
 

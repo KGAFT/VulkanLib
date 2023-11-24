@@ -29,7 +29,7 @@ public:
             outCurrentCmd = currentCmd;
             return commandBuffers[currentCmd];
         }
-
+        return nullptr;
     }
 
     void endRender() {

@@ -8,7 +8,7 @@
 #include <VulkanLib/MemoryUtils/MemoryUtils.hpp>
 #include <cstdlib>
 
-template <typename T> class SerialObject{
+template <typename T> class SeriesObject{
 private:
     std::map<T*, bool> objectInstances;
     unsigned int releasedObjectCount = 0;
@@ -18,6 +18,7 @@ public:
             if(!item.second){
                 item.second = true;
                 MemoryUtils::memClear(item.first, sizeof(T));
+                releasedObjectCount--;
                 return item.first;
             }
         }
@@ -49,7 +50,7 @@ private:
         toClear.clear();
     }
 public:
-    ~SerialObject(){
+    ~SeriesObject(){
         for (const auto &item: objectInstances){
             free(item.first);
         }

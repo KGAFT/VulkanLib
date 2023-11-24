@@ -9,15 +9,15 @@
 
 class FrameBuffer : IDestroyableObject {
 public:
-    FrameBuffer(LogicalDevice &device, vk::RenderPass &renderPass, std::shared_ptr<ImageView> *pImages, uint32_t imageCount, uint32_t width,
+    FrameBuffer(std::shared_ptr<LogicalDevice> device, vk::RenderPass& renderPass, std::shared_ptr<ImageView> *pImages, uint32_t imageCount, uint32_t width,
                 uint32_t height) : device(device), renderPass(renderPass) {
         create(pImages, imageCount, width, height);
     }
 
 private:
     vk::Framebuffer frameBuffer;
-    vk::RenderPass &renderPass;
-    LogicalDevice &device;
+    vk::RenderPass& renderPass;
+    std::shared_ptr<LogicalDevice> device;
 public:
     void recreate(std::shared_ptr<ImageView> *pImages, uint32_t imageCount,
                   uint32_t width, uint32_t height){
@@ -46,12 +46,12 @@ private:
         framebufferInfo.width = width;
         framebufferInfo.height = height;
         framebufferInfo.layers = 1;
-        frameBuffer = device.getDevice().createFramebuffer(framebufferInfo);
+        frameBuffer = device->getDevice().createFramebuffer(framebufferInfo);
     }
 
     void destroy() override {
         destroyed = true;
-        device.getDevice().destroyFramebuffer(frameBuffer);
+        device->getDevice().destroyFramebuffer(frameBuffer);
 
     }
 };

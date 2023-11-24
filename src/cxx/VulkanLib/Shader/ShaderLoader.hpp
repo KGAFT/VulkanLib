@@ -6,7 +6,7 @@
 #include <shaderc/shaderc.hpp>
 #include <fstream>
 #include <iostream>
-#include <VulkanLib/MemoryUtils/SerialObject.hpp>
+#include <VulkanLib/MemoryUtils/SeriesObject.hpp>
 #include <cstring>
 #include <vulkan/vulkan.hpp>
 #include "ShaderLoaderIncluder.hpp"

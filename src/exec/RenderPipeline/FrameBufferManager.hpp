@@ -20,7 +20,7 @@ private:
                                                                 vk::ImageUsageFlagBits::eTransferSrc,
                                                                 vk::SharingMode::eExclusive,
                                                                 0, 0,
-                                                                vk::ImageLayout::eGeneral, nullptr
+                                                                vk::ImageLayout::eUndefined, nullptr
 
     };
     static inline vk::ImageViewCreateInfo defaultColorViewCreateInfo = {vk::ImageViewCreateFlags(),
@@ -40,7 +40,7 @@ private:
                                                                 vk::ImageUsageFlagBits::eTransferSrc,
                                                                 vk::SharingMode::eExclusive,
                                                                 0, 0,
-                                                                vk::ImageLayout::eGeneral, nullptr
+                                                                vk::ImageLayout::eUndefined, nullptr
 
     };
     static inline vk::ImageViewCreateInfo defaultDepthViewInfo = {vk::ImageViewCreateFlags(),
@@ -52,7 +52,7 @@ private:
 public:
     FrameBufferManager(std::shared_ptr<LogicalDevice> device,
                        uint32_t attachmentPerRenderStepAmount,
-                       uint32_t maxFramesInFlight, uint32_t width, uint32_t height) : device(std::move(device)),
+                       uint32_t maxFramesInFlight, uint32_t width, uint32_t height) : device(device),
                                                                                       attachmentPerStepAmount(
                                                                                               attachmentPerRenderStepAmount),
                                                                                       width(width), height(height),
@@ -60,18 +60,16 @@ public:
                                                                                               maxFramesInFlight),
                                                                                       swapChain(nullptr) {
         createAttachments();
-        createFrameBuffers();
     }
 
     FrameBufferManager(std::shared_ptr<LogicalDevice> device, std::shared_ptr<SwapChain> swapChain,
-                       uint32_t maxFramesInFlight, uint32_t width, uint32_t height) : device(std::move(device)),
+                       uint32_t maxFramesInFlight, uint32_t width, uint32_t height) : device(device),
                                                                                       swapChain(std::move(swapChain)),
                                                                                       maxFramesInFlight(
                                                                                               maxFramesInFlight),
                                                                                       width(width), height(height),
                                                                                       attachmentPerStepAmount(1) {
         createAttachmentsFromSwapChain();
-        createFrameBuffers();
     }
 
 
@@ -103,11 +101,24 @@ public:
         return frameBuffers[imageIndex];
     }
 
+    std::shared_ptr<ImageView> *getColorAttachments() {
+        return &attachments[0];
+    }
+
+    std::shared_ptr<ImageView> *getDepthAttachments() {
+        return &attachments[attachmentPerStepAmount];
+    }
+
+    void initializeFrameBuffers(std::shared_ptr<RenderPass> renderPass) {
+        FrameBufferManager::renderPass = renderPass;
+        createFrameBuffers();
+    }
+
 private:
     void createFrameBuffers() {
         for (uint32_t i = 0; i < attachments.size(); i += attachmentPerStepAmount + 1) {
             frameBuffers.push_back(std::make_shared<FrameBuffer>(
-                    *device.get(), renderPass->getRenderPass(), &attachments[i],
+                    device, renderPass->getRenderPass(), &attachments[i],
                     attachmentPerStepAmount + 1, width, height));
         }
     }
@@ -120,9 +131,9 @@ private:
         defaultDepthViewInfo.format = depthFormat;
         for (auto &item: swapChain->getSwapchainImageViews()) {
             attachments.push_back(item);
-            renderImages.push_back(std::make_shared<Image>(*device, defaultDepthCreateInfo));
-            defaultDepthViewInfo.image = renderImages.end()->get()->getBase();
-            attachments.push_back(renderImages.end()->get()->createImageView(defaultDepthViewInfo));
+            renderImages.push_back(std::make_shared<Image>(device, defaultDepthCreateInfo));
+            defaultDepthViewInfo.image = renderImages[renderImages.size() - 1]->getBase();
+            attachments.push_back(renderImages[renderImages.size() - 1]->createImageView(defaultDepthViewInfo));
         }
     }
 
@@ -134,8 +145,8 @@ private:
         uint32_t i = 0;
         for (auto &item: swapChain->getSwapchainImageViews()) {
             attachments.push_back(item);
-            defaultDepthViewInfo.image = renderImages[i]->getBase();
-            attachments.push_back(renderImages.end()->get()->createImageView(defaultDepthViewInfo));
+            renderImages[i]->resize(width, height);
+            attachments.push_back(renderImages[i]->getImageViews()[0]);
             i++;
         }
     }
@@ -147,13 +158,8 @@ private:
         defaultDepthViewInfo.format = depthFormat;
         for (uint32_t i = 0; i < (attachmentPerStepAmount + 1) * maxFramesInFlight; i++) {
             renderImages[i]->resize(width, height);
-            if (i % (attachmentPerStepAmount)) {
-                defaultDepthViewInfo.image = renderImages.end()->get()->getBase();
-                attachments.push_back(renderImages.end()->get()->createImageView(defaultDepthViewInfo));
-            } else {
-                defaultColorViewCreateInfo.image = renderImages.end()->get()->getBase();
-                attachments.push_back(renderImages[i]->createImageView(defaultColorViewCreateInfo));
-            }
+            attachments.push_back(renderImages[renderImages.size() - 1]->getImageViews()[0]);
+
 
         }
     }
@@ -167,7 +173,7 @@ private:
         for (uint32_t i = 0;
              i < attachmentPerStepAmount * maxFramesInFlight; i += attachmentPerStepAmount) {
             for (uint32_t ii = i; ii < i + attachmentPerStepAmount; ii++) {
-                renderImages.push_back(std::make_shared<Image>(*device, defaultColorCreateInfo));
+                renderImages.push_back(std::make_shared<Image>(device, defaultColorCreateInfo));
                 defaultColorViewCreateInfo.image = renderImages.end()->get()->getBase();
                 attachments.push_back(renderImages.end()->get()->createImageView(defaultColorViewCreateInfo));
             }

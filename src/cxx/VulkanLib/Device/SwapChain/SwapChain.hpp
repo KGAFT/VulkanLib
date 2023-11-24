@@ -6,6 +6,7 @@
 #include "VulkanLib/Device/Image/Image.hpp"
 #include <VulkanLib/Device/LogicalDevice/LogicalDevice.hpp>
 #include <VulkanLib/MemoryUtils/VectorUtils.hpp>
+#include <utility>
 #include <vulkan/vulkan.hpp>
 
 struct SwapChainSupportDetails {
@@ -23,14 +24,14 @@ public:
     }
 
 public:
-    SwapChain(LogicalDevice &device, const vk::SurfaceKHR &surface,
+    SwapChain(std::shared_ptr<LogicalDevice> device, const vk::SurfaceKHR &surface,
               uint32_t width, uint32_t height, bool enableFrameLock)
-            : device(device), surface(surface), width(width), height(height), enableFrameLock(enableFrameLock) {
+            : device(std::move(device)), surface(surface), width(width), height(height), enableFrameLock(enableFrameLock) {
         createSwapChain(width, height, enableFrameLock);
     }
 
 private:
-    LogicalDevice &device;
+    std::shared_ptr<LogicalDevice> device;
     vk::SwapchainKHR swapchainKhr;
     vk::SurfaceKHR surface;
     vk::PresentModeKHR presentMode;
@@ -77,8 +78,8 @@ private:
                 vk::SwapchainCreateFlagsKHR(), surface, imageCount, format.format,
                 format.colorSpace, extent, 1, vk::ImageUsageFlagBits::eColorAttachment);
         std::vector<unsigned int> queueIndices = {
-                device.getQueueByType(vk::QueueFlagBits::eGraphics)->getIndex(),
-                device.getPresentQueue()->getIndex()};
+                device->getQueueByType(vk::QueueFlagBits::eGraphics)->getIndex(),
+                device->getPresentQueue()->getIndex()};
         VectorUtils::removeRepeatingElements(queueIndices);
         if (queueIndices.size() > 1) {
             createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
@@ -94,11 +95,11 @@ private:
 
         createInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
         try {
-            swapchainKhr = device.getDevice().createSwapchainKHR(createInfo);
-            baseImages = device.getDevice().getSwapchainImagesKHR(swapchainKhr);
+            swapchainKhr = device->getDevice().createSwapchainKHR(createInfo);
+            baseImages = device->getDevice().getSwapchainImagesKHR(swapchainKhr);
             swapchainImages.resize(baseImages.size());
             for (int i = 0; i < baseImages.size(); ++i) {
-                swapchainImages[i] = std::shared_ptr<Image>(new Image(&device, baseImages[i]));
+                swapchainImages[i] = std::shared_ptr<Image>(new Image(device, baseImages[i]));
                 vk::ImageViewCreateInfo viewCreateInfo = {};
                 viewCreateInfo.image = baseImages[i];
                 viewCreateInfo.viewType = vk::ImageViewType::e2D;
@@ -122,18 +123,18 @@ private:
 
     void gatherSwapChainSupportDetails(SwapChainSupportDetails &output) {
         vk::Result res;
-        res = device.getBaseDevice()->getBase().getSurfaceCapabilitiesKHR(
+        res = device->getBaseDevice()->getBase().getSurfaceCapabilitiesKHR(
                 surface, &output.capabilities);
         uint32_t formatCount;
-        res = device.getBaseDevice()->getBase().getSurfaceFormatsKHR(
+        res = device->getBaseDevice()->getBase().getSurfaceFormatsKHR(
                 surface, &formatCount, nullptr);
         output.formats.resize(formatCount);
-        res = device.getBaseDevice()->getBase().getSurfaceFormatsKHR(
+        res = device->getBaseDevice()->getBase().getSurfaceFormatsKHR(
                 surface, &formatCount, output.formats.data());
-        res = device.getBaseDevice()->getBase().getSurfacePresentModesKHR(
+        res = device->getBaseDevice()->getBase().getSurfacePresentModesKHR(
                 surface, &formatCount, nullptr);
         output.presentModes.resize(formatCount);
-        res = device.getBaseDevice()->getBase().getSurfacePresentModesKHR(
+        res = device->getBaseDevice()->getBase().getSurfacePresentModesKHR(
                 surface, &formatCount, output.presentModes.data());
     }
 
@@ -187,7 +188,7 @@ private:
         }
         swapchainImageViews.clear();
         swapchainImages.clear();
-        device.getDevice().destroySwapchainKHR(swapchainKhr);
+        device->getDevice().destroySwapchainKHR(swapchainKhr);
         destroyed = true;
     }
 

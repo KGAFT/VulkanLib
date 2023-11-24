@@ -13,9 +13,9 @@ public:
                                                                             height(builder.height),
                                                                             attachmentCount(
                                                                                     builder.imagePerStepAmount) {
-        renderPass = new RenderPass(builder.swapChain != nullptr,
-                                    builder.imagePerStepAmount,
-                                    builder.builder, device);
+        renderPass = std::make_shared<RenderPass>(builder.swapChain != nullptr,
+                                                  builder.imagePerStepAmount,
+                                                  builder.builder, device);
         graphicsPipeline = new GraphicsPipeline(device, builder.shader,
                                                 builder.builder,
                                                 builder.imagePerStepAmount,
@@ -26,7 +26,7 @@ public:
 
 private:
     GraphicsPipeline *graphicsPipeline;
-    RenderPass *renderPass;
+    std::shared_ptr<RenderPass> renderPass;
     LogicalDevice &device;
     uint32_t width;
     uint32_t height;
@@ -47,20 +47,22 @@ public:
     }
 
 public:
-    RenderPass *getRenderPass() const {
+    std::shared_ptr<RenderPass> getRenderPass() {
         return renderPass;
     }
 
     void recreateForResize(uint32_t width, uint32_t height) {
         graphicsPipeline->recreate(*renderPass, width, height);
+        RenderPipeline::width = width;
+        RenderPipeline::height = height;
     }
 
     void recreate(RenderPipelineBuilder &builder) {
         destroy();
         destroyed = false;
-        renderPass = new RenderPass(builder.swapChain != nullptr,
-                                    builder.imagePerStepAmount,
-                                    builder.builder, device);
+        renderPass = std::make_shared<RenderPass>(builder.swapChain != nullptr,
+                                                  builder.imagePerStepAmount,
+                                                  builder.builder, device);
         graphicsPipeline = new GraphicsPipeline(device, builder.shader,
                                                 builder.builder,
                                                 builder.imagePerStepAmount,
@@ -77,7 +79,7 @@ public:
     void destroy() override {
         destroyed = true;
         delete graphicsPipeline;
-        delete renderPass;
+        renderPass->destroy();
     }
 };
 

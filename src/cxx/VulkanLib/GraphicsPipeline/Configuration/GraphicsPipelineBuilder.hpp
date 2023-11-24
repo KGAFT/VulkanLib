@@ -5,7 +5,7 @@
 
 #include <vector>
 #include "VulkanLib/Device/Image/ImageView.hpp"
-#include "VulkanLib/MemoryUtils/SerialObject.hpp"
+#include "VulkanLib/MemoryUtils/SeriesObject.hpp"
 
 struct VertexInput {
     unsigned int location;
@@ -36,7 +36,7 @@ class GraphicsPipelineBuilder {
     friend class RenderPass;
 
 private:
-    static inline SerialObject<GraphicsPipelineBuilder> builders = SerialObject<GraphicsPipelineBuilder>();
+    static inline SeriesObject<GraphicsPipelineBuilder> builders = SeriesObject<GraphicsPipelineBuilder>();
 public:
     static GraphicsPipelineBuilder *getInstance() {
         return builders.getObjectInstance();

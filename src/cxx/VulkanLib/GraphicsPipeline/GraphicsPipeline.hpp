@@ -9,17 +9,27 @@
 #include "VulkanLib/GraphicsPipeline/RenderPass/RenderPass.hpp"
 #include "VulkanLib/GraphicsPipeline/Configuration/GraphicsPipelineConfigurer.hpp"
 #include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
-#include "VulkanLib/MemoryUtils/SerialObject.hpp"
+#include "VulkanLib/MemoryUtils/SeriesObject.hpp"
 #include "Shader.hpp"
+
+struct GraphicsPipelineCreateStrip {
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
+    vk::PipelineViewportStateCreateInfo viewportInfo{};
+
+    vk::GraphicsPipelineCreateInfo pipelineInfo{};
+
+};
 
 class GraphicsPipeline : public IDestroyableObject {
 private:
-    static inline SerialObject<GraphicsPipelineConfig> configInstancer = SerialObject<GraphicsPipelineConfig>();
+    static inline SeriesObject<GraphicsPipelineConfig> configInstancer = SeriesObject<GraphicsPipelineConfig>();
+    static inline SeriesObject<GraphicsPipelineCreateStrip> createInstance = SeriesObject<GraphicsPipelineCreateStrip>();
 public:
     GraphicsPipeline(LogicalDevice &device, Shader *shader, GraphicsPipelineBuilder *builder,
                      unsigned int attachmentPerStepAmount,
                      unsigned int width, unsigned int height,
-                     RenderPass &renderPass) : device(device), configurer(device, builder), shader(shader), attachmentPerStepAmount(attachmentPerStepAmount) {
+                     RenderPass &renderPass) : device(device), configurer(device, builder), shader(shader),
+                                               attachmentPerStepAmount(attachmentPerStepAmount) {
         create(attachmentPerStepAmount, width, height, shader, renderPass);
     }
 
@@ -27,55 +37,61 @@ private:
     GraphicsPipelineConfigurer configurer;
     vk::Pipeline graphicsPipeline;
     LogicalDevice &device;
-    Shader* shader;
+    Shader *shader;
     unsigned int attachmentPerStepAmount;
 public:
     vk::Pipeline getGraphicsPipeline() {
         return graphicsPipeline;
     }
-    void recreate( RenderPass& renderPass, unsigned int width, unsigned int height){
+
+    void recreate(RenderPass &renderPass, unsigned int width, unsigned int height) {
         destroy();
         destroyed = false;
         create(attachmentPerStepAmount, width, height, shader, renderPass);
     }
+
 private:
-    void create(unsigned int attachmentPerStepAmount, unsigned int width, unsigned int height, Shader* shader, RenderPass& renderPass){
+    void create(unsigned int attachmentPerStepAmount, unsigned int width, unsigned int height, Shader *shader,
+                RenderPass &renderPass) {
         GraphicsPipelineConfig *config = configInstancer.getObjectInstance();
+        GraphicsPipelineCreateStrip *createStrip = createInstance.getObjectInstance();
         GraphicsPipelineConfig::createConfig(config, attachmentPerStepAmount, true, width, height);
 
-        vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
-        vertexInputInfo.vertexAttributeDescriptionCount = configurer.inputAttribDescs.size();
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
-        vertexInputInfo.pVertexAttributeDescriptions = configurer.inputAttribDescs.data();
-        vertexInputInfo.pVertexBindingDescriptions = &configurer.inputBindDesc;
+        createStrip->vertexInputInfo.sType = vk::StructureType::ePipelineVertexInputStateCreateInfo;
+        createStrip->vertexInputInfo.vertexAttributeDescriptionCount = configurer.inputAttribDescs.size();
+        createStrip->vertexInputInfo.vertexBindingDescriptionCount = 1;
+        createStrip->vertexInputInfo.pVertexAttributeDescriptions = configurer.inputAttribDescs.data();
+        createStrip->vertexInputInfo.pVertexBindingDescriptions = &configurer.inputBindDesc;
 
-        vk::PipelineViewportStateCreateInfo viewportInfo{};
-        viewportInfo.viewportCount = 1;
-        viewportInfo.pViewports = &config->viewport;
-        viewportInfo.scissorCount = 1;
-        viewportInfo.pScissors = &config->scissor;
+        createStrip->viewportInfo.sType = vk::StructureType::ePipelineViewportStateCreateInfo;
+        createStrip->viewportInfo.viewportCount = 1;
+        createStrip->viewportInfo.pViewports = &config->viewport;
+        createStrip->viewportInfo.scissorCount = 1;
+        createStrip->viewportInfo.pScissors = &config->scissor;
 
-        vk::GraphicsPipelineCreateInfo pipelineInfo{};
-        pipelineInfo.stageCount = shader->getCreateInfos().size();
-        pipelineInfo.pStages = shader->getCreateInfos().data();
-        pipelineInfo.pVertexInputState = &vertexInputInfo;
-        pipelineInfo.pInputAssemblyState = &config->inputAssemblyInfo;
-        pipelineInfo.pViewportState = &viewportInfo;
-        pipelineInfo.pRasterizationState = &config->rasterizationInfo;
-        pipelineInfo.pMultisampleState = &config->multisampleInfo;
-        pipelineInfo.pColorBlendState = &config->colorBlendInfo;
-        pipelineInfo.pDepthStencilState = &config->depthStencilInfo;
-        pipelineInfo.pDynamicState = nullptr;
+        createStrip->pipelineInfo.sType = vk::StructureType::eGraphicsPipelineCreateInfo;
+        createStrip->pipelineInfo.stageCount = shader->getCreateInfos().size();
+        createStrip->pipelineInfo.pStages = shader->getCreateInfos().data();
+        createStrip->pipelineInfo.pVertexInputState = &createStrip->vertexInputInfo;
+        createStrip->pipelineInfo.pInputAssemblyState = &config->inputAssemblyInfo;
+        createStrip->pipelineInfo.pViewportState = &createStrip->viewportInfo;
+        createStrip->pipelineInfo.pRasterizationState = &config->rasterizationInfo;
+        createStrip->pipelineInfo.pMultisampleState = &config->multisampleInfo;
+        createStrip->pipelineInfo.pColorBlendState = &config->colorBlendInfo;
+        createStrip->pipelineInfo.pDepthStencilState = &config->depthStencilInfo;
+        createStrip->pipelineInfo.pDynamicState = nullptr;
 
-        pipelineInfo.layout = configurer.pipelineLayout;
-        pipelineInfo.renderPass = renderPass.getRenderPass();
-        pipelineInfo.subpass = config->subpass;
+        createStrip->pipelineInfo.layout = configurer.pipelineLayout;
+        createStrip->pipelineInfo.renderPass = renderPass.getRenderPass();
+        createStrip->pipelineInfo.subpass = config->subpass;
 
-        pipelineInfo.basePipelineIndex = -1;
-        pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-        graphicsPipeline = device.getDevice().createGraphicsPipeline(nullptr, pipelineInfo).value;
+        createStrip->pipelineInfo.basePipelineIndex = -1;
+        createStrip->pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+        graphicsPipeline = device.getDevice().createGraphicsPipeline(nullptr, createStrip->pipelineInfo).value;
         configInstancer.releaseObjectInstance(config);
+        createInstance.releaseObjectInstance(createStrip);
     }
+
 public:
     void destroy() override {
         destroyed = true;
