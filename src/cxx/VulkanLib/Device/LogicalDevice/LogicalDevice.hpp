@@ -3,6 +3,8 @@
 //
 #pragma once
 
+#include <memory>
+
 #include "VulkanLib/Device/PhysicalDevice/DeviceSuitability.hpp"
 #include "VulkanLib/MemoryUtils/MemoryUtils.hpp"
 #include "LogicalQueue.hpp"
@@ -13,7 +15,7 @@ private:
     static inline float priority = 1.0f;
     static inline unsigned int usedQueueCreateInfos;
 public:
-    LogicalDevice(Instance &instance, PhysicalDevice *device, DeviceBuilder &builder, DeviceSuitabilityResults *results)
+    LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice> device, DeviceBuilder &builder, DeviceSuitabilityResults *results)
             : baseDevice(device) {
         sanitizeQueueCreateInfos(results);
 
@@ -28,7 +30,7 @@ public:
             LogicalDevice::device = device->getBase().createDevice(deviceInfo, nullptr);
             for (const auto &item: results->queuesInfo) {
                 queues.push_back(
-                        LogicalQueue(LogicalDevice::device.getQueue(item.index, 0), LogicalDevice::device, item.supportPresentation,
+                        std::make_shared<LogicalQueue>(LogicalDevice::device.getQueue(item.index, 0), LogicalDevice::device, item.supportPresentation,
                                      item.properties.queueFlags & vk::QueueFlagBits::eGraphics
                                      ? vk::QueueFlagBits::eGraphics : vk::QueueFlagBits::eCompute,
                                      item.index));
@@ -46,29 +48,29 @@ public:
 
 private:
     vk::Device device;
-    std::vector<LogicalQueue> queues;
-    PhysicalDevice *baseDevice;
+    std::vector<std::shared_ptr<LogicalQueue>> queues;
+    std::shared_ptr<PhysicalDevice> baseDevice;
 public:
     const vk::Device &getDevice() const {
         return device;
     }
 
-    PhysicalDevice *getBaseDevice() const {
+    std::shared_ptr<PhysicalDevice> getBaseDevice() const {
         return baseDevice;
     }
 
-    LogicalQueue &getQueueByType(vk::QueueFlagBits queueType) {
+    std::shared_ptr<LogicalQueue> getQueueByType(vk::QueueFlagBits queueType) {
         for (auto &item: queues) {
-            if (item.queueType & queueType) {
+            if (item->queueType & queueType) {
                 return item;
             }
         }
         throw std::runtime_error("Error: no such queue");
     }
 
-    LogicalQueue &getPresentQueue() {
+    std::shared_ptr<LogicalQueue> getPresentQueue() {
         for (auto &item: queues) {
-            if (item.supportPresentation) {
+            if (item->supportPresentation) {
                 return item;
             }
         }

@@ -48,32 +48,32 @@ public:
     }
 
 private:
-    std::vector<ImageView *> colorAttachments;
-    std::vector<ImageView *> depthAttachments;
+    std::vector<std::shared_ptr<ImageView>> colorAttachments;
+    std::vector<std::shared_ptr<ImageView>> depthAttachments;
     std::vector<VertexInput> vertexInputs;
     std::vector<UniformBufferInfo> uniformBufferInfo;
     std::vector<PushConstantInfo> pushConstantInfos;
     std::vector<SamplerInfo> samplersInfo;
 public:
-    void addColorAttachment(ImageView *attachment) {
+    void addColorAttachment(std::shared_ptr<ImageView> attachment) {
         colorAttachments.push_back(attachment);
     }
 
-    void addColorAttachments(ImageView **pAttachments, unsigned int attachmentCount) {
+    void addColorAttachments(std::shared_ptr<ImageView> *pAttachments, unsigned int attachmentCount) {
         colorAttachments.resize(attachmentCount);
         for (unsigned int i = 0; i < attachmentCount; ++i) {
             colorAttachments[i] = pAttachments[i];
         }
     }
 
-    void addDepthAttachments(ImageView **pDepthAttachments, unsigned int attachmentCount) {
+    void addDepthAttachments(std::shared_ptr<ImageView> *pDepthAttachments, unsigned int attachmentCount) {
         depthAttachments.resize(attachmentCount);
         for (unsigned int i = 0; i < attachmentCount; ++i) {
             depthAttachments[i] = pDepthAttachments[i];
         }
     }
 
-    void addDepthAttachment(ImageView *attachment) {
+    void addDepthAttachment(std::shared_ptr<ImageView>attachment) {
         depthAttachments.push_back(attachment);
     }
 

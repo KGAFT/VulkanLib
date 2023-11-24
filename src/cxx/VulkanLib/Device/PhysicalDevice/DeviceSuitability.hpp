@@ -21,7 +21,7 @@ struct DeviceSuitabilityResults {
 class DeviceSuitability {
 public:
 
-    static bool isDeviceSuitable(DeviceBuilder &builder, PhysicalDevice *device, DeviceSuitabilityResults* pOutput) {
+    static bool isDeviceSuitable(DeviceBuilder &builder, std::shared_ptr<PhysicalDevice> device, DeviceSuitabilityResults* pOutput) {
         for (const auto &item: builder.requestExtensions) {
             bool found = false;
             for (const auto &citem: device->extensionProperties) {

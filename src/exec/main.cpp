@@ -38,14 +38,14 @@ public:
         syncManager.setStop(true);
         swapChain->recreate(width, height, true);
         renderPipeline->recreateForResize(width, height);
-        std::vector<ImageView *> attachments;
+        std::vector<std::shared_ptr<ImageView>> attachments;
         for (auto &item: depthImages) {
             item.resize(width, height);
         }
         uint32_t c = 0;
         for (auto &item: swapChain->getSwapchainImageViews()) {
             attachments.push_back(item);
-            attachments.push_back(&depthImages[c].getImageViews()[0]);
+            attachments.push_back(depthImages[c].getImageViews()[0]);
             c++;
         }
         c = 0;
@@ -68,8 +68,8 @@ int main() {
     builder.presetForDebug();
     builder.setApplicationName("TestEngine");
     Instance instance(builder);
-    std::vector<PhysicalDevice *> &devices = const_cast<std::vector<PhysicalDevice *> &>(PhysicalDevice::getDevices(
-            instance));
+    auto devices = PhysicalDevice::getDevices(
+            instance);
     VkSurfaceKHR surfaceKhr = window->getWindowSurface(instance.getInstance());
     DeviceBuilder devBuilder;
     devBuilder.addExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
@@ -78,7 +78,7 @@ int main() {
 
     std::vector<DeviceSuitabilityResults> results;
 
-    for (auto &el: devices) {
+    for (auto &el: *devices) {
         results.push_back(DeviceSuitabilityResults());
         if (DeviceSuitability::isDeviceSuitable(devBuilder, el, &results[results.size() - 1])) {
             std::cout << el->properties.deviceName << std::endl;
@@ -86,48 +86,14 @@ int main() {
     }
     int devIndex;
     std::cin >> devIndex;
-    LogicalDevice device(instance, devices[devIndex], devBuilder, &results[devIndex]);
+    LogicalDevice device(instance, (*devices)[devIndex], devBuilder, &results[devIndex]);
 
-    PhysicalDevice::releaseUnusedDevicesInfos(&devices[devIndex], 1);
+    devices->clear();
     results.clear();
 
 
     SwapChain swapChain(device, surfaceKhr, window->getWidth(), window->getHeight(), false);
-    std::vector<Image> depthImages;
-    depthImages.resize(swapChain.getSwapchainImageViews().size());
-    vk::Format depthFormat = device.findDepthFormat();
 
-    vk::ImageCreateInfo imageInfo{};
-    imageInfo.imageType = vk::ImageType::e2D;
-    imageInfo.extent.width = window->getWidth();
-    imageInfo.extent.height = window->getHeight();
-    imageInfo.extent.depth = 1;
-    imageInfo.mipLevels = 1;
-    imageInfo.arrayLayers = 1;
-    imageInfo.format = depthFormat;
-    imageInfo.tiling = vk::ImageTiling::eOptimal;
-    imageInfo.initialLayout = vk::ImageLayout::eUndefined;
-    imageInfo.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferSrc;
-    imageInfo.samples = vk::SampleCountFlagBits::e1;
-    imageInfo.sharingMode = vk::SharingMode::eExclusive;
-    imageInfo.flags = vk::ImageCreateFlags();
-
-    vk::ImageViewCreateInfo viewInfo{};
-    viewInfo.viewType = vk::ImageViewType::e2D;
-    viewInfo.format = depthFormat;
-    viewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
-    viewInfo.subresourceRange.baseMipLevel = 0;
-    viewInfo.subresourceRange.levelCount = 1;
-    viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = 1;
-
-    std::vector<ImageView *> depthImageViews;
-
-    for (unsigned int i = 0; i < swapChain.getSwapchainImageViews().size(); ++i) {
-        depthImages[i].initialize(&device, imageInfo);
-        viewInfo.image = depthImages[i].getBase();
-        depthImageViews.push_back(&depthImages[i].createImageView(viewInfo));
-    }
 
     auto *loaderInstance = ShaderLoader::getInstance();
     std::vector<ShaderCreateInfo> createInfos;
@@ -139,8 +105,9 @@ int main() {
     Shader *shader = loaderInstance->createShader(device, createInfos);
 
     GraphicsPipelineBuilder *gPipelineBuilder = GraphicsPipelineBuilder::getInstance();
-    gPipelineBuilder->addColorAttachments(const_cast<ImageView **>(swapChain.getSwapchainImageViews().data()),
-                                          swapChain.getSwapchainImageViews().size());
+    gPipelineBuilder->addColorAttachments(
+            const_cast<std::shared_ptr<ImageView> *>(swapChain.getSwapchainImageViews().data()),
+            swapChain.getSwapchainImageViews().size());
     gPipelineBuilder->addDepthAttachments(depthImageViews.data(), depthImageViews.size());
 
 
@@ -155,7 +122,7 @@ int main() {
     RenderPipeline renderPipeline(device, rpBuilder);
 
     std::vector<FrameBuffer> frameBuffers;
-    std::vector<ImageView *> attachments;
+    std::vector<std::shared_ptr<ImageView>> attachments;
     uint32_t c = 0;
     for (auto &item: swapChain.getSwapchainImageViews()) {
         attachments.push_back(item);
@@ -171,7 +138,7 @@ int main() {
 
     renderPipeline.setClearColorValues(0, 0, 0, 1);
 
-    SyncManager syncManager(device, swapChain, device.getPresentQueue(), frameBuffers.size());
+    SyncManager syncManager(device, swapChain, *device.getPresentQueue(), frameBuffers.size());
     window->addResizeCallback(new ResizeCallback(&renderPipeline, frameBuffers, depthImages, &swapChain, device, syncManager));
     while (!window->needToClose()) {
         try{

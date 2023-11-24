@@ -9,7 +9,7 @@
 
 class FrameBuffer : IDestroyableObject {
 public:
-    FrameBuffer(LogicalDevice &device, vk::RenderPass &renderPass, ImageView **pImages, uint32_t imageCount, uint32_t width,
+    FrameBuffer(LogicalDevice &device, vk::RenderPass &renderPass, std::shared_ptr<ImageView> *pImages, uint32_t imageCount, uint32_t width,
                 uint32_t height) : device(device), renderPass(renderPass) {
         create(pImages, imageCount, width, height);
     }
@@ -19,7 +19,7 @@ private:
     vk::RenderPass &renderPass;
     LogicalDevice &device;
 public:
-    void recreate(ImageView **pImages, uint32_t imageCount,
+    void recreate(std::shared_ptr<ImageView> *pImages, uint32_t imageCount,
                   uint32_t width, uint32_t height){
         destroy();
         destroyed = false;
@@ -31,7 +31,7 @@ public:
     }
 
 private:
-    void create(ImageView **pImages, uint32_t imageCount,
+    void create(std::shared_ptr<ImageView> *pImages, uint32_t imageCount,
                 uint32_t width, uint32_t height) {
         std::vector<vk::ImageView> views;
         views.resize(imageCount);

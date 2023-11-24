@@ -23,8 +23,8 @@ private:
     vk::RenderPass renderPass;
     vk::ClearColorValue clearColorValues{1.0f,0.0f,0.0f,1.0f};
 private:
-    void createRenderPass(std::vector<ImageView *> &colorAttachments, bool isSwapChainImages,
-                          unsigned int attachmentPerStepAmount, ImageView *depthAttachment) {
+    void createRenderPass(std::vector<std::shared_ptr<ImageView>> &colorAttachments, bool isSwapChainImages,
+                          unsigned int attachmentPerStepAmount, std::shared_ptr<ImageView> depthAttachment) {
         std::vector<vk::AttachmentDescription> attachments;
         std::vector<vk::AttachmentReference> references;
         prepareAttachmentDescriptions(colorAttachments, isSwapChainImages, attachmentPerStepAmount, depthAttachment,
@@ -109,8 +109,8 @@ public:
     }
 
 private:
-    static void prepareAttachmentDescriptions(std::vector<ImageView *> &colorAttachments, bool isSwapChainImages,
-                                              unsigned int attachmentPerStepAmount, ImageView *depthAttachment,
+    static void prepareAttachmentDescriptions(std::vector<std::shared_ptr<ImageView>> &colorAttachments, bool isSwapChainImages,
+                                              unsigned int attachmentPerStepAmount, std::shared_ptr<ImageView> depthAttachment,
                                               std::vector<vk::AttachmentDescription> &output) {
         output.resize(attachmentPerStepAmount + 1);
         for (unsigned int i = 0; i < attachmentPerStepAmount; i++) {
@@ -135,8 +135,8 @@ private:
         output[attachmentPerStepAmount].format = depthAttachment->getParentInfo().format;
     }
 
-    static void prepareAttachmentReferences(std::vector<ImageView *> &colorAttachments, bool isSwapChainImages,
-                                            unsigned int attachmentPerStepAmount, ImageView *depthAttachment,
+    static void prepareAttachmentReferences(std::vector<std::shared_ptr<ImageView>> &colorAttachments, bool isSwapChainImages,
+                                            unsigned int attachmentPerStepAmount, std::shared_ptr<ImageView> depthAttachment,
                                             std::vector<vk::AttachmentReference> &output) {
         output.resize(attachmentPerStepAmount + 1);
         for (int i = 0; i < attachmentPerStepAmount; ++i) {

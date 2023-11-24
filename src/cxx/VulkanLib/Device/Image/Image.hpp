@@ -5,11 +5,12 @@
 
 #include "ImageView.hpp"
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
+#include <memory>
 #include <vulkan/vulkan_structs.hpp>
 
 class Image : IDestroyableObject {
 public:
-    Image(LogicalDevice *&device, vk::Image base) : device(device), base(base) {
+    Image(LogicalDevice *device, vk::Image base) : device(device), base(base) {
         castCreated = true;
     }
 
@@ -25,12 +26,12 @@ private:
     LogicalDevice *device;
     vk::Image base;
     vk::ImageCreateInfo imageInfo;
-    std::vector<ImageView> imageViews;
+    std::vector<std::shared_ptr<ImageView>> imageViews;
     vk::DeviceMemory imageMemory;
     bool castCreated = false;
 public:
-    ImageView &createImageView(vk::ImageViewCreateInfo &createInfo) {
-        imageViews.push_back(ImageView(imageInfo,
+    std::shared_ptr<ImageView> createImageView(vk::ImageViewCreateInfo &createInfo) {
+        imageViews.push_back(std::make_shared<ImageView>(imageInfo,
                                        *device, device->getDevice().createImageView(createInfo), createInfo));
         return imageViews[imageViews.size() - 1];
     }
@@ -64,7 +65,7 @@ public:
         return base;
     }
 
-    [[nodiscard]]  std::vector<ImageView> &getImageViews()  { return imageViews; }
+    std::vector<std::shared_ptr<ImageView>> &getImageViews()  { return imageViews; }
 
     void resize(uint32_t width, uint32_t height) {
         if (!castCreated) {
@@ -73,8 +74,8 @@ public:
             imageInfo.extent = vk::Extent3D{width, height};
             initialize(device, imageInfo);
             for (auto &item: imageViews) {
-                item.base = device->getDevice().createImageView(item.createInfo);
-                item.parentInfo = imageInfo;
+                item->base = device->getDevice().createImageView(item->createInfo);
+                item->parentInfo = imageInfo;
             }
         }
 
@@ -91,7 +92,7 @@ private:
     void destroy() override {
         if (!castCreated) {
             for (auto &item: imageViews) {
-                item.destroy();
+                item->destroy();
             }
             device->getDevice().destroyImage(base);
 

@@ -25,7 +25,7 @@ public:
 public:
     SwapChain(LogicalDevice &device, const vk::SurfaceKHR &surface,
               uint32_t width, uint32_t height, bool enableFrameLock)
-            : device(device), surface(surface), width(width), height(height), enableFrameLock(enableFrameLock){
+            : device(device), surface(surface), width(width), height(height), enableFrameLock(enableFrameLock) {
         createSwapChain(width, height, enableFrameLock);
     }
 
@@ -36,13 +36,13 @@ private:
     vk::PresentModeKHR presentMode;
     vk::Extent2D extent;
     std::vector<vk::Image> baseImages;
-    std::vector<Image> swapchainImages;
-    std::vector<ImageView *> swapchainImageViews;
+    std::vector<std::shared_ptr<Image>> swapchainImages;
+    std::vector<std::shared_ptr<ImageView>> swapchainImageViews;
     uint32_t width;
     uint32_t height;
     bool enableFrameLock;
 public:
-    const std::vector<ImageView *> &getSwapchainImageViews() const {
+    const std::vector<std::shared_ptr<ImageView>> &getSwapchainImageViews() const {
         return swapchainImageViews;
     }
 
@@ -50,14 +50,14 @@ public:
         return swapchainKhr;
     }
 
-    void recreate(uint32_t width, uint32_t height, bool refreshRateLock){
+    void recreate(uint32_t width, uint32_t height, bool refreshRateLock) {
         destroy();
         destroyed = false;
         enableFrameLock = refreshRateLock;
         createSwapChain(width, height, refreshRateLock);
     }
 
-    const std::vector<Image> &getSwapchainImages() const {
+    const std::vector<std::shared_ptr<Image>> &getSwapchainImages() const {
         return swapchainImages;
     }
 
@@ -77,8 +77,8 @@ private:
                 vk::SwapchainCreateFlagsKHR(), surface, imageCount, format.format,
                 format.colorSpace, extent, 1, vk::ImageUsageFlagBits::eColorAttachment);
         std::vector<unsigned int> queueIndices = {
-                device.getQueueByType(vk::QueueFlagBits::eGraphics).getIndex(),
-                device.getPresentQueue().getIndex()};
+                device.getQueueByType(vk::QueueFlagBits::eGraphics)->getIndex(),
+                device.getPresentQueue()->getIndex()};
         VectorUtils::removeRepeatingElements(queueIndices);
         if (queueIndices.size() > 1) {
             createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
@@ -98,7 +98,7 @@ private:
             baseImages = device.getDevice().getSwapchainImagesKHR(swapchainKhr);
             swapchainImages.resize(baseImages.size());
             for (int i = 0; i < baseImages.size(); ++i) {
-                swapchainImages[i].initialize(&device, baseImages[i]);
+                swapchainImages[i] = std::shared_ptr<Image>(new Image(&device, baseImages[i]));
                 vk::ImageViewCreateInfo viewCreateInfo = {};
                 viewCreateInfo.image = baseImages[i];
                 viewCreateInfo.viewType = vk::ImageViewType::e2D;
@@ -112,7 +112,7 @@ private:
                 viewCreateInfo.subresourceRange.levelCount = 1;
                 viewCreateInfo.subresourceRange.baseArrayLayer = 0;
                 viewCreateInfo.subresourceRange.layerCount = 1;
-                swapchainImageViews.push_back(&swapchainImages[i].createImageView(viewCreateInfo));
+                swapchainImageViews.push_back(swapchainImages[i]->createImageView(viewCreateInfo));
 
             }
         } catch (vk::SystemError &err) {
@@ -153,7 +153,7 @@ private:
     vk::PresentModeKHR
     choosePresentMode(std::vector<vk::PresentModeKHR> &presentModes, bool enableFrameLock) {
         for (vk::PresentModeKHR presentMode: presentModes) {
-            if (presentMode == (enableFrameLock?vk::PresentModeKHR::eMailbox:vk::PresentModeKHR::eImmediate)) {
+            if (presentMode == (enableFrameLock ? vk::PresentModeKHR::eMailbox : vk::PresentModeKHR::eImmediate)) {
                 return presentMode;
             }
         }
@@ -182,7 +182,7 @@ private:
     }
 
     virtual void destroy() override {
-        for (const auto &item: swapchainImageViews){
+        for (const auto &item: swapchainImageViews) {
             item->destroy();
         }
         swapchainImageViews.clear();
