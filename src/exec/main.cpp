@@ -18,6 +18,7 @@
 #include "RenderPipeline/RenderPipelineBuilder.hpp"
 #include "RenderPipeline/RenderPipeline.hpp"
 #include "RenderPipeline/FrameBufferManager.hpp"
+#include "VulkanLib/Device/Buffer/Buffer.hpp"
 
 class ResizeCallback : public IWindowResizeCallback{
 public:
@@ -41,6 +42,8 @@ public:
     }
 };
 
+void bufferTest(std::shared_ptr<LogicalDevice> device);
+
 int main() {
 
 
@@ -51,7 +54,7 @@ int main() {
     window->enableRefreshRateInfo();
     InstanceBuilder builder;
     builder.presetForGlfw();
-  //  builder.presetForDebug();
+    builder.presetForDebug();
     builder.setApplicationName("TestEngine");
     Instance instance(builder);
     auto devices = PhysicalDevice::getDevices(
@@ -75,9 +78,11 @@ int main() {
     std::shared_ptr<LogicalDevice> device = std::make_shared<LogicalDevice>
             (instance, (*devices)[devIndex], devBuilder, &results[devIndex]);
 
+
     devices->clear();
     results.clear();
-
+    bufferTest(device);
+std::cin>>devIndex;
 
     std::shared_ptr<SwapChain> swapChain(
             new SwapChain(device, surfaceKhr, window->getWidth(), window->getHeight(), false));
@@ -141,4 +146,44 @@ int main() {
 
     }
     return 0;
+}
+
+void bufferTest(std::shared_ptr<LogicalDevice> device){
+    std::string testText = "Hello world. \n TestMessage";
+
+    uint32_t indices[] = {device->getQueueByType(vk::QueueFlagBits::eGraphics)->getIndex()};
+
+    vk::BufferCreateInfo stageCreateInfo{};
+    stageCreateInfo.size = testText.length()*sizeof(char);
+    stageCreateInfo.pQueueFamilyIndices = indices;
+    stageCreateInfo.queueFamilyIndexCount = 1;
+    stageCreateInfo.sharingMode = vk::SharingMode::eExclusive;
+    stageCreateInfo.usage = vk::BufferUsageFlagBits::eTransferSrc|vk::BufferUsageFlagBits::eTransferDst|vk::BufferUsageFlagBits::eStorageBuffer;
+
+    void* mapPoint;
+
+    Buffer staging(device, stageCreateInfo, vk::MemoryPropertyFlagBits::eHostVisible);
+    staging.map(&mapPoint,0, vk::MemoryMapFlags());
+    memcpy(mapPoint, testText.c_str(), stageCreateInfo.size);
+    staging.unMap();
+
+    Buffer deviceLocal(device, stageCreateInfo, vk::MemoryPropertyFlagBits::eDeviceLocal);
+    vk::CommandBuffer sgtCommands = device->getQueueByType(vk::QueueFlagBits::eGraphics)->beginSingleTimeCommands();
+    deviceLocal.copyFromBuffer(sgtCommands, staging, stageCreateInfo.size, 0, 0);
+    device->getQueueByType(vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(sgtCommands);
+
+    staging.map(&mapPoint, 0, vk::MemoryMapFlags());
+    for(size_t i = 0; i<testText.length(); i+=1){
+        ((char*)mapPoint)[i] = 0;
+    }
+    staging.unMap();
+
+    sgtCommands = device->getQueueByType(vk::QueueFlagBits::eGraphics)->beginSingleTimeCommands();
+    staging.copyFromBuffer(sgtCommands, deviceLocal, stageCreateInfo.size, 0, 0);
+    device->getQueueByType(vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(sgtCommands);
+
+    staging.map(&mapPoint, 0, vk::MemoryMapFlags());
+    for(size_t i = 0; i<testText.length(); i+=1){
+        std::cout<<((char*)mapPoint)[i];
+    }
 }

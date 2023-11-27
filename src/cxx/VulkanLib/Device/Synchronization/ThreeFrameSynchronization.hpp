@@ -29,12 +29,13 @@ private:
 
 public:
     unsigned int prepareForNextImage(SwapChain &swapChain) {
+        vk::Result res;
         unsigned int result = 0;
-        device.getDevice().waitForFences(1,
+        res = device.getDevice().waitForFences(1,
                                          &inFlightFences[currentFrame],
                                          VK_TRUE,
                                          std::numeric_limits<uint64_t>::max());
-        device.getDevice().acquireNextImageKHR(swapChain.getSwapchainKhr(), std::numeric_limits<uint64_t>::max(),
+        res = device.getDevice().acquireNextImageKHR(swapChain.getSwapchainKhr(), std::numeric_limits<uint64_t>::max(),
                                                imageAvailableSemaphores[currentFrame],
                                                VK_NULL_HANDLE,
                                                &result);
@@ -44,8 +45,9 @@ public:
     }
 
     void submitCommandBuffers(vk::CommandBuffer *buffers, SwapChain &swapChain, uint32_t *currentImage) {
+        vk::Result res;
         if (imagesInFlight[*currentImage] != VK_NULL_HANDLE) {
-            device.getDevice().waitForFences(1,
+            res = device.getDevice().waitForFences(1,
                                              &imagesInFlight[*currentImage],
                                              VK_TRUE,
                                              UINT64_MAX);
@@ -65,9 +67,9 @@ public:
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = &renderFinishedSemaphores[currentFrame];
 
-        device.getDevice().resetFences(1, &inFlightFences[currentFrame]);
+        res = device.getDevice().resetFences(1, &inFlightFences[currentFrame]);
 
-        presentQueue.getQueue().submit(1, &submitInfo, inFlightFences[currentFrame]);
+        res = presentQueue.getQueue().submit(1, &submitInfo, inFlightFences[currentFrame]);
 
         vk::PresentInfoKHR presentInfo = {};
         swapchains[0] = swapChain.getSwapchainKhr();
@@ -86,7 +88,8 @@ public:
     void waitStop(){
         for ( auto &item: imagesInFlight){
             if(item!=VK_NULL_HANDLE){
-                device.getDevice().waitForFences(1,
+                vk::Result res;
+                res = device.getDevice().waitForFences(1,
                                                  &item,
                                                  VK_TRUE,
                                                  UINT64_MAX);

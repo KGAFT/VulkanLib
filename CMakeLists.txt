@@ -17,9 +17,8 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/glsl/ DESTINATION ${CMAKE_CURRENT_BINA
 file(GLOB_RECURSE UNNECESSARY_CPP ${CMAKE_CURRENT_BINARY_DIR}/include/*.cpp)
 file(REMOVE ${UNNECESSARY_CPP})
 
-link_directories(C:/VulkanSDK/1.3.268.0/Lib)
 
-target_link_libraries(VulkanLib PUBLIC Vulkan::Vulkan shaderc_shared glfw glm)
+target_link_libraries(VulkanLib PUBLIC Vulkan::Vulkan Vulkan::shaderc_combined glfw glm)
 target_include_directories(VulkanLib PUBLIC src/cxx)
 
 file(GLOB_RECURSE EXEC_SRC_FILES src/exec/*.cpp)

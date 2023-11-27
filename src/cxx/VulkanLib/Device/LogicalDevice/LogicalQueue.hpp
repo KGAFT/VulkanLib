@@ -57,6 +57,7 @@ public:
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
         queue.submit(submitInfo);
+        queue.waitIdle();
         device.freeCommandBuffers(commandPool, commandBuffer);
     }
 

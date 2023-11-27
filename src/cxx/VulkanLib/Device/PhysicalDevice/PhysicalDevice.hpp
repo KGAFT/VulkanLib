@@ -7,6 +7,7 @@
 #include <vulkan/vulkan.hpp>
 #include "VulkanLib/Instance.hpp"
 #include <vector>
+#include <memory>
 
 class PhysicalDevice {
 private:
