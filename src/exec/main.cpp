@@ -19,8 +19,10 @@
 #include "RenderPipeline/RenderPipeline.hpp"
 #include "RenderPipeline/FrameBufferManager.hpp"
 #include "VulkanLib/Device/Buffer/Buffer.hpp"
+#include "VulkanLib/Device/Buffer/VertexBuffer.hpp"
+#include "VulkanLib/Device/Buffer/IndexBuffer.hpp"
 
-class ResizeCallback : public IWindowResizeCallback{
+class ResizeCallback : public IWindowResizeCallback {
 public:
     ResizeCallback(RenderPipeline *renderPipeline, FrameBufferManager *frameBufferManager, SyncManager *syncManager,
                    const std::shared_ptr<LogicalDevice> &device) : renderPipeline(renderPipeline),
@@ -28,9 +30,9 @@ public:
                                                                    syncManager(syncManager), device(device) {}
 
 private:
-    RenderPipeline* renderPipeline;
-    FrameBufferManager* frameBufferManager;
-    SyncManager* syncManager;
+    RenderPipeline *renderPipeline;
+    FrameBufferManager *frameBufferManager;
+    SyncManager *syncManager;
     std::shared_ptr<LogicalDevice> device;
 public:
     void resized(int width, int height) override {
@@ -48,7 +50,7 @@ int main() {
 
 
     glfwInit();
-    std::vector<Monitor*> monitors;
+    std::vector<Monitor *> monitors;
     Monitor::enumerateMonitors(monitors);
     Window *window = Window::createWindow(640, 480, "Vulkan test app", nullptr, false);
     window->enableRefreshRateInfo();
@@ -73,7 +75,7 @@ int main() {
             std::cout << el->properties.deviceName << std::endl;
         }
     }
-    int devIndex=0;
+    int devIndex = 0;
     std::cin >> devIndex;
     std::shared_ptr<LogicalDevice> device = std::make_shared<LogicalDevice>
             (instance, (*devices)[devIndex], devBuilder, &results[devIndex]);
@@ -81,8 +83,7 @@ int main() {
 
     devices->clear();
     results.clear();
-    bufferTest(device);
-std::cin>>devIndex;
+    //bufferTest(device);
 
     std::shared_ptr<SwapChain> swapChain(
             new SwapChain(device, surfaceKhr, window->getWidth(), window->getHeight(), false));
@@ -105,7 +106,7 @@ std::cin>>devIndex;
             const_cast<std::shared_ptr<ImageView> *>(swapChain->getSwapchainImageViews().data()),
             swapChain->getSwapchainImageViews().size());
     gPipelineBuilder->addDepthAttachments(frameBufferManager.getDepthAttachments(), 1);
-
+    gPipelineBuilder->addVertexInput({0, 3, sizeof(float), vk::Format::eR32G32B32Sfloat});
 
     RenderPipelineBuilder rpBuilder;
     rpBuilder.setGraphicsPipelineBuilder(gPipelineBuilder);
@@ -126,6 +127,14 @@ std::cin>>devIndex;
 
     window->addResizeCallback(new ResizeCallback(&renderPipeline, &frameBufferManager, &syncManager, device));
 
+    float positions[] = {
+            0.0, -0.5, 0.0,
+            0.5, 0.5, 0.0,
+                      - 0.5, 0.5, 0.0f
+    };
+    uint32_t indices[] = {0,1,2};
+    VertexBuffer vertexBuffer(device, positions, 3, sizeof(float)*3);
+    IndexBuffer indexBuffer(device, indices,3);
     while (!window->needToClose()) {
         try {
             window->preRenderEvents();
@@ -134,7 +143,10 @@ std::cin>>devIndex;
                 vk::CommandBuffer commandBuffer = syncManager.beginRender(currentImage);
                 renderPipeline.beginRender(commandBuffer, *frameBufferManager.getFrameBuffer(currentImage));
 
-                commandBuffer.draw(3, 1, 0, 0);
+                vertexBuffer.bind(commandBuffer);
+                indexBuffer.bind(commandBuffer);
+                indexBuffer.drawAll(commandBuffer);
+
                 renderPipeline.endRender(commandBuffer);
                 syncManager.endRender();
                 window->postRenderEvents();
@@ -148,22 +160,23 @@ std::cin>>devIndex;
     return 0;
 }
 
-void bufferTest(std::shared_ptr<LogicalDevice> device){
+void bufferTest(std::shared_ptr<LogicalDevice> device) {
     std::string testText = "Hello world. \n TestMessage";
 
     uint32_t indices[] = {device->getQueueByType(vk::QueueFlagBits::eGraphics)->getIndex()};
 
     vk::BufferCreateInfo stageCreateInfo{};
-    stageCreateInfo.size = testText.length()*sizeof(char);
+    stageCreateInfo.size = testText.length() * sizeof(char);
     stageCreateInfo.pQueueFamilyIndices = indices;
     stageCreateInfo.queueFamilyIndexCount = 1;
     stageCreateInfo.sharingMode = vk::SharingMode::eExclusive;
-    stageCreateInfo.usage = vk::BufferUsageFlagBits::eTransferSrc|vk::BufferUsageFlagBits::eTransferDst|vk::BufferUsageFlagBits::eStorageBuffer;
+    stageCreateInfo.usage = vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst |
+                            vk::BufferUsageFlagBits::eStorageBuffer;
 
-    void* mapPoint;
+    void *mapPoint;
 
     Buffer staging(device, stageCreateInfo, vk::MemoryPropertyFlagBits::eHostVisible);
-    staging.map(&mapPoint,0, vk::MemoryMapFlags());
+    staging.map(&mapPoint, 0, vk::MemoryMapFlags());
     memcpy(mapPoint, testText.c_str(), stageCreateInfo.size);
     staging.unMap();
 
@@ -173,8 +186,8 @@ void bufferTest(std::shared_ptr<LogicalDevice> device){
     device->getQueueByType(vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(sgtCommands);
 
     staging.map(&mapPoint, 0, vk::MemoryMapFlags());
-    for(size_t i = 0; i<testText.length(); i+=1){
-        ((char*)mapPoint)[i] = 0;
+    for (size_t i = 0; i < testText.length(); i += 1) {
+        ((char *) mapPoint)[i] = 0;
     }
     staging.unMap();
 
@@ -183,7 +196,7 @@ void bufferTest(std::shared_ptr<LogicalDevice> device){
     device->getQueueByType(vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(sgtCommands);
 
     staging.map(&mapPoint, 0, vk::MemoryMapFlags());
-    for(size_t i = 0; i<testText.length(); i+=1){
-        std::cout<<((char*)mapPoint)[i];
+    for (size_t i = 0; i < testText.length(); i += 1) {
+        std::cout << ((char *) mapPoint)[i];
     }
 }
