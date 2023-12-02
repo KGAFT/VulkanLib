@@ -34,5 +34,6 @@ public:
         {
             std::cout << outputMessage << std::endl;
         }
+        std::cout.flush();
     }
 };

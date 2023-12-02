@@ -75,6 +75,10 @@ public:
                 builder.imagePerStepAmount;
     }
 
+    GraphicsPipeline *getGraphicsPipeline() const {
+        return graphicsPipeline;
+    }
+
 public:
     void destroy() override {
         destroyed = true;

@@ -24,7 +24,7 @@ public:
 
         void *mapPoint = nullptr;
 
-        Buffer stagingBuffer(device, *createInfo,
+        Buffer stagingBuffer(device, createInfo,
                              vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
         stagingBuffer.map(&mapPoint, 0, vk::MemoryMapFlags());
         memcpy(mapPoint, vertices, verticesAmount * stepSize);
@@ -33,7 +33,7 @@ public:
         createInfo->usage = vk::BufferUsageFlagBits::eVertexBuffer |
                             vk::BufferUsageFlagBits::eTransferDst;
 
-        buffer = std::make_shared<Buffer>(device, *createInfo, vk::MemoryPropertyFlagBits::eDeviceLocal);
+        buffer = std::make_shared<Buffer>(device, createInfo, vk::MemoryPropertyFlagBits::eDeviceLocal);
         vk::CommandBuffer cmd = device->getQueueByType(vk::QueueFlagBits::eGraphics)->beginSingleTimeCommands();
         buffer->copyFromBuffer(cmd, stagingBuffer, createInfo->size, 0, 0);
         device->getQueueByType(vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(cmd);

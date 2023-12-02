@@ -15,18 +15,18 @@ private:
     static inline SeriesObject<vk::MemoryRequirements> requirements = SeriesObject<vk::MemoryRequirements>();
     static inline SeriesObject<vk::MemoryAllocateInfo> allocInfos = SeriesObject<vk::MemoryAllocateInfo>();
 public:
-    Buffer(std::shared_ptr<LogicalDevice> device, vk::BufferCreateInfo &createInfo, vk::MemoryPropertyFlags memoryFlags)
+    Buffer(std::shared_ptr<LogicalDevice> device, vk::BufferCreateInfo *createInfo, vk::MemoryPropertyFlags memoryFlags)
             : device(device) {
-        Buffer::buffer = device->getDevice().createBuffer(createInfo);
+        vk::Result res = device->getDevice().createBuffer(createInfo, nullptr, &buffer);
         vk::MemoryRequirements *memReqs = requirements.getObjectInstance();
         device->getDevice().getBufferMemoryRequirements(buffer, memReqs);
         vk::MemoryAllocateInfo *info = allocInfos.getObjectInstance();
         info->sType = vk::StructureType::eMemoryAllocateInfo;
         info->allocationSize = memReqs->size;
         info->memoryTypeIndex = device->findMemoryType(memReqs->memoryTypeBits, memoryFlags);
-        vk::Result res = device->getDevice().allocateMemory(info, nullptr, &bufferMemory);
+        res = device->getDevice().allocateMemory(info, nullptr, &bufferMemory);
         device->getDevice().bindBufferMemory(buffer, bufferMemory, 0);
-        bufferSize = createInfo.size;
+        bufferSize = createInfo->size;
         requirements.releaseObjectInstance(memReqs);
         allocInfos.releaseObjectInstance(info);
     }

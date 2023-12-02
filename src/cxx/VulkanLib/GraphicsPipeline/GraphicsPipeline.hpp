@@ -50,6 +50,13 @@ public:
         create(attachmentPerStepAmount, width, height, shader, renderPass);
     }
 
+    vk::DescriptorSetLayout getDescriptorLayout(){
+        return configurer.descriptorSetLayout;
+    }
+    vk::PipelineLayout getPipelineLayout(){
+        return configurer.pipelineLayout;
+    }
+
 private:
     void create(unsigned int attachmentPerStepAmount, unsigned int width, unsigned int height, Shader *shader,
                 RenderPass &renderPass) {
@@ -91,6 +98,7 @@ private:
         configInstancer.releaseObjectInstance(config);
         createInstance.releaseObjectInstance(createStrip);
     }
+
 
 public:
     void destroy() override {

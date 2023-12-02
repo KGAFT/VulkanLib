@@ -72,7 +72,7 @@ public:
         if (!castCreated) {
             destroy();
             destroyed = false;
-            imageInfo.extent = vk::Extent3D{width, height};
+            imageInfo.extent = vk::Extent3D{width, height, 1};
             initialize(device, imageInfo);
             for (auto &item: imageViews) {
                 item->createInfo.image = base;
