@@ -10,6 +10,16 @@
 
 class Instance : IDestroyableObject{
 public:
+    static bool debugSupported(){
+        for ( auto &item: vk::enumerateInstanceLayerProperties()){
+            if(!strcmp(item.layerName, "VK_LAYER_KHRONOS_validation")){
+                return true;
+            }
+        }
+        return false;
+    }
+
+public:
     Instance(InstanceBuilder &pBuilder) {
         vk::ApplicationInfo appInfo(
                 pBuilder.applicationName,

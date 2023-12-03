@@ -8,62 +8,100 @@
 #include "VulkanLib/GraphicsPipeline/Configuration/GraphicsPipelineBuilder.hpp"
 #include "VulkanLib/Device/SwapChain/SwapChain.hpp"
 #include "FrameBuffer.hpp"
+#include "RenderPassBuilder.hpp"
 
 class RenderPass : IDestroyableObject{
 public:
-    RenderPass(bool isForSwapChain, unsigned int attachmentPerStepAmount,
-               GraphicsPipelineBuilder *builder, LogicalDevice &device) : device(device) {
-        createRenderPass(builder->colorAttachments, isForSwapChain, attachmentPerStepAmount,
-                         builder->depthAttachments[0]);
+    RenderPass(RenderPassBuilder& builder,  std::shared_ptr<LogicalDevice> device) : device(device) {
+        createRenderPass(builder);
     }
 
 private:
     std::vector<vk::Framebuffer> frameBuffers;
-    LogicalDevice &device;
+    std::shared_ptr<LogicalDevice> device;
     vk::RenderPass renderPass;
     vk::ClearColorValue clearColorValues{1.0f,0.0f,0.0f,1.0f};
 private:
-    void createRenderPass(std::vector<std::shared_ptr<ImageView>> &colorAttachments, bool isSwapChainImages,
-                          unsigned int attachmentPerStepAmount, std::shared_ptr<ImageView> depthAttachment) {
+    void createRenderPass(RenderPassBuilder& builder) {
         std::vector<vk::AttachmentDescription> attachments;
         std::vector<vk::AttachmentReference> references;
-        prepareAttachmentDescriptions(colorAttachments, isSwapChainImages, attachmentPerStepAmount, depthAttachment,
-                                      attachments);
-        prepareAttachmentReferences(colorAttachments, isSwapChainImages, attachmentPerStepAmount, depthAttachment,
-                                    references);
+        uint32_t i = 0;
+        for (auto &item: builder.subPasses){
+            for (auto &citem: item.inputAttachments){
+                attachments.push_back(citem.description);
+                citem.i = i;
+                references.push_back({i, citem.layout});
+                i++;
+            }
+            for ( auto &citem: item.outputAttachments){
+                attachments.push_back(citem.description);
+                citem.i = i;
+                references.push_back({i, citem.layout});
+                i++;
+            }
+            attachments.push_back(item.outputDepthAttachment.description);
+            item.outputDepthAttachment.i = i;
+            references.push_back({i, item.outputDepthAttachment.layout});
+            i++;
+        }
+        std::vector<vk::SubpassDescription> descriptions;
+        descriptions.resize(builder.subPasses.size());
+        for (uint32_t i = 0; i < builder.subPasses.size(); ++i){
+            descriptions[i].flags = vk::SubpassDescriptionFlags();
+            descriptions[i].pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+            descriptions[i].inputAttachmentCount = builder.subPasses[i].inputAttachments.size();
+            descriptions[i].pInputAttachments = &references[builder.subPasses[i].inputAttachments[0].i];
 
-        vk::SubpassDescription subpass{};
-        subpass.flags = vk::SubpassDescriptionFlags();
-        subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-        subpass.colorAttachmentCount = references.size() - 1;
-        subpass.pColorAttachments = references.data();
-        subpass.pDepthStencilAttachment = &references[references.size() - 1];
-        subpass.inputAttachmentCount = 0;
-        subpass.pInputAttachments = nullptr;
-        subpass.pResolveAttachments = nullptr;
+            descriptions[i].pColorAttachments = &references[builder.subPasses[i].outputAttachments[0].i];
+            descriptions[i].colorAttachmentCount = builder.subPasses[i].outputAttachments.size();
 
-        vk::SubpassDependency dependency{};
-        dependency.dstSubpass = 0;
-        dependency.dstAccessMask =
-                vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-        dependency.dstStageMask =
-                vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
-        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependency.srcAccessMask = vk::AccessFlagBits::eNone;
-        dependency.srcStageMask =
-                vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+            descriptions[i].pDepthStencilAttachment = &references[builder.subPasses[i].outputDepthAttachment.i];
+        }
+        std::vector<vk::SubpassDependency> dependencies;
+        dependencies.resize(descriptions.size()+1);
+        for (uint32_t i = 0; i < dependencies.size(); ++i){
+            if(i == 0){
+                dependencies[i].dstSubpass = 0;
+                dependencies[i].dstAccessMask =
+                        vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+                dependencies[i].dstStageMask =
+                        vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+                dependencies[i].srcSubpass = VK_SUBPASS_EXTERNAL;
+                dependencies[i].srcAccessMask = vk::AccessFlagBits::eNone;
+                dependencies[i].srcStageMask =
+                        vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+            } else if (i == dependencies.size()-1){
+                dependencies[i].srcSubpass = i-1;
+                dependencies[i].dstSubpass = VK_SUBPASS_EXTERNAL;
+                dependencies[i].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+                dependencies[i].dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+                dependencies[i].srcAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
+                dependencies[i].dstAccessMask = vk::AccessFlagBits::eMemoryRead;
+                dependencies[i].dependencyFlags = vk::DependencyFlagBits::eByRegion;
+            } else {
+                dependencies[i].srcSubpass = i-1;
+                dependencies[i].dstSubpass = i;
+                dependencies[i].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput ;
+                dependencies[i].dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
+                dependencies[i].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+                dependencies[i].dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead;
+                dependencies[i].dependencyFlags = vk::DependencyFlagBits::eByRegion;
+            }
+        }
+
+
 
         vk::RenderPassCreateInfo renderPassInfo{};
         renderPassInfo.flags = vk::RenderPassCreateFlags();
         renderPassInfo.pAttachments = attachments.data();
         renderPassInfo.attachmentCount = attachments.size();
-        renderPassInfo.dependencyCount = 1;
-        renderPassInfo.subpassCount = 1;
-        renderPassInfo.pSubpasses = &subpass;
-        renderPassInfo.dependencyCount = 1;
-        renderPassInfo.pDependencies = &dependency;
+        renderPassInfo.dependencyCount = dependencies.size();
+        renderPassInfo.subpassCount = descriptions.size();
+        renderPassInfo.pSubpasses = descriptions.data();
+        renderPassInfo.dependencyCount = dependencies.size();
+        renderPassInfo.pDependencies = dependencies.data();
 
-        renderPass = device.getDevice().createRenderPass(renderPassInfo);
+        renderPass = device->getDevice().createRenderPass(renderPassInfo);
     }
 public:
     vk::RenderPass &getRenderPass()  {
@@ -108,48 +146,11 @@ public:
         RenderPass::clearColorValues = clearColorValues;
     }
 
-private:
-    static void prepareAttachmentDescriptions(std::vector<std::shared_ptr<ImageView>> &colorAttachments, bool isSwapChainImages,
-                                              unsigned int attachmentPerStepAmount, std::shared_ptr<ImageView> depthAttachment,
-                                              std::vector<vk::AttachmentDescription> &output) {
-        output.resize(attachmentPerStepAmount + 1);
-        for (unsigned int i = 0; i < attachmentPerStepAmount; i++) {
-            output[i].flags = vk::AttachmentDescriptionFlags();
-            output[i].initialLayout = isSwapChainImages ? vk::ImageLayout::eUndefined
-                                                        : colorAttachments[i]->getParentInfo().initialLayout;
-            output[i].finalLayout = isSwapChainImages ? vk::ImageLayout::ePresentSrcKHR : vk::ImageLayout::eGeneral;
-            output[i].loadOp = vk::AttachmentLoadOp::eClear;
-            output[i].storeOp = vk::AttachmentStoreOp::eStore;
-            output[i].stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-            output[i].stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-            output[i].format = isSwapChainImages ? SwapChain::getFormat().format
-                                                 : colorAttachments[i]->getParentInfo().format;
-        }
-        output[attachmentPerStepAmount].flags = vk::AttachmentDescriptionFlags();
-        output[attachmentPerStepAmount].finalLayout = vk::ImageLayout::eGeneral;
-        output[attachmentPerStepAmount].initialLayout = depthAttachment->getParentInfo().initialLayout;
-        output[attachmentPerStepAmount].loadOp = vk::AttachmentLoadOp::eClear;
-        output[attachmentPerStepAmount].storeOp = vk::AttachmentStoreOp::eStore;
-        output[attachmentPerStepAmount].stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-        output[attachmentPerStepAmount].stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-        output[attachmentPerStepAmount].format = depthAttachment->getParentInfo().format;
-    }
 
-    static void prepareAttachmentReferences(std::vector<std::shared_ptr<ImageView>> &colorAttachments, bool isSwapChainImages,
-                                            unsigned int attachmentPerStepAmount, std::shared_ptr<ImageView> depthAttachment,
-                                            std::vector<vk::AttachmentReference> &output) {
-        output.resize(attachmentPerStepAmount + 1);
-        for (int i = 0; i < attachmentPerStepAmount; ++i) {
-            output[i].attachment = i;
-            output[i].layout = vk::ImageLayout::eColorAttachmentOptimal;
-        }
-        output[attachmentPerStepAmount].layout = vk::ImageLayout::eGeneral;
-        output[attachmentPerStepAmount].attachment = attachmentPerStepAmount;
-    }
 public:
     void destroy() override {
         destroyed = true;
-        device.getDevice().destroyRenderPass(renderPass);
+        device->getDevice().destroyRenderPass(renderPass);
     }
 };
 

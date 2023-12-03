@@ -4,10 +4,10 @@ project(VulkanLib)
 find_package(Vulkan REQUIRED shaderc_combined)
 set(CMAKE_CXX_STANDARD 23)
 
-file(GLOB_RECURSE H_FILES src/cxx/*.hpp)
-file(GLOB_RECURSE CPP_FILES src/cxx/*.cpp)
+file(GLOB_RECURSE DEF_FILES src/cxx/*.hpp)
+file(GLOB_RECURSE SRC_FILES src/cxx/*.cpp)
 
-add_library(VulkanLib ${H_FILES} ${CPP_FILES})
+add_library(VulkanLib ${DEF_FILES} ${SRC_FILES})
 
 add_subdirectory(lib/glfw)
 add_subdirectory(lib/glm)
