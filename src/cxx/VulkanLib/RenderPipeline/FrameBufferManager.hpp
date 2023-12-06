@@ -7,7 +7,7 @@
 #include <memory>
 #include <utility>
 #include "VulkanLib/GraphicsPipeline/RenderPass/FrameBuffer.hpp"
-
+#include "VulkanLib/GraphicsPipeline/RenderPass/RenderPass.hpp"
 class FrameBufferManager : IDestroyableObject {
 private:
     static inline vk::ImageCreateInfo defaultColorCreateInfo = {vk::ImageCreateFlags(),
@@ -60,6 +60,7 @@ public:
                                                                                               maxFramesInFlight),
                                                                                       swapChain(nullptr) {
         createAttachments();
+
     }
 
     FrameBufferManager(std::shared_ptr<LogicalDevice> device, std::shared_ptr<SwapChain> swapChain,

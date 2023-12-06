@@ -21,7 +21,12 @@ struct SubPass{
 
 class RenderPassBuilder {
     friend class RenderPass;
+private:
     std::vector<SubPass> subPasses;
+public:
+    void addSubPassInfo(SubPass subPass){
+        subPasses.push_back(subPass);
+    }
 };
 
 

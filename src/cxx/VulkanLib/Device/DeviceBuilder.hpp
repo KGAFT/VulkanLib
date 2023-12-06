@@ -30,5 +30,6 @@ public:
     void requestPresentSupport(VkSurfaceKHR surface){
         surfaceForPresentationCheck = vk::SurfaceKHR(surface);
         requirePresentSupport = true;
+        requestExtensions.push_back("VK_KHR_swapchain");
     }
 };

@@ -25,6 +25,7 @@ private:
     void createRenderPass(RenderPassBuilder& builder) {
         std::vector<vk::AttachmentDescription> attachments;
         std::vector<vk::AttachmentReference> references;
+
         uint32_t i = 0;
         for (auto &item: builder.subPasses){
             for (auto &citem: item.inputAttachments){
@@ -50,7 +51,10 @@ private:
             descriptions[i].flags = vk::SubpassDescriptionFlags();
             descriptions[i].pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
             descriptions[i].inputAttachmentCount = builder.subPasses[i].inputAttachments.size();
-            descriptions[i].pInputAttachments = &references[builder.subPasses[i].inputAttachments[0].i];
+            if(!builder.subPasses[i].inputAttachments.empty()){
+                descriptions[i].pInputAttachments = &references[builder.subPasses[i].inputAttachments[0].i];
+
+            }
 
             descriptions[i].pColorAttachments = &references[builder.subPasses[i].outputAttachments[0].i];
             descriptions[i].colorAttachmentCount = builder.subPasses[i].outputAttachments.size();
@@ -108,13 +112,13 @@ public:
         return renderPass;
     }
 
-    void begin(vk::CommandBuffer cmd, FrameBuffer& frameBuffer, uint32_t width, uint32_t height, uint32_t attachmentCount){
+    void begin(vk::CommandBuffer cmd, std::shared_ptr<FrameBuffer> frameBuffer, uint32_t width, uint32_t height, uint32_t attachmentCount){
         std::vector<vk::ClearValue> clearValues;
         clearValues.resize(prepareClearValues(nullptr, attachmentCount));
         prepareClearValues(clearValues.data(), attachmentCount);
         vk::RenderPassBeginInfo beginInfo{};
         beginInfo.renderPass = renderPass;
-        beginInfo.framebuffer = frameBuffer.getFrameBuffer();
+        beginInfo.framebuffer = frameBuffer->getFrameBuffer();
         beginInfo.renderArea.extent = vk::Extent2D{width, height};
         beginInfo.renderArea.offset = vk::Offset2D{0,0};
         beginInfo.pClearValues = clearValues.data();
