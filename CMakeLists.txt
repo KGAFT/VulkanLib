@@ -17,7 +17,7 @@ file(GLOB_RECURSE UNNECESSARY_CPP ${CMAKE_CURRENT_BINARY_DIR}/include/*.cpp)
 file(REMOVE ${UNNECESSARY_CPP})
 
 
-target_link_libraries(VulkanLib PUBLIC Vulkan::Vulkan Vulkan::shaderc_combined glfw glm)
+target_link_libraries(VulkanLib PUBLIC Vulkan::Vulkan C:/VulkanSDK/1.3.268.0/Lib/shaderc_sharedd.lib glfw glm)
 target_include_directories(VulkanLib PUBLIC src/cxx)
 
 
