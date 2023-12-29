@@ -4,23 +4,15 @@
 
 #include <vulkan/vulkan.hpp>
 
-struct AttachmentDesc{
-    vk::AttachmentDescription description;
-    vk::ImageLayout layout;
-    //Any value
-    uint32_t i;
-};
-
 struct SubPass{
-    std::vector<AttachmentDesc> outputAttachments;
-
-    AttachmentDesc outputDepthAttachment;
-
-    std::vector<AttachmentDesc> inputAttachments;
+    std::vector<vk::AttachmentDescription> inputAttachments;
+    std::vector<vk::AttachmentDescription> outputAttachments;
+    vk::AttachmentDescription depthOutDescription;
 };
 
 class RenderPassBuilder {
     friend class RenderPass;
+    friend class FrameBufferManager;
 private:
     std::vector<SubPass> subPasses;
 public:
