@@ -7,14 +7,13 @@ project('VulkanLib', 'cpp',
 cmake = import('cmake')
 
 VulkanAPI = dependency('vulkan')
-Shaderc = cmake.subproject('lib/shaderc').dependency()
-GLFW = cmake.subproject('lib/glfw').dependency()
-
+GLFW = cmake.subproject('glfw').dependency('glfw')
+GLM = cmake.subproject('glm').dependency('glm')
 headers = include_directories('src/cxx')
 
-project_target = shared_library(
+project_target = static_library(
   meson.project_name(),
-  dependencies:[VulkanAPI, Shaderc, GLFW] ,
+  dependencies:[VulkanAPI, GLM, GLFW] ,
   install : true,
   gnu_symbol_visibility : 'hidden',
   include_directories : headers,

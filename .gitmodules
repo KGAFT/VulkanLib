@@ -1,0 +1,12 @@
+[submodule "subprojects/shaderc"]
+	path = subprojects/shaderc
+	url = https://github.com/google/shaderc
+[submodule "subprojects/glfw"]
+	path = subprojects/glfw
+	url = https://github.com/glfw/glfw
+[submodule "subprojects/glm"]
+	path = subprojects/glm
+	url = https://github.com/g-truc/glm
+[submodule "subprojects/googletest"]
+	path = subprojects/googletest
+	url = https://github.com/google/googletest
