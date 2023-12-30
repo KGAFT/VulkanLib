@@ -33,7 +33,7 @@ struct SamplerInfo {
 class GraphicsPipelineBuilder {
     friend class GraphicsPipelineConfigurer;
 
-    friend class RenderPass;
+    friend class GraphicsPipeline;
 
 private:
     static inline SeriesObject<GraphicsPipelineBuilder> builders = SeriesObject<GraphicsPipelineBuilder>();
@@ -48,34 +48,15 @@ public:
     }
 
 private:
-    std::vector<std::shared_ptr<ImageView>> colorAttachments;
-    std::vector<std::shared_ptr<ImageView>> depthAttachments;
+
     std::vector<VertexInput> vertexInputs;
     std::vector<UniformBufferInfo> uniformBufferInfo;
     std::vector<PushConstantInfo> pushConstantInfos;
     std::vector<SamplerInfo> samplersInfo;
+    std::vector<vk::Format> colorAttachmentInfo;
+    vk::Format depthAttachmentInfo;
 public:
-    void addColorAttachment(std::shared_ptr<ImageView> attachment) {
-        colorAttachments.push_back(attachment);
-    }
 
-    void addColorAttachments(std::shared_ptr<ImageView> *pAttachments, unsigned int attachmentCount) {
-        colorAttachments.resize(attachmentCount);
-        for (unsigned int i = 0; i < attachmentCount; ++i) {
-            colorAttachments[i] = pAttachments[i];
-        }
-    }
-
-    void addDepthAttachments(std::shared_ptr<ImageView> *pDepthAttachments, unsigned int attachmentCount) {
-        depthAttachments.resize(attachmentCount);
-        for (unsigned int i = 0; i < attachmentCount; ++i) {
-            depthAttachments[i] = pDepthAttachments[i];
-        }
-    }
-
-    void addDepthAttachment(std::shared_ptr<ImageView>attachment) {
-        depthAttachments.push_back(attachment);
-    }
 
     void addVertexInput(VertexInput input) {
         vertexInputs.push_back(input);
@@ -92,14 +73,19 @@ public:
     void addSamplerInfo(SamplerInfo info) {
         samplersInfo.push_back(info);
     }
+    void addColorAttachmentInfo(vk::Format colorAttachmentFormat){
+        colorAttachmentInfo.push_back(colorAttachmentFormat);
+    }
 
+
+    void setDepthAttachmentInfo(vk::Format depthAttachmentInfo){
+        this->depthAttachmentInfo = depthAttachmentInfo;
+    }
     /**
      * @throws runtime_error if is not properly populated
      */
     void checkIfBuilderComplete() {
-        if (colorAttachments.size() < 3) {
-            throw std::runtime_error("Error: you need to add at least three color attachment");
-        }
+
         if (vertexInputs.empty()) {
             throw std::runtime_error("Error: you need to add at least one vertex input");
         }

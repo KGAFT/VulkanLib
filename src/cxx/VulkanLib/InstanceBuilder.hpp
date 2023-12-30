@@ -15,7 +15,7 @@ public:
 
 private:
     std::vector<const char *> layers;
-    std::vector<const char *> extensions;
+    std::vector<const char *> extensions{"VK_KHR_get_physical_device_properties2"};
     bool debugEnabled = false;
     const char *applicationName = nullptr;
 public:

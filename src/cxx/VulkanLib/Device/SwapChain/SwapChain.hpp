@@ -71,9 +71,12 @@ private:
         format = chooseSurfaceFormat(support.formats);
         presentMode = choosePresentMode(support.presentModes, enableFrameLock);
         extent = chooseSwapchainExtent(width, height, support.capabilities);
-
-        uint32_t imageCount = std::min(support.capabilities.maxImageCount,
-                                       support.capabilities.minImageCount + 1);
+        uint32_t imageCount = support.capabilities.minImageCount + 1;
+        if (support.capabilities.maxImageCount > 0 &&
+            imageCount > support.capabilities.maxImageCount)
+        {
+            imageCount = support.capabilities.maxImageCount;
+        }
         vk::SwapchainCreateInfoKHR createInfo = vk::SwapchainCreateInfoKHR(
                 vk::SwapchainCreateFlagsKHR(), surface, imageCount, format.format,
                 format.colorSpace, extent, 1, vk::ImageUsageFlagBits::eColorAttachment);

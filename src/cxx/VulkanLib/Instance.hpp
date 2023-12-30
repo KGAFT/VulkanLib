@@ -63,6 +63,10 @@ public:
         return enabledLayers;
     }
 
+    const vk::DispatchLoaderDynamic &getDynamicLoader() const {
+        return dynamicLoader;
+    }
+
 protected:
     void destroy() override {
         delete logger;

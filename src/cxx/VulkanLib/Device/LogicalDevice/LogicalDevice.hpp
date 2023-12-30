@@ -18,7 +18,10 @@ public:
     LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice> device, DeviceBuilder &builder, DeviceSuitabilityResults *results)
             : baseDevice(device) {
         sanitizeQueueCreateInfos(results);
-
+        constexpr VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
+                .dynamicRendering = VK_TRUE,
+        };
         vk::DeviceCreateInfo deviceInfo = vk::DeviceCreateInfo(
                 vk::DeviceCreateFlags(),
                 usedQueueCreateInfos, queueCreateInfos.data(),
@@ -26,6 +29,7 @@ public:
                 builder.requestExtensions.size(), builder.requestExtensions.data(),
                 nullptr
         );
+        deviceInfo.pNext = &dynamicRenderingFeature;
         try {
             LogicalDevice::device = device->getBase().createDevice(deviceInfo, nullptr);
             for (const auto &item: results->queuesInfo) {

@@ -25,6 +25,11 @@ public:
         }
     }
     void requestGraphicsSupport(){
+        requestExtensions.push_back("VK_KHR_dynamic_rendering");
+        requestExtensions.push_back("VK_KHR_depth_stencil_resolve");
+        requestExtensions.push_back("VK_KHR_create_renderpass2");
+        requestExtensions.push_back("VK_KHR_multiview");
+        requestExtensions.push_back("VK_KHR_maintenance2");
         requireGraphicsSupport = true;
     }
     void requestPresentSupport(VkSurfaceKHR surface){

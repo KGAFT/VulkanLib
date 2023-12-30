@@ -6,7 +6,6 @@
 #include "Configuration/GraphicsPipelineConfig.hpp"
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
 #include "Configuration/GraphicsPipelineBuilder.hpp"
-#include "VulkanLib/GraphicsPipeline/RenderPass/RenderPass.hpp"
 #include "VulkanLib/GraphicsPipeline/Configuration/GraphicsPipelineConfigurer.hpp"
 #include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
 #include "VulkanLib/MemoryUtils/SeriesObject.hpp"
@@ -27,13 +26,14 @@ private:
 public:
     GraphicsPipeline(LogicalDevice &device, Shader *shader, GraphicsPipelineBuilder *builder,
                      unsigned int attachmentPerStepAmount,
-                     unsigned int width, unsigned int height,
-                     RenderPass &renderPass) : device(device), configurer(device, builder), shader(shader),
-                                               attachmentPerStepAmount(attachmentPerStepAmount) {
-        create(attachmentPerStepAmount, width, height, shader, renderPass);
+                     unsigned int width, unsigned int height) : device(device), configurer(device, builder), shader(shader),
+                                               attachmentPerStepAmount(attachmentPerStepAmount), attachmentsFormats(builder->colorAttachmentInfo), depthFormat(builder->depthAttachmentInfo) {
+        create(attachmentPerStepAmount, width, height, shader, attachmentsFormats, depthFormat);
     }
 
 private:
+    std::vector<vk::Format> attachmentsFormats;
+    vk::Format depthFormat;
     GraphicsPipelineConfigurer configurer;
     vk::Pipeline graphicsPipeline;
     LogicalDevice &device;
@@ -44,10 +44,10 @@ public:
         return graphicsPipeline;
     }
 
-    void recreate(RenderPass &renderPass, unsigned int width, unsigned int height) {
+    void recreate(unsigned int width, unsigned int height) {
         destroy();
         destroyed = false;
-        create(attachmentPerStepAmount, width, height, shader, renderPass);
+        create(attachmentPerStepAmount, width, height, shader,attachmentsFormats, depthFormat);
     }
 
     vk::DescriptorSetLayout getDescriptorLayout(){
@@ -58,8 +58,7 @@ public:
     }
 
 private:
-    void create(unsigned int attachmentPerStepAmount, unsigned int width, unsigned int height, Shader *shader,
-                RenderPass &renderPass) {
+    void create(unsigned int attachmentPerStepAmount, unsigned int width, unsigned int height, Shader *shader, std::vector<vk::Format> colorFormats, vk::Format depthFormat) {
         GraphicsPipelineConfig *config = configInstancer.getObjectInstance();
         GraphicsPipelineCreateStrip *createStrip = createInstance.getObjectInstance();
         GraphicsPipelineConfig::createConfig(config, attachmentPerStepAmount, true, width, height);
@@ -89,11 +88,18 @@ private:
         createStrip->pipelineInfo.pDynamicState = nullptr;
 
         createStrip->pipelineInfo.layout = configurer.pipelineLayout;
-        createStrip->pipelineInfo.renderPass = renderPass.getRenderPass();
         createStrip->pipelineInfo.subpass = config->subpass;
 
         createStrip->pipelineInfo.basePipelineIndex = -1;
         createStrip->pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+
+        vk::PipelineRenderingCreateInfo renderingCreateInfo {};
+        renderingCreateInfo.colorAttachmentCount = (uint32_t )colorFormats.size();
+        renderingCreateInfo.pColorAttachmentFormats = colorFormats.data();
+        renderingCreateInfo.depthAttachmentFormat =  depthFormat;
+
+        createStrip->pipelineInfo.pNext = &renderingCreateInfo;
+
         graphicsPipeline = device.getDevice().createGraphicsPipeline(nullptr, createStrip->pipelineInfo).value;
         configInstancer.releaseObjectInstance(config);
         createInstance.releaseObjectInstance(createStrip);

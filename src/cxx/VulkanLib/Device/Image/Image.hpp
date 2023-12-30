@@ -66,6 +66,64 @@ public:
         return base;
     }
 
+    void transitionImageLayout(std::shared_ptr<LogicalDevice> device, vk::ImageLayout oldLayout,
+                               vk::ImageLayout newLayout, vk::ImageAspectFlags aspectFlags)
+    {
+        vk::CommandBuffer commandBuffer = device->getQueueByType(vk::QueueFlagBits::eGraphics)->beginSingleTimeCommands();
+
+        VkImageMemoryBarrier barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barrier.oldLayout = static_cast<VkImageLayout>(oldLayout);
+        barrier.newLayout = static_cast<VkImageLayout>(newLayout);
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.image = base;
+        barrier.subresourceRange.aspectMask = (unsigned int)aspectFlags;
+        barrier.subresourceRange.baseMipLevel = 0;
+        barrier.subresourceRange.levelCount = 1;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+
+        VkPipelineStageFlags sourceStage;
+        VkPipelineStageFlags destinationStage;
+
+        if (static_cast<VkImageLayout>(oldLayout) == VK_IMAGE_LAYOUT_UNDEFINED && static_cast<VkImageLayout>(newLayout) == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+        {
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        }
+        else if (static_cast<VkImageLayout>(oldLayout) == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+                 static_cast<VkImageLayout>(newLayout) == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        {
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+        else
+        {
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+
+        vkCmdPipelineBarrier(
+                commandBuffer,
+                sourceStage, destinationStage,
+                0,
+                0, nullptr,
+                0, nullptr,
+                1, &barrier);
+
+        device->getQueueByType(vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(commandBuffer);
+    }
+
     std::vector<std::shared_ptr<ImageView>> &getImageViews() { return imageViews; }
 
     void resize(uint32_t width, uint32_t height) {
