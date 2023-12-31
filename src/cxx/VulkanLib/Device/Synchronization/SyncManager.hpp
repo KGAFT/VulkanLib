@@ -9,7 +9,7 @@ class SyncManager {
 public:
     SyncManager(LogicalDevice &device, SwapChain &swapChain, LogicalQueue &queue, uint32_t maxFramesInFlight) : sync(device, queue, maxFramesInFlight), device(device),
                                                                                     swapChain(swapChain), queue(queue) {
-        createCommandBuffers();
+        createCommandBuffers(maxFramesInFlight);
     }
 
 private:
@@ -52,13 +52,13 @@ public:
     }
 
 private:
-    void createCommandBuffers() {
-        commandBuffers.resize(3);
+    void createCommandBuffers(uint32_t maxFramesInFlight) {
+        commandBuffers.resize(maxFramesInFlight);
 
         vk::CommandBufferAllocateInfo allocInfo{};
         allocInfo.level = vk::CommandBufferLevel::ePrimary;
         allocInfo.commandPool = queue.getCommandPool();
-        allocInfo.commandBufferCount = 3;
+        allocInfo.commandBufferCount = maxFramesInFlight;
         uint32_t c = 0;
         for (auto &item: device.getDevice().allocateCommandBuffers(allocInfo)) {
             commandBuffers[c] = item;
