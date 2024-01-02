@@ -30,8 +30,10 @@ struct SamplerInfo {
     vk::ShaderStageFlags shaderStages;
 };
 
-class GraphicsPipelineBuilder {
+class GraphicsPipelineBuilder : public IDestroyableObject {
     friend class GraphicsPipelineConfigurer;
+
+    friend class RenderPipeline;
 
     friend class GraphicsPipeline;
 
@@ -41,7 +43,9 @@ public:
     static GraphicsPipelineBuilder *getInstance() {
         return builders.getObjectInstance();
     }
-
+    static void releaseBuilderInstance(GraphicsPipelineBuilder* builder){
+        builders.releaseObjectInstance(builder);
+    }
 public:
     GraphicsPipelineBuilder() {
 
@@ -73,14 +77,16 @@ public:
     void addSamplerInfo(SamplerInfo info) {
         samplersInfo.push_back(info);
     }
-    void addColorAttachmentInfo(vk::Format colorAttachmentFormat){
+
+    void addColorAttachmentInfo(vk::Format colorAttachmentFormat) {
         colorAttachmentInfo.push_back(colorAttachmentFormat);
     }
 
 
-    void setDepthAttachmentInfo(vk::Format depthAttachmentInfo){
+    void setDepthAttachmentInfo(vk::Format depthAttachmentInfo) {
         this->depthAttachmentInfo = depthAttachmentInfo;
     }
+
     /**
      * @throws runtime_error if is not properly populated
      */
@@ -92,9 +98,12 @@ public:
     }
 
 public:
-    void release() {
+    void destroy() override {
+        destroyed = true;
         builders.releaseObjectInstance(this);
     }
+
+
 };
 
 
