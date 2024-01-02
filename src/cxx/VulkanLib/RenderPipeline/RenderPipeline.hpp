@@ -46,12 +46,20 @@ public:
 class RenderPipeline {
 private:
     static inline std::shared_ptr<RenderImagePool> renderImages = std::make_shared<RenderImagePool>();
+    static inline bool initializedRenderImagePool = false;
+    static void checkPool(std::shared_ptr<LogicalDevice> device){
+        if(!initializedRenderImagePool){
+            renderImages = std::make_shared<RenderImagePool>(device);
+            initializedRenderImagePool = true;
+        }
+    }
 public:
     RenderPipeline(Instance& instance, std::shared_ptr<LogicalDevice> device, RenderPipelineBuilder *pBuilder,
                    Shader *shader,
                    vk::Extent2D renderArea,
                    uint32_t maxFramesInFlight) : instance(instance), renderArea(renderArea),
                                                  imagePerStepAmount(pBuilder->attachmentsPerStepAmount) {
+        checkPool(device);
         bool populated = false;
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             for (uint32_t ii = 0; ii < pBuilder->attachmentsPerStepAmount; ++ii) {
@@ -73,7 +81,7 @@ public:
                                                               renderArea.height);
         depthClear.depthStencil.depth = 1.0f;
         depthClear.depthStencil.stencil = 0;
-        colorClear.color = {1.0f, 0.0f, 0.0f, 1.0f};
+        colorClear.color = {0.0f, 0.0f, 0.0f, 1.0f};
         createImagesAndRenderingInfos(pBuilder->attachmentsPerStepAmount);
 
     }
@@ -84,6 +92,8 @@ public:
                    vk::Extent2D renderArea,
                    uint32_t maxFramesInFlight) : instance(instance), renderArea(renderArea), imagePerStepAmount(1), forSwapChain(true),
                                                  swapChain(swapChain) {
+        checkPool(device);
+
         pBuilder->pGraphicsPipelineBuilder->addColorAttachmentInfo(swapChain->getFormat().format);
         for (int i = 0; i < maxFramesInFlight; ++i) {
             auto depthImage = renderImages->acquiredDepthImage(renderArea.width, renderArea.height);
@@ -98,7 +108,7 @@ public:
                                                               renderArea.height);
         depthClear.depthStencil.depth = 1.0f;
         depthClear.depthStencil.stencil = 0;
-        colorClear.color = {1.0f, 0.0f, 0.0f, 1.0f};
+        colorClear.color = {0.0f, 0.0f, 0.0f, 1.0f};
         createImagesAndRenderingInfos(1);
     }
 
@@ -143,10 +153,32 @@ public:
 
     }
     void endRender(vk::CommandBuffer cmd, uint32_t currentImage){
-        cmd.endRenderingKHR();
+        cmd.endRenderingKHR(instance.getDynamicLoader());
         prepareBarriersAfterRendering(currentImage);
         bindBarriers(cmd);
     }
+
+    void resize(uint32_t width, uint32_t height){
+        d = false;
+        firstRender = true;
+        renderArea.width = width;
+        renderArea.height = height;
+        renderingInfoKhr.renderArea.extent.width = width;
+        renderingInfoKhr.renderArea.extent.height = height;
+        if(forSwapChain){
+            swapChain->recreate(width, height, false);
+        } else {
+            for (auto &item: baseDepthImages){
+                item->resize(width, height);
+            }
+        }
+        for (auto &item: baseDepthImages){
+            item->resize(width, height);
+        }
+        graphicsPipeline->recreate(width, height);
+
+    }
+
 private:
 
     void bindBarriers(vk::CommandBuffer cmd){
@@ -166,7 +198,14 @@ private:
             item.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
             item.loadOp = vk::AttachmentLoadOp::eClear;
             item.storeOp = vk::AttachmentStoreOp::eStore;
+            item.clearValue = colorClear;
         }
+        depthInfo.sType = vk::StructureType::eRenderingAttachmentInfoKHR;
+        depthInfo.imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+        depthInfo.loadOp = vk::AttachmentLoadOp::eClear;
+        depthInfo.storeOp = vk::AttachmentStoreOp::eStore;
+        depthInfo.clearValue = depthClear;
+
         renderingInfoKhr.renderArea = {0, 0, renderArea.width, renderArea.height};
         renderingInfoKhr.layerCount = 1;
         renderingInfoKhr.colorAttachmentCount = colorInfos.size();
