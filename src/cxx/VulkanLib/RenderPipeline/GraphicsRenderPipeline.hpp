@@ -10,7 +10,7 @@
 #include "RenderImagePool.hpp"
 
 class RenderPipelineBuilder {
-    friend class RenderPipeline;
+    friend class GraphicsRenderPipeline;
 
 public:
     RenderPipelineBuilder() {
@@ -43,7 +43,7 @@ public:
 
 };
 
-class RenderPipeline {
+class GraphicsRenderPipeline {
 private:
     static inline std::shared_ptr<RenderImagePool> renderImages = std::make_shared<RenderImagePool>();
     static inline bool initializedRenderImagePool = false;
@@ -54,10 +54,10 @@ private:
         }
     }
 public:
-    RenderPipeline(Instance& instance, std::shared_ptr<LogicalDevice> device, RenderPipelineBuilder *pBuilder,
-                   Shader *shader,
-                   vk::Extent2D renderArea,
-                   uint32_t maxFramesInFlight) : instance(instance), renderArea(renderArea),
+    GraphicsRenderPipeline(Instance& instance, std::shared_ptr<LogicalDevice> device, RenderPipelineBuilder *pBuilder,
+                           Shader *shader,
+                           vk::Extent2D renderArea,
+                           uint32_t maxFramesInFlight) : instance(instance), renderArea(renderArea),
                                                  imagePerStepAmount(pBuilder->attachmentsPerStepAmount) {
         checkPool(device);
         bool populated = false;
@@ -86,11 +86,11 @@ public:
 
     }
 
-    RenderPipeline(Instance& instance, std::shared_ptr<LogicalDevice> device, std::shared_ptr<SwapChain> swapChain,
-                   RenderPipelineBuilder *pBuilder,
-                   Shader *shader,
-                   vk::Extent2D renderArea,
-                   uint32_t maxFramesInFlight) : instance(instance), renderArea(renderArea), imagePerStepAmount(1), forSwapChain(true),
+    GraphicsRenderPipeline(Instance& instance, std::shared_ptr<LogicalDevice> device, std::shared_ptr<SwapChain> swapChain,
+                           RenderPipelineBuilder *pBuilder,
+                           Shader *shader,
+                           vk::Extent2D renderArea,
+                           uint32_t maxFramesInFlight) : instance(instance), renderArea(renderArea), imagePerStepAmount(1), forSwapChain(true),
                                                  swapChain(swapChain) {
         checkPool(device);
 
@@ -135,6 +135,8 @@ private:
     bool forSwapChain = false;
     bool d = false;
 public:
+
+
     void begin(vk::CommandBuffer cmd, uint32_t currentImage){
         prepareBarriersBeforeRendering(currentImage);
         bindBarriers(cmd);
@@ -177,6 +179,10 @@ public:
         }
         graphicsPipeline->recreate(width, height);
 
+    }
+
+    const std::shared_ptr<GraphicsPipeline> &getGraphicsPipeline() const {
+        return graphicsPipeline;
     }
 
 private:

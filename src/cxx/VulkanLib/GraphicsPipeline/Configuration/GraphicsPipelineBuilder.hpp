@@ -33,7 +33,7 @@ struct SamplerInfo {
 class GraphicsPipelineBuilder : public IDestroyableObject {
     friend class GraphicsPipelineConfigurer;
 
-    friend class RenderPipeline;
+    friend class GraphicsRenderPipeline;
 
     friend class GraphicsPipeline;
 

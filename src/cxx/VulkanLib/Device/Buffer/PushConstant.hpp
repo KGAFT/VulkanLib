@@ -8,7 +8,7 @@
 class PushConstant {
 public:
     PushConstant(size_t size, vk::PipelineLayout pipelineLayout) : size(size), layout(pipelineLayout){
-        data = calloc(1, size);
+        data = malloc(size);
     }
 private:
     void* data;
