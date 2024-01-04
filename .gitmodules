@@ -10,3 +10,7 @@
 [submodule "subprojects/googletest"]
 	path = subprojects/googletest
 	url = https://github.com/google/googletest
+
+[submodule "subprojects/SDL"]
+	path = subprojects/SDL
+	url = https://github.com/libsdl-org/SDL

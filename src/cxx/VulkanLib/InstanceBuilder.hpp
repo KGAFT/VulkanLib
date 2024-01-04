@@ -6,6 +6,8 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <GLFW/glfw3.h>
+#include <SDL.h>
+#include <SDL_vulkan.h>
 
 class InstanceBuilder {
     friend class Instance;
@@ -49,6 +51,13 @@ public:
         uint32_t extCount;
         const char **extensions = glfwGetRequiredInstanceExtensions(&extCount);
         addExtensions(extensions, extCount);
+    }
+    void presetForSDL3(){
+        uint32_t extensionCount;
+        char const* const* extensions = SDL_Vulkan_GetInstanceExtensions(&extensionCount);
+        for (int i = 0; i < extensionCount; ++i){
+            addExtension(extensions[i]);
+        }
     }
 
     void setApplicationName(const char *applicationName) {
