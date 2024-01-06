@@ -5,6 +5,7 @@
 
 #include "ImageView.hpp"
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
+#include "VulkanLib/Device/Buffer/Buffer.hpp"
 #include <memory>
 #include <vulkan/vulkan_structs.hpp>
 
@@ -64,6 +65,24 @@ public:
 
     vk::Image &getBase() {
         return base;
+    }
+
+    void copyFromBuffer(Buffer& buffer, uint32_t layerCount, LogicalQueue& queue){
+        vk::CommandBuffer cmd = queue.beginSingleTimeCommands();
+        vk::BufferImageCopy region{};
+        region.bufferOffset = 0;
+        region.bufferRowLength = 0;
+        region.bufferImageHeight = 0;
+        region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount = layerCount;
+        region.imageOffset.x = 0;
+        region.imageOffset.y = 0;
+        region.imageOffset.z = 0;
+        region.imageExtent = imageInfo.extent;
+        cmd.copyBufferToImage(buffer.getBuffer(), base, vk::ImageLayout::eGeneral, 1, &region);
+        queue.endSingleTimeCommands(cmd);
     }
 
     void transitionImageLayout(std::shared_ptr<LogicalDevice> device, vk::ImageLayout oldLayout,

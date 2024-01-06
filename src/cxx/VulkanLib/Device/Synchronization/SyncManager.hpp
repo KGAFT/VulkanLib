@@ -5,7 +5,7 @@
 
 #include "ThreeFrameSynchronization.hpp"
 
-class SyncManager {
+class SyncManager : IDestroyableObject{
 public:
     SyncManager(LogicalDevice &device, SwapChain &swapChain, LogicalQueue &queue, uint32_t maxFramesInFlight) : sync(device, queue, maxFramesInFlight), device(device),
                                                                                     swapChain(swapChain), queue(queue) {
@@ -64,6 +64,10 @@ private:
             commandBuffers[c] = item;
             c++;
         }
+    }
+public:
+    void destroy() override {
+        destroyed = true;
     }
 };
 

@@ -5,7 +5,7 @@
 
 #include "Buffer.hpp"
 
-class UniformBuffer {
+class UniformBuffer : IDestroyableObject{
 private:
     static inline SeriesObject<vk::BufferCreateInfo> createInfos = SeriesObject<vk::BufferCreateInfo>();
 
@@ -35,6 +35,13 @@ public:
     }
     vk::Buffer getBuffer(){
         return base->getBuffer();
+    }
+
+public:
+    void destroy() override {
+        base->unMap();
+        base->destroy();
+        destroyed = true;
     }
 };
 

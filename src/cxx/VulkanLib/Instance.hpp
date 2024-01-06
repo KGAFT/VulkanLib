@@ -25,7 +25,8 @@ public:
                 pBuilder.applicationName,
                 VK_MAKE_VERSION(1, 0, 0),
                 "VulkanLib",
-                VK_API_VERSION_1_3
+                VK_MAKE_VERSION(1, 0, 0),
+                VK_API_VERSION_1_1
         );
         vk::InstanceCreateInfo createInfo(
                 vk::InstanceCreateFlags(),

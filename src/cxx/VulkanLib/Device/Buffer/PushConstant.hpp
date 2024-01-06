@@ -5,7 +5,7 @@
 
 #include <vulkan/vulkan.hpp>
 
-class PushConstant {
+class PushConstant : IDestroyableObject{
 public:
     PushConstant(size_t size, vk::PipelineLayout pipelineLayout) : size(size), layout(pipelineLayout){
         data = malloc(size);
@@ -23,6 +23,11 @@ public:
             throw std::runtime_error("Error: you cannot write data that size exceeds the push constant size");
         }
         memcpy(PushConstant::data, data, writeSize);
+    }
+
+public:
+    void destroy() override {
+        destroyed = true;
     }
 };
 
