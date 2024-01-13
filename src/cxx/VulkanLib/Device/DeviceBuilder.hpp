@@ -16,7 +16,7 @@ private:
     bool requirePresentSupport = false;
     bool requireGraphicsSupport = false;
     vk::SurfaceKHR surfaceForPresentationCheck;
-
+    bool rayTracingSupport = false;
 public:
     void addExtension(const char *extensionName) {
         requestExtensions.push_back(extensionName);
@@ -49,6 +49,8 @@ public:
         requestExtensions.push_back("VK_KHR_shader_float_controls");
         requestExtensions.push_back("VK_KHR_maintenance3");
         requestExtensions.push_back("VK_KHR_device_group");
+        rayTracingSupport = true;
+
     }
 
     void requestPresentSupport(VkSurfaceKHR surface) {

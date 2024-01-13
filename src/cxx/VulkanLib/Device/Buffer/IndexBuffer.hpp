@@ -11,8 +11,9 @@ class IndexBuffer {
 private:
     static inline SeriesObject<vk::BufferCreateInfo> createInfos = SeriesObject<vk::BufferCreateInfo>();
 public:
-    IndexBuffer(std::shared_ptr<LogicalDevice> device, void *indices, uint32_t indexCount)
-    : device(device), indexCount(indexCount) {
+    IndexBuffer(std::shared_ptr<LogicalDevice> device, void *indices, uint32_t indexCount, vk::IndexType indexType,
+                bool forRayTracing)
+            : device(device), indexCount(indexCount), indexType(indexType) {
         uint32_t queueIndices[] = {device->getQueueByType(vk::QueueFlagBits::eGraphics)->getIndex()};
 
 
@@ -29,11 +30,13 @@ public:
         Buffer stagingBuffer(device, createInfo,
                              vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
         stagingBuffer.map(&mapPoint, 0, vk::MemoryMapFlags());
-        memcpy(mapPoint, indices,  indexCount * sizeof(uint32_t));
+        memcpy(mapPoint, indices, indexCount * sizeof(uint32_t));
         stagingBuffer.unMap();
 
         createInfo->usage = vk::BufferUsageFlagBits::eIndexBuffer |
-                            vk::BufferUsageFlagBits::eTransferDst;
+                            vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eShaderDeviceAddress | (
+                forRayTracing ? vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
+                              : vk::BufferUsageFlags());;
 
         buffer = std::make_shared<Buffer>(device, createInfo, vk::MemoryPropertyFlagBits::eDeviceLocal);
         vk::CommandBuffer cmd = device->getQueueByType(vk::QueueFlagBits::eGraphics)->beginSingleTimeCommands();
@@ -47,6 +50,7 @@ private:
     std::shared_ptr<LogicalDevice> device;
     std::shared_ptr<Buffer> buffer;
     uint32_t indexCount;
+    vk::IndexType indexType;
 public:
     void bind(vk::CommandBuffer cmd) {
         vk::DeviceSize offset = 0;
@@ -55,6 +59,14 @@ public:
 
     void drawAll(vk::CommandBuffer cmd) {
         cmd.drawIndexed(indexCount, 1, 0, 0, 0);
+    }
+
+    vk::IndexType getIndexType() const {
+        return indexType;
+    }
+
+    vk::DeviceAddress getBufferAddress(vk::DispatchLoaderDynamic &loaderDynamic) {
+        return buffer->getAddress(loaderDynamic);
     }
 };
 

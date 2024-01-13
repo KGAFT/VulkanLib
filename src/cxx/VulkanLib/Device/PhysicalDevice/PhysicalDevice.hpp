@@ -33,7 +33,7 @@ public:
 private:
     PhysicalDevice() = default;
 
-    explicit PhysicalDevice(vk::PhysicalDevice base) : base(base) {
+    PhysicalDevice(vk::PhysicalDevice base) : base(base) {
         uint32_t propertyCount;
         vk::Result res;
         res = base.enumerateDeviceExtensionProperties(nullptr, &propertyCount, nullptr);
@@ -45,6 +45,9 @@ private:
         base.getQueueFamilyProperties(&queueFamilyCount, nullptr);
         queueProperties.resize(queueFamilyCount);
         base.getQueueFamilyProperties(&queueFamilyCount, queueProperties.data());
+        vk::PhysicalDeviceProperties2 prop2{};
+        prop2.pNext = &rayTracingPipelinePropertiesKhr;
+        base.getProperties2(&prop2);
 
     }
 
@@ -57,6 +60,10 @@ private:
         res = base.enumerateDeviceExtensionProperties(nullptr, &propertyCount, extensionProperties.data());
         base.getFeatures(&features);
         base.getProperties(&properties);
+        vk::PhysicalDeviceProperties2 prop2{};
+        prop2.pNext = &rayTracingPipelinePropertiesKhr;
+        base.getProperties2(&prop2);
+
     }
 
 public:
@@ -65,6 +72,7 @@ public:
     vk::PhysicalDeviceFeatures features;
     std::vector<vk::ExtensionProperties> extensionProperties;
     std::vector<vk::QueueFamilyProperties> queueProperties;
+    vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rayTracingPipelinePropertiesKhr{};
 public:
     vk::PhysicalDevice &getBase() {
         return base;

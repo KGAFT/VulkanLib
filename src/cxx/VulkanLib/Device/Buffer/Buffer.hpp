@@ -14,6 +14,7 @@ class Buffer : IDestroyableObject {
 private:
     static inline SeriesObject<vk::MemoryRequirements> requirements = SeriesObject<vk::MemoryRequirements>();
     static inline SeriesObject<vk::MemoryAllocateInfo> allocInfos = SeriesObject<vk::MemoryAllocateInfo>();
+    static inline SeriesObject<vk::MemoryAllocateFlagsInfo> flagsInfo = SeriesObject<vk::MemoryAllocateFlagsInfo>();
 public:
     Buffer(std::shared_ptr<LogicalDevice> device, vk::BufferCreateInfo *createInfo, vk::MemoryPropertyFlags memoryFlags)
             : device(device) {
@@ -24,11 +25,19 @@ public:
         info->sType = vk::StructureType::eMemoryAllocateInfo;
         info->allocationSize = memReqs->size;
         info->memoryTypeIndex = device->findMemoryType(memReqs->memoryTypeBits, memoryFlags);
+
+        auto allocFlags = flagsInfo.getObjectInstance();
+        allocFlags->sType = vk::StructureType::eMemoryAllocateFlagsInfo;
+        allocFlags->flags = vk::MemoryAllocateFlagBits::eDeviceAddress;
+
+        info->pNext = allocFlags;
+
         res = device->getDevice().allocateMemory(info, nullptr, &bufferMemory);
         device->getDevice().bindBufferMemory(buffer, bufferMemory, 0);
         bufferSize = createInfo->size;
         requirements.releaseObjectInstance(memReqs);
         allocInfos.releaseObjectInstance(info);
+        flagsInfo.releaseObjectInstance(allocFlags);
     }
 
 private:
@@ -37,6 +46,7 @@ private:
     std::shared_ptr<LogicalDevice> device;
     SeriesObject<vk::BufferCopy> copyRegions;
     size_t bufferSize;
+    vk::BufferDeviceAddressInfo addressInfo{};
 public:
     void copyFromBuffer(vk::CommandBuffer cmd, Buffer &source, size_t size, size_t srcOffset, size_t dstOffset) {
         vk::BufferCopy *copy = copyRegions.getObjectInstance();
@@ -59,7 +69,10 @@ public:
     void map(void **output, size_t offset, vk::MemoryMapFlags mapFlags) {
         vk::Result res = device->getDevice().mapMemory(bufferMemory, offset, bufferSize, mapFlags, output);
     }
-
+    vk::DeviceAddress getAddress(vk::DispatchLoaderDynamic& dispatchLoaderDynamic){
+         addressInfo.buffer = buffer;
+         return device->getDevice().getBufferAddressKHR(addressInfo, dispatchLoaderDynamic);
+    }
     void unMap() {
         device->getDevice().unmapMemory(bufferMemory);
     }

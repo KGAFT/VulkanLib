@@ -26,7 +26,7 @@ public:
                 VK_MAKE_VERSION(1, 0, 0),
                 "VulkanLib",
                 VK_MAKE_VERSION(1, 0, 0),
-                VK_API_VERSION_1_1
+                VK_API_VERSION_1_2
         );
         vk::InstanceCreateInfo createInfo(
                 vk::InstanceCreateFlags(),
@@ -64,7 +64,7 @@ public:
         return enabledLayers;
     }
 
-    const vk::DispatchLoaderDynamic &getDynamicLoader() const {
+     vk::DispatchLoaderDynamic &getDynamicLoader() {
         return dynamicLoader;
     }
 

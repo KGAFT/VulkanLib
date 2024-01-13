@@ -18,10 +18,21 @@ public:
     LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice> device, DeviceBuilder &builder, DeviceSuitabilityResults *results)
             : baseDevice(device) {
         sanitizeQueueCreateInfos(results);
-        constexpr VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature {
-                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
-                .dynamicRendering = VK_TRUE,
-        };
+        vk::PhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature {};
+        vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelStructure{};
+
+        dynamicRenderingFeature.dynamicRendering = true;
+
+        vk::PhysicalDeviceVulkan12Features newFeatures{};
+        newFeatures.bufferDeviceAddress = true;
+        newFeatures.descriptorIndexing = true;
+        dynamicRenderingFeature.pNext = &newFeatures;
+
+        if(builder.rayTracingSupport){
+            accelStructure.accelerationStructure = true;
+            newFeatures.pNext = &accelStructure;
+        }
+
         vk::DeviceCreateInfo deviceInfo = vk::DeviceCreateInfo(
                 vk::DeviceCreateFlags(),
                 usedQueueCreateInfos, queueCreateInfos.data(),
