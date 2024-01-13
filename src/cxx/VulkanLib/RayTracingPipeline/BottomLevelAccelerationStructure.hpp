@@ -78,7 +78,7 @@ public:
         buildGeometryInfo->scratchData.deviceAddress = scratchBuffer->getAddress(loader);
         vk::CommandBuffer cmd = device->getQueueByType(vk::QueueFlagBits::eGraphics)->beginSingleTimeCommands();
         cmd.buildAccelerationStructuresKHR(1, buildGeometryInfo,
-                                           reinterpret_cast<const vk::AccelerationStructureBuildRangeInfoKHR *const *>(buildRangeInfo),
+                                           &buildRangeInfo,
                                            loader);
         device->getQueueByType(vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(cmd);
         trianglesInfos.releaseObjectInstance(triangleInfo);
