@@ -34,7 +34,7 @@ public:
 
         createInfo->usage = vk::BufferUsageFlagBits::eVertexBuffer |
                             vk::BufferUsageFlagBits::eTransferDst |
-                            vk::BufferUsageFlagBits::eShaderDeviceAddress |
+                            vk::BufferUsageFlagBits::eShaderDeviceAddress|
                             (forRayTracing ? vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
                                            : vk::BufferUsageFlags());
 

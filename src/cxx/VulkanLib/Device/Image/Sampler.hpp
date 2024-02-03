@@ -18,7 +18,7 @@ public:
         samplerInfo->addressModeU = vk::SamplerAddressMode::eRepeat;
         samplerInfo->addressModeV = vk::SamplerAddressMode::eRepeat;
         samplerInfo->addressModeW = vk::SamplerAddressMode::eRepeat;
-        samplerInfo->anisotropyEnable = VK_TRUE;
+        samplerInfo->anisotropyEnable = VK_FALSE;
         samplerInfo->maxAnisotropy = device->getBaseDevice()->properties.limits.maxSamplerAnisotropy;
         samplerInfo->borderColor = vk::BorderColor::eIntOpaqueBlack;
         samplerInfo->unnormalizedCoordinates = VK_FALSE;

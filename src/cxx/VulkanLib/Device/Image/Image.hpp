@@ -69,6 +69,7 @@ public:
 
     void copyFromBuffer(Buffer& buffer, uint32_t layerCount, LogicalQueue& queue){
         vk::CommandBuffer cmd = queue.beginSingleTimeCommands();
+        transitionImageLayout(cmd, imageInfo.initialLayout, vk::ImageLayout::eTransferDstOptimal, vk::ImageAspectFlagBits::eColor);
         vk::BufferImageCopy region{};
         region.bufferOffset = 0;
         region.bufferRowLength = 0;
@@ -81,7 +82,9 @@ public:
         region.imageOffset.y = 0;
         region.imageOffset.z = 0;
         region.imageExtent = imageInfo.extent;
-        cmd.copyBufferToImage(buffer.getBuffer(), base, vk::ImageLayout::eGeneral, 1, &region);
+        cmd.copyBufferToImage(buffer.getBuffer(), base, vk::ImageLayout::eTransferDstOptimal, 1, &region);
+        transitionImageLayout(cmd,vk::ImageLayout::eTransferDstOptimal,  vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor);
+        imageInfo.initialLayout = vk::ImageLayout::eGeneral;
         queue.endSingleTimeCommands(cmd);
     }
 
@@ -90,6 +93,13 @@ public:
     {
         vk::CommandBuffer commandBuffer = device->getQueueByType(vk::QueueFlagBits::eGraphics)->beginSingleTimeCommands();
 
+        transitionImageLayout(commandBuffer, oldLayout, newLayout, aspectFlags);
+
+        device->getQueueByType(vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(commandBuffer);
+    }
+
+    void transitionImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout oldLayout,
+                               vk::ImageLayout newLayout, vk::ImageAspectFlags aspectFlags){
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         barrier.oldLayout = static_cast<VkImageLayout>(oldLayout);
@@ -139,8 +149,6 @@ public:
                 0, nullptr,
                 0, nullptr,
                 1, &barrier);
-
-        device->getQueueByType(vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(commandBuffer);
     }
 
     std::vector<std::shared_ptr<ImageView>> &getImageViews() { return imageViews; }

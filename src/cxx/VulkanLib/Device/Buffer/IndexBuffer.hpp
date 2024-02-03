@@ -34,7 +34,7 @@ public:
         stagingBuffer.unMap();
 
         createInfo->usage = vk::BufferUsageFlagBits::eIndexBuffer |
-                            vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eShaderDeviceAddress | (
+                            vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eShaderDeviceAddress |(
                 forRayTracing ? vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
                               : vk::BufferUsageFlags());;
 
