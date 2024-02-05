@@ -7,7 +7,7 @@
 
 class SyncManager : IDestroyableObject{
 public:
-    SyncManager(LogicalDevice &device, SwapChain &swapChain, LogicalQueue &queue, uint32_t maxFramesInFlight) : sync(device, queue, maxFramesInFlight), device(device),
+    SyncManager(std::shared_ptr<LogicalDevice> device, std::shared_ptr<SwapChain> swapChain, std::shared_ptr<LogicalQueue> queue, uint32_t maxFramesInFlight) : sync(device, queue, maxFramesInFlight), device(device),
                                                                                     swapChain(swapChain), queue(queue) {
         createCommandBuffers(maxFramesInFlight);
     }
@@ -15,9 +15,9 @@ public:
 private:
     std::vector<vk::CommandBuffer> commandBuffers;
     ThreeFrameSynchronization sync;
-    LogicalDevice &device;
-    SwapChain &swapChain;
-    LogicalQueue &queue;
+    std::shared_ptr<LogicalDevice> device;
+    std::shared_ptr<SwapChain> swapChain;
+    std::shared_ptr<LogicalQueue> queue;
     uint32_t currentCmd;
     vk::CommandBufferBeginInfo beginInfo{};
     bool stop = false;
@@ -57,10 +57,10 @@ private:
 
         vk::CommandBufferAllocateInfo allocInfo{};
         allocInfo.level = vk::CommandBufferLevel::ePrimary;
-        allocInfo.commandPool = queue.getCommandPool();
+        allocInfo.commandPool = queue->getCommandPool();
         allocInfo.commandBufferCount = maxFramesInFlight;
         uint32_t c = 0;
-        for (auto &item: device.getDevice().allocateCommandBuffers(allocInfo)) {
+        for (auto &item: device->getDevice().allocateCommandBuffers(allocInfo)) {
             commandBuffers[c] = item;
             c++;
         }

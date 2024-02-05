@@ -45,7 +45,7 @@ public:
             std::cerr << error.what() << std::endl;
         }
     }
-
+    Instance(){}
 private:
     vk::Instance instance{nullptr};
     vk::DispatchLoaderDynamic dynamicLoader;

@@ -45,6 +45,11 @@ public:
             device->getDevice().updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
         }
     }
+    void clearObjectsInfos(){
+        imagesInfo.clear();
+        buffersInfo.clear();
+        writes.clear();
+    }
 
     void bindDescriptor(vk::PipelineBindPoint bindPoint, uint32_t currentInstance, vk::CommandBuffer cmd,
                         vk::PipelineLayout pipelineLayout) {
