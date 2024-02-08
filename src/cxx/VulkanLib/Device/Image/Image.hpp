@@ -158,7 +158,15 @@ public:
             destroy();
             destroyed = false;
             imageInfo.extent = vk::Extent3D{width, height, 1};
-            initialize(device, imageInfo);
+            if(imageInfo.initialLayout!=vk::ImageLayout::eUndefined){
+                vk::ImageLayout tmpLayout = imageInfo.initialLayout;
+                imageInfo.initialLayout = vk::ImageLayout::eUndefined;
+                initialize(device, imageInfo);
+                transitionImageLayout(device, vk::ImageLayout::eUndefined, tmpLayout, vk::ImageAspectFlagBits::eColor);
+                imageInfo.initialLayout = tmpLayout;
+            } else {
+                initialize(device, imageInfo);
+            }
             for (auto &item: imageViews) {
                 item->createInfo.image = base;
                 item->base = device->getDevice().createImageView(item->createInfo);
