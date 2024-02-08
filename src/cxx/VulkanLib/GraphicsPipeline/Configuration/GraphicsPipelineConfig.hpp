@@ -48,7 +48,7 @@ public:
                 configInfo->colorBlendAttachments[i].colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                         vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
                 configInfo->colorBlendAttachments[i].srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
-                configInfo->colorBlendAttachments[i].dstColorBlendFactor = vk::BlendFactor::eOneMinusConstantAlpha;
+                configInfo->colorBlendAttachments[i].dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
                 configInfo->colorBlendAttachments[i].colorBlendOp = vk::BlendOp::eAdd;
                 configInfo->colorBlendAttachments[i].srcAlphaBlendFactor = vk::BlendFactor::eOne;
                 configInfo->colorBlendAttachments[i].dstAlphaBlendFactor = vk::BlendFactor::eZero;

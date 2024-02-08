@@ -26,28 +26,43 @@ class DescriptorSet {
 
 private:
     std::vector<vk::DescriptorSet> descriptorSet;
-    std::vector<DescriptorBufferInfo> buffersInfo;
-    std::vector<DescriptorImageInfo> imagesInfo;
+    std::vector<DescriptorBufferInfo*> buffersInfo;
+    std::vector<DescriptorImageInfo*> imagesInfo;
     std::vector<vk::WriteDescriptorSet> writes;
     std::shared_ptr<LogicalDevice> device;
+    uint32_t imageInfoPerInstanceAmount = 0;
+    uint32_t bufferInfoPerInstanceAmount = 0;
+
 public:
     /**
      * Warning: after this operation all functions for adding descriptor elements info will be unAvailable
      */
     void updateDescriptors() {
-        if (writes.empty()) {
-            populateWritesInfo();
-        }
+
+        uint32_t counter = 0;
         for (auto &item: descriptorSet) {
+
             for (auto &cItem: writes) {
                 cItem.dstSet = item;
             }
-            device->getDevice().updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+            if(imageInfoPerInstanceAmount==0 && bufferInfoPerInstanceAmount==0){
+                device->getDevice().updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+            } else {
+                device->getDevice().updateDescriptorSets(imageInfoPerInstanceAmount+bufferInfoPerInstanceAmount, &writes[counter], 0, nullptr);
+            }
+            counter+=imageInfoPerInstanceAmount+bufferInfoPerInstanceAmount;
         }
     }
     void clearObjectsInfos(){
+        for (auto &item: imagesInfo){
+            delete item;
+        }
         imagesInfo.clear();
+        for (const auto &item: buffersInfo){
+            delete item;
+        }
         buffersInfo.clear();
+
         writes.clear();
     }
 
@@ -56,38 +71,41 @@ public:
         cmd.bindDescriptorSets(bindPoint, pipelineLayout, 0, 1, &descriptorSet[currentInstance], 0, nullptr);
     }
 
-    void addBufferInfo(DescriptorBufferInfo bufferInfo){
-        buffersInfo.push_back(bufferInfo);
+    void addBufferInfo(DescriptorBufferInfo& bufferInfo) {
+        buffersInfo.push_back(new DescriptorBufferInfo);
+        memcpy(buffersInfo[buffersInfo.size()-1], &bufferInfo, sizeof(DescriptorBufferInfo));
+        writes.push_back({});
+        writes[writes.size() - 1].sType = vk::StructureType::eWriteDescriptorSet;
+        writes[writes.size() - 1].dstSet = descriptorSet[0];
+        writes[writes.size() - 1].dstBinding = buffersInfo[buffersInfo.size()-1]->binding;
+        writes[writes.size() - 1].dstArrayElement = 0;
+        writes[writes.size() - 1].descriptorType = buffersInfo[buffersInfo.size()-1]->descriptorType;
+        writes[writes.size() - 1].descriptorCount = 1;
+        writes[writes.size() - 1].pBufferInfo = &buffersInfo[buffersInfo.size()-1]->base;
+    }
+    void addImageInfo(DescriptorImageInfo& imageInfo){
+        imagesInfo.push_back(new DescriptorImageInfo);
+        writes.push_back({});
+        memcpy(imagesInfo[imagesInfo.size()-1], &imageInfo, sizeof(DescriptorImageInfo));
+
+        writes[writes.size()-1].sType = vk::StructureType::eWriteDescriptorSet;
+        writes[writes.size()-1].dstSet = descriptorSet[0];
+        writes[writes.size()-1].dstBinding = imagesInfo[imagesInfo.size()-1]->binding;
+        writes[writes.size()-1].dstArrayElement = 0;
+        writes[writes.size()-1].descriptorType = imagesInfo[imagesInfo.size()-1]->descriptorType;
+        writes[writes.size()-1].descriptorCount = 1;
+        writes[writes.size()-1].pImageInfo = &imagesInfo[imagesInfo.size()-1]->base;
     }
 
-    void addImageInfo(DescriptorImageInfo imageInfo){
-        imagesInfo.push_back(imageInfo);
+    void setImageInfoPerInstanceAmount(uint32_t imageInfoPerInstanceAmount) {
+        DescriptorSet::imageInfoPerInstanceAmount = imageInfoPerInstanceAmount;
     }
-private:
-    void populateWritesInfo() {
-        writes.resize(imagesInfo.size() + buffersInfo.size());
-        uint32_t i = 0;
-        for (auto &item: buffersInfo) {
-            writes[i].sType = vk::StructureType::eWriteDescriptorSet;
-            writes[i].dstSet = descriptorSet[0];
-            writes[i].dstBinding = item.binding;
-            writes[i].dstArrayElement = 0;
-            writes[i].descriptorType = item.descriptorType;
-            writes[i].descriptorCount = 1;
-            writes[i].pBufferInfo = &item.base;
-            i++;
-        }
-        for (auto &item: imagesInfo) {
-            writes[i].sType = vk::StructureType::eWriteDescriptorSet;
-            writes[i].dstSet = descriptorSet[0];
-            writes[i].dstBinding = item.binding;
-            writes[i].dstArrayElement = 0;
-            writes[i].descriptorType = item.descriptorType;
-            writes[i].descriptorCount = 1;
-            writes[i].pImageInfo = &item.base;
-            i++;
-        }
+
+    void setBufferInfoPerInstanceAmount(uint32_t bufferInfoPerInstanceAmount) {
+        DescriptorSet::bufferInfoPerInstanceAmount = bufferInfoPerInstanceAmount;
     }
+
+
 };
 
 

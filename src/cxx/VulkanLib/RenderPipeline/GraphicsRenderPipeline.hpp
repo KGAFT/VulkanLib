@@ -40,6 +40,15 @@ public:
     void setAttachmentsPerStepAmount(uint32_t attachmentsPerStepAmount) {
         RenderPipelineBuilder::attachmentsPerStepAmount = attachmentsPerStepAmount;
     }
+    void clear(){
+        GraphicsPipelineBuilder::releaseBuilderInstance(pGraphicsPipelineBuilder);
+        RenderPipelineBuilder::pGraphicsPipelineBuilder = GraphicsPipelineBuilder::getInstance();
+        attachmentsPerStepAmount = 0;
+    }
+
+    virtual ~RenderPipelineBuilder() {
+        GraphicsPipelineBuilder::releaseBuilderInstance(pGraphicsPipelineBuilder);
+    }
 
 };
 
@@ -99,9 +108,7 @@ public:
             auto depthImage = renderImages->acquiredDepthImage(renderArea.width, renderArea.height);
             pBuilder->pGraphicsPipelineBuilder->setDepthAttachmentInfo(depthImage->getImageInfo().format);
             baseDepthImages.push_back(depthImage);
-            depthImage->transitionImageLayout(device, vk::ImageLayout::eUndefined,
-                                              vk::ImageLayout::eDepthStencilAttachmentOptimal,
-                                              vk::ImageAspectFlagBits::eDepth);
+
         }
         graphicsPipeline = std::make_shared<GraphicsPipeline>(*device, shader, pBuilder->pGraphicsPipelineBuilder,
                                                               1, renderArea.width,
@@ -170,7 +177,7 @@ public:
         if(forSwapChain){
             swapChain->recreate(width, height, false);
         } else {
-            for (auto &item: baseDepthImages){
+            for (auto &item: baseRenderImages){
                 item->resize(width, height);
             }
         }
@@ -179,6 +186,14 @@ public:
         }
         graphicsPipeline->recreate(width, height);
 
+    }
+
+    const std::vector<std::shared_ptr<Image>> &getBaseRenderImages() const {
+        return baseRenderImages;
+    }
+
+    const std::vector<std::shared_ptr<Image>> &getBaseDepthImages() const {
+        return baseDepthImages;
     }
 
     const std::shared_ptr<GraphicsPipeline> &getGraphicsPipeline() const {
@@ -228,7 +243,7 @@ private:
             uint32_t barIndex = i - currentImage * imagePerStepAmount;
             barriers[barIndex].sType = vk::StructureType::eImageMemoryBarrier;
             barriers[barIndex].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-            barriers[barIndex].oldLayout = firstRender?vk::ImageLayout::eUndefined:(forSwapChain?vk::ImageLayout::ePresentSrcKHR:vk::ImageLayout::eGeneral);
+            barriers[barIndex].oldLayout = firstRender?(forSwapChain?vk::ImageLayout::eUndefined:vk::ImageLayout::eGeneral):(forSwapChain?vk::ImageLayout::ePresentSrcKHR:vk::ImageLayout::eGeneral);
             barriers[barIndex].newLayout = vk::ImageLayout::eColorAttachmentOptimal;
             barriers[barIndex].image = forSwapChain ? swapChain->getSwapchainImages()[i]->getBase()
                                                     : baseRenderImages[i]->getBase();

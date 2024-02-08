@@ -46,7 +46,7 @@ private:
 public:
     std::shared_ptr<DescriptorSet> allocateDescriptorSet(uint32_t instanceCount, vk::DescriptorSetLayout layout){
         std::shared_ptr<DescriptorSet> res = std::make_shared<DescriptorSet>();
-
+        layouts.clear();
         layouts.resize(instanceCount, layout);
 
         vk::DescriptorSetAllocateInfo* allocateInfo = allocInfos.getObjectInstance();

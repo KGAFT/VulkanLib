@@ -83,6 +83,9 @@ private:
         auto result = std::make_shared<Image>(device, defaultDepthCreateInfo);
         defaultDepthViewInfo.image = result->getBase();
         result->createImageView(defaultDepthViewInfo);
+        result->transitionImageLayout(device, vk::ImageLayout::eUndefined,
+                                          vk::ImageLayout::eDepthStencilAttachmentOptimal,
+                                          vk::ImageAspectFlagBits::eDepth);
         return result;
     }
 
@@ -95,6 +98,8 @@ private:
         auto result = std::make_shared<Image>(device, defaultColorCreateInfo);
         defaultColorViewCreateInfo.image = result->getBase();
         result->createImageView(defaultColorViewCreateInfo);
+        result->transitionImageLayout(device, vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor);
+        result->getImageInfo().initialLayout = vk::ImageLayout::eGeneral;
         return result;
     }
 
