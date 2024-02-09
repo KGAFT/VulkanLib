@@ -9,7 +9,7 @@
 #include <memory>
 #include <vulkan/vulkan_structs.hpp>
 
-class Image : IDestroyableObject {
+class Image : public IDestroyableObject {
 public:
     Image(std::shared_ptr<LogicalDevice> device, vk::Image base) : device(std::move(device)), base(base) {
         castCreated = true;
@@ -59,6 +59,9 @@ public:
                                                            vk::MemoryPropertyFlagBits::eDeviceLocal);
 
         res =  Image::device->getDevice().allocateMemory(&allocInfo, nullptr, &imageMemory);
+        if(res!=vk::Result::eSuccess){
+            throw std::runtime_error("Failed to allocate image memory");
+        }
         Image::device->getDevice().bindImageMemory(base, imageMemory, 0);
 
     }
@@ -183,14 +186,14 @@ public:
         return imageInfo;
     }
 
-private:
+public:
     void destroy() override {
         if (!castCreated) {
             for (auto &item: imageViews) {
                 item->destroy();
             }
             device->getDevice().destroyImage(base);
-
+            device->getDevice().freeMemory(imageMemory);
         }
         destroyed = true;
     }

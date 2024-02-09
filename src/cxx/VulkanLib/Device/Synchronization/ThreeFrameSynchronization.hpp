@@ -8,7 +8,7 @@
 #include "VulkanLib/Device/SwapChain/SwapChain.hpp"
 
 
-class ThreeFrameSynchronization : IDestroyableObject {
+class ThreeFrameSynchronization : public IDestroyableObject {
 public:
     ThreeFrameSynchronization(std::shared_ptr<LogicalDevice> device, std::shared_ptr<LogicalQueue> graphicsQueue,
                               uint32_t maxFramesInFlight) : maxFramesInFlight(maxFramesInFlight), device(device),
@@ -36,12 +36,17 @@ public:
                                                &inFlightFences[currentFrame],
                                                VK_TRUE,
                                                std::numeric_limits<uint64_t>::max());
+        if(res!=vk::Result::eSuccess){
+            std::cerr<<"Failed to wait for fences"<<std::endl;
+        }
         res = device->getDevice().acquireNextImageKHR(swapChain->getSwapchainKhr(), std::numeric_limits<uint64_t>::max(),
                                                      imageAvailableSemaphores[currentFrame],
                                                      VK_NULL_HANDLE,
                                                      &result);
 
-
+        if(res!=vk::Result::eSuccess){
+            std::cerr<<"Failed to wait for fences"<<std::endl;
+        }
         return result;
     }
 
@@ -52,6 +57,9 @@ public:
                                                    &imagesInFlight[*currentImage],
                                                    VK_TRUE,
                                                    UINT64_MAX);
+            if(res!=vk::Result::eSuccess){
+                std::cerr<<"Failed to wait for fences"<<std::endl;
+            }
         }
         imagesInFlight[*currentImage] = inFlightFences[currentFrame];
 
@@ -69,9 +77,14 @@ public:
         submitInfo.pSignalSemaphores = &renderFinishedSemaphores[currentFrame];
 
         res = device->getDevice().resetFences(1, &inFlightFences[currentFrame]);
+        if(res!=vk::Result::eSuccess){
+            std::cerr<<"Failed to reset fences"<<std::endl;
+        }
 
         res = presentQueue->getQueue().submit(1, &submitInfo, inFlightFences[currentFrame]);
-
+        if(res!=vk::Result::eSuccess){
+            std::cerr<<"Failed to submit queue"<<std::endl;
+        }
         vk::PresentInfoKHR presentInfo = {};
         swapchains[0] = swapChain->getSwapchainKhr();
         presentInfo.waitSemaphoreCount = 1;
@@ -82,7 +95,9 @@ public:
         presentInfo.pImageIndices = currentImage;
 
         auto result = presentQueue->getQueue().presentKHR(presentInfo);
-
+        if(result!=vk::Result::eSuccess){
+            std::cerr<<"Failed to present frame"<<std::endl;
+        }
         currentFrame = (currentFrame + 1) % maxFramesInFlight;
     }
 
@@ -94,6 +109,9 @@ public:
                                                        &item,
                                                        VK_TRUE,
                                                        UINT64_MAX);
+                if(res!=vk::Result::eSuccess){
+                    std::cerr<<"Failed to wait for fences"<<std::endl;
+                }
             }
         }
     }
@@ -114,14 +132,23 @@ private:
             imagesInFlight[i] = nullptr;
         }
     }
-
+public:
     void destroy() override {
         device->getDevice().waitIdle();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-            device->getDevice().destroySemaphore(imageAvailableSemaphores[i]);
-            device->getDevice().destroySemaphore(renderFinishedSemaphores[i]);
-            device->getDevice().destroyFence(inFlightFences[i]);
+            if(imageAvailableSemaphores[i]){
+                device->getDevice().destroySemaphore(imageAvailableSemaphores[i]);
+            }
+            if(renderFinishedSemaphores[i]){
+                device->getDevice().destroySemaphore(renderFinishedSemaphores[i]);
+            }
+            if(inFlightFences[i]){
+                device->getDevice().destroyFence(inFlightFences[i]);
+            }
         }
+        imageAvailableSemaphores.clear();
+        renderFinishedSemaphores.clear();
+        inFlightFences.clear();
         destroyed = true;
     }
 };

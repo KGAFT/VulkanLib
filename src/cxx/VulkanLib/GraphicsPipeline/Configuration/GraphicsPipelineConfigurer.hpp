@@ -115,7 +115,6 @@ private:
     }
 
 public:
-protected:
     void destroy() override {
         destroyed = true;
         device.getDevice().destroyPipelineLayout(pipelineLayout);

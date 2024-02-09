@@ -10,8 +10,8 @@ class ImageView : IDestroyableObject {
     friend class Image;
 public:
     ImageView(vk::ImageCreateInfo &parentInfo, std::shared_ptr<LogicalDevice> device, vk::ImageView base,
-              vk::ImageViewCreateInfo &createInfo) : base(base),
-                                                     createInfo(createInfo), device(device), parentInfo(parentInfo) {}
+              vk::ImageViewCreateInfo &createInfo) : parentInfo(parentInfo), device(device),  base(base),
+                                                     createInfo(createInfo)  {}
 
 private:
     vk::ImageCreateInfo &parentInfo;

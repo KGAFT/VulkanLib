@@ -12,7 +12,7 @@ namespace FileReader{
             char *content;
             fileReader.seekg(0, std::ios::end);
             size_t size = fileReader.tellg();
-            content = static_cast<char *>(calloc(size, sizeof(char)));
+            content = new char[size];
             fileReader.seekg(0, std::ios::beg);
             fileReader.read(&content[0], size);
             fileReader.close();
@@ -30,7 +30,7 @@ namespace FileReader{
         }
 
         size_t fileSize = static_cast<size_t>(file.tellg());
-        char* buffer = static_cast<char *>(calloc(sizeof(char), fileSize));
+        char* buffer = new char[fileSize];
 
         file.seekg(0);
         file.read(buffer, fileSize);

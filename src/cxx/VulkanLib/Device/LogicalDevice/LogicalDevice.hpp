@@ -9,7 +9,7 @@
 #include "VulkanLib/MemoryUtils/MemoryUtils.hpp"
 #include "LogicalQueue.hpp"
 
-class LogicalDevice : IDestroyableObject {
+class LogicalDevice : public IDestroyableObject {
 private:
     static inline std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos = std::vector<vk::DeviceQueueCreateInfo>();
     static inline float priority = 1.0f;
@@ -151,8 +151,11 @@ private:
         }
         usedQueueCreateInfos = counter;
     }
-
+public:
     void destroy() override {
+        for (auto &item: queues){
+            item->destroy();
+        }
         device.destroy();
         destroyed = true;
     }

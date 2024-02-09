@@ -10,15 +10,19 @@
 #include "VulkanLib/MemoryUtils/SeriesObject.hpp"
 #include <memory>
 
-class Buffer : IDestroyableObject {
+class Buffer : public IDestroyableObject {
 private:
     static inline SeriesObject<vk::MemoryRequirements> requirements = SeriesObject<vk::MemoryRequirements>();
     static inline SeriesObject<vk::MemoryAllocateInfo> allocInfos = SeriesObject<vk::MemoryAllocateInfo>();
     static inline SeriesObject<vk::MemoryAllocateFlagsInfo> flagsInfo = SeriesObject<vk::MemoryAllocateFlagsInfo>();
+
 public:
     Buffer(std::shared_ptr<LogicalDevice> device, vk::BufferCreateInfo *createInfo, vk::MemoryPropertyFlags memoryFlags)
             : device(device) {
         vk::Result res = device->getDevice().createBuffer(createInfo, nullptr, &buffer);
+        if(res!=vk::Result::eSuccess){
+            throw std::runtime_error("Failed to create buffer");
+        }
         vk::MemoryRequirements *memReqs = requirements.getObjectInstance();
         device->getDevice().getBufferMemoryRequirements(buffer, memReqs);
         vk::MemoryAllocateInfo *info = allocInfos.getObjectInstance();
@@ -33,6 +37,9 @@ public:
         info->pNext = allocFlags;
 
         res = device->getDevice().allocateMemory(info, nullptr, &bufferMemory);
+        if(res!=vk::Result::eSuccess){
+            throw std::runtime_error("Failed to allocate buffer memory");
+        }
         device->getDevice().bindBufferMemory(buffer, bufferMemory, 0);
         bufferSize = createInfo->size;
         requirements.releaseObjectInstance(memReqs);
@@ -68,6 +75,9 @@ public:
 
     void map(void **output, size_t offset, vk::MemoryMapFlags mapFlags) {
         vk::Result res = device->getDevice().mapMemory(bufferMemory, offset, bufferSize, mapFlags, output);
+        if(res!=vk::Result::eSuccess){
+            throw std::runtime_error("Failed to map buffer");
+        }
     }
     vk::DeviceAddress getAddress(vk::DispatchLoaderDynamic& dispatchLoaderDynamic){
          addressInfo.buffer = buffer;

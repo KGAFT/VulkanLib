@@ -68,7 +68,7 @@ public:
         return dynamicLoader;
     }
 
-protected:
+public:
     void destroy() override {
         delete logger;
         instance.destroy();

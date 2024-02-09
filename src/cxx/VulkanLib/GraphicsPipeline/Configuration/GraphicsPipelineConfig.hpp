@@ -43,7 +43,7 @@ public:
         configInfo->colorBlendAttachments.resize(attachmentCount);
         if(alphaBlending){
 
-            for (int i = 0; i < attachmentCount; ++i){
+            for (uint32_t i = 0; i < attachmentCount; ++i){
                 configInfo->colorBlendAttachments[i].blendEnable = VK_TRUE;
                 configInfo->colorBlendAttachments[i].colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                         vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
@@ -56,7 +56,7 @@ public:
             }
         }
         else{
-            for (int i = 0; i < attachmentCount; ++i){
+            for (uint32_t i = 0; i < attachmentCount; ++i){
                 configInfo->colorBlendAttachments[i].colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                                                                     vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
                 configInfo->colorBlendAttachments[i].blendEnable = VK_FALSE;

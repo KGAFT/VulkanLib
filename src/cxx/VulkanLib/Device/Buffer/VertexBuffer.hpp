@@ -5,7 +5,7 @@
 
 #include "Buffer.hpp"
 
-class VertexBuffer {
+class VertexBuffer : public IDestroyableObject {
 private:
     static inline SeriesObject<vk::BufferCreateInfo> createInfos = SeriesObject<vk::BufferCreateInfo>();
 public:
@@ -77,6 +77,11 @@ public:
 
     vk::DeviceAddress getBufferAddress(vk::DispatchLoaderDynamic &loaderDynamic) {
         return buffer->getAddress(loaderDynamic);
+    }
+
+    void destroy() override {
+        destroyed = true;
+        buffer->destroy();
     }
 };
 

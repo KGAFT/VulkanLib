@@ -8,7 +8,7 @@
 #include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
 
-class Shader : IDestroyableObject{
+class Shader : public IDestroyableObject{
 public:
     Shader(std::vector<vk::PipelineShaderStageCreateInfo>& shaderModules, LogicalDevice& device) : createInfos(shaderModules), device(device){
 
@@ -21,12 +21,16 @@ public:
         return createInfos;
     }
 
-private:
+public:
     void destroy() override {
         destroyed = true;
         for (auto &item: createInfos){
             device.getDevice().destroyShaderModule(item.module);
         }
+    }
+
+    virtual ~Shader() {
+
     }
 };
 

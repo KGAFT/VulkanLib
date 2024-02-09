@@ -9,7 +9,7 @@
 #include "VulkanLib/MemoryUtils/SeriesObject.hpp"
 #include "DescriptorSet.hpp"
 
-class DescriptorPool {
+class DescriptorPool : public IDestroyableObject {
 private:
     static inline std::shared_ptr<DescriptorPool> instance = std::shared_ptr<DescriptorPool>();
     static inline bool initialized = false;
@@ -63,6 +63,12 @@ public:
             throw std::runtime_error("Failed to allocate descriptor set");
         }
         return res;
+    }
+
+public:
+    void destroy() override {
+        destroyed = true;
+        logicalDevice->getDevice().destroyDescriptorPool(descriptorPool);
     }
 };
 

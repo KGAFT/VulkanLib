@@ -103,6 +103,10 @@ public:
         builders.releaseObjectInstance(this);
     }
 
+    virtual ~GraphicsPipelineBuilder() {
+
+    }
+
 
 };
 

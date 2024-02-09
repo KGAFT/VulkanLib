@@ -8,7 +8,7 @@
 #include "DefaultVulkanLoggerCallback.hpp"
 #include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
 
-class InstanceLogger : IDestroyableObject{
+class InstanceLogger : public IDestroyableObject{
 public:
     static inline std::vector<InstanceLogger *> loggers = std::vector<InstanceLogger *>();
 
@@ -137,9 +137,13 @@ private:
         }
         return res;
     }
-protected:
+public:
     void destroy() override {
         instance.destroyDebugUtilsMessengerEXT(messenger, nullptr, loaderDynamic);
         destroyed = true;
+    }
+
+    virtual ~InstanceLogger() {
+
     }
 };

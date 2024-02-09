@@ -68,6 +68,7 @@ private:
 public:
     void destroy() override {
         destroyed = true;
+        sync.destroy();
     }
 };
 

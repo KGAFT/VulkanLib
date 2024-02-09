@@ -9,7 +9,7 @@
 #include "VulkanLib/MemoryUtils/SeriesObject.hpp"
 #include "Buffer.hpp"
 
-class IndirectBuffer {
+class IndirectBuffer : public IDestroyableObject{
 private:
     static inline SeriesObject<vk::BufferCreateInfo> createInfos = SeriesObject<vk::BufferCreateInfo>();
 public:
@@ -38,6 +38,12 @@ public:
     }
     vk::Buffer& getBuffer(){
         return buffer->getBuffer();
+    }
+
+    void destroy() override {
+        destroyed = true;
+        buffer->unMap();
+        buffer->destroy();
     }
 };
 

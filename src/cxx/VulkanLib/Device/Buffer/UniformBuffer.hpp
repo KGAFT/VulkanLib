@@ -5,7 +5,7 @@
 
 #include "Buffer.hpp"
 
-class UniformBuffer : IDestroyableObject{
+class UniformBuffer : public IDestroyableObject{
 private:
     static inline SeriesObject<vk::BufferCreateInfo> createInfos = SeriesObject<vk::BufferCreateInfo>();
 

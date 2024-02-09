@@ -49,19 +49,19 @@ public:
 
     void presetForGlfw() {
         uint32_t extCount;
-        const char **extensions = glfwGetRequiredInstanceExtensions(&extCount);
-        addExtensions(extensions, extCount);
+        const char **ppExtensions = glfwGetRequiredInstanceExtensions(&extCount);
+        addExtensions(ppExtensions, extCount);
     }
     void presetForSDL3(){
         uint32_t extensionCount;
-        char const* const* extensions = SDL_Vulkan_GetInstanceExtensions(&extensionCount);
-        for (int i = 0; i < extensionCount; ++i){
-            addExtension(extensions[i]);
+        char const* const* ppExtensions = SDL_Vulkan_GetInstanceExtensions(&extensionCount);
+        for (uint32_t i = 0; i < extensionCount; ++i){
+            addExtension(ppExtensions[i]);
         }
     }
 
-    void setApplicationName(const char *applicationName) {
-        InstanceBuilder::applicationName = applicationName;
+    void setApplicationName(const char *pApplicationName) {
+        InstanceBuilder::applicationName = pApplicationName;
     }
 };
 

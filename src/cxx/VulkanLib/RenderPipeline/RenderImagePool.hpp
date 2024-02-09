@@ -8,7 +8,7 @@
 #include <map>
 #include <memory>
 
-class RenderImagePool {
+class RenderImagePool : public IDestroyableObject {
 
 
 public:
@@ -24,7 +24,7 @@ private:
     std::map<std::shared_ptr<Image>, bool> createdDepthImages;
     std::shared_ptr<LogicalDevice> device;
 public:
-    std::shared_ptr<Image> acquiredDepthImage(uint32_t width, uint32_t height) {
+    std::shared_ptr<Image> acquireDepthImage(uint32_t width, uint32_t height) {
         for (auto &item: createdDepthImages) {
             if (!item.second) {
                 item.first->resize(width, height);
@@ -67,6 +67,17 @@ public:
                 item.second = false;
                 break;
             }
+        }
+    }
+
+public:
+    void destroy() override {
+        destroyed  = true;
+        for (auto &item: createdColorImages){
+            item.first->destroy();
+        }
+        for (auto &item: createdDepthImages){
+            item.first->destroy();
         }
     }
 

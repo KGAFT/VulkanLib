@@ -6,7 +6,7 @@
 #include <VulkanLib/Device/LogicalDevice/LogicalDevice.hpp>
 #include "VulkanLib/MemoryUtils/SeriesObject.hpp"
 
-class Sampler {
+class Sampler : public IDestroyableObject{
 private:
     static inline SeriesObject<vk::SamplerCreateInfo> createInfos = SeriesObject<vk::SamplerCreateInfo>();
 public:
@@ -27,6 +27,9 @@ public:
         samplerInfo->mipmapMode = vk::SamplerMipmapMode::eLinear;
 
         vk::Result res = device->getDevice().createSampler(samplerInfo, nullptr, &sampler);
+        if(res!=vk::Result::eSuccess){
+            throw std::runtime_error("Failed to create sampler");
+        }
         createInfos.releaseObjectInstance(samplerInfo);
 
     }
@@ -38,6 +41,11 @@ public:
 
     }
 
+public:
+    void destroy() override {
+        destroyed = true;
+        device->getDevice().destroySampler(sampler);
+    }
 
 private:
     std::shared_ptr<LogicalDevice> device;

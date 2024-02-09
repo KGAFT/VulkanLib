@@ -16,7 +16,7 @@ public:
                                                                                                                        supportPresentation),
                                                                                                                queueType(
                                                                                                                        queueType),
-                                                                                                               index(index), device(device) {
+                                                                                                                                  device(device), index(index) {
         vk::CommandPoolCreateInfo poolInfo = {};
         poolInfo.queueFamilyIndex = index;
         poolInfo.flags =

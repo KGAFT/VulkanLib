@@ -26,8 +26,10 @@ private:
 public:
     GraphicsPipeline(LogicalDevice &device, Shader *shader, GraphicsPipelineBuilder *builder,
                      unsigned int attachmentPerStepAmount,
-                     unsigned int width, unsigned int height) : device(device), configurer(device, builder), shader(shader),
-                                               attachmentPerStepAmount(attachmentPerStepAmount), attachmentsFormats(builder->colorAttachmentInfo), depthFormat(builder->depthAttachmentInfo) {
+                     unsigned int width, unsigned int height) :
+            attachmentsFormats(builder->colorAttachmentInfo),
+            depthFormat(builder->depthAttachmentInfo), configurer(device, builder), device(device),
+            shader(shader), attachmentPerStepAmount(attachmentPerStepAmount) {
         create(attachmentPerStepAmount, width, height, shader, attachmentsFormats, depthFormat);
     }
 
@@ -45,20 +47,21 @@ public:
     }
 
     void recreate(unsigned int width, unsigned int height) {
-        destroy();
-        destroyed = false;
-        create(attachmentPerStepAmount, width, height, shader,attachmentsFormats, depthFormat);
+        device.getDevice().destroyPipeline(graphicsPipeline);
+        create(attachmentPerStepAmount, width, height, shader, attachmentsFormats, depthFormat);
     }
 
-    vk::DescriptorSetLayout getDescriptorLayout(){
+    vk::DescriptorSetLayout getDescriptorLayout() {
         return configurer.descriptorSetLayout;
     }
-    vk::PipelineLayout getPipelineLayout(){
+
+    vk::PipelineLayout getPipelineLayout() {
         return configurer.pipelineLayout;
     }
 
 private:
-    void create(unsigned int attachmentPerStepAmount, unsigned int width, unsigned int height, Shader *shader, std::vector<vk::Format> colorFormats, vk::Format depthFormat) {
+    void create(unsigned int attachmentPerStepAmount, unsigned int width, unsigned int height, Shader *shader,
+                std::vector<vk::Format> colorFormats, vk::Format depthFormat) {
         GraphicsPipelineConfig *config = configInstancer.getObjectInstance();
         GraphicsPipelineCreateStrip *createStrip = createInstance.getObjectInstance();
         GraphicsPipelineConfig::createConfig(config, attachmentPerStepAmount, true, width, height);
@@ -93,10 +96,10 @@ private:
         createStrip->pipelineInfo.basePipelineIndex = -1;
         createStrip->pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        vk::PipelineRenderingCreateInfo renderingCreateInfo {};
-        renderingCreateInfo.colorAttachmentCount = (uint32_t )colorFormats.size();
+        vk::PipelineRenderingCreateInfo renderingCreateInfo{};
+        renderingCreateInfo.colorAttachmentCount = (uint32_t) colorFormats.size();
         renderingCreateInfo.pColorAttachmentFormats = colorFormats.data();
-        renderingCreateInfo.depthAttachmentFormat =  depthFormat;
+        renderingCreateInfo.depthAttachmentFormat = depthFormat;
 
         createStrip->pipelineInfo.pNext = &renderingCreateInfo;
 
@@ -110,6 +113,7 @@ public:
     void destroy() override {
         destroyed = true;
         device.getDevice().destroyPipeline(graphicsPipeline);
+        configurer.destroy();
     }
 };
 

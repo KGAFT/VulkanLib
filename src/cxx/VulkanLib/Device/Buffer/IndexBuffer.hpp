@@ -7,7 +7,7 @@
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
 #include "Buffer.hpp"
 
-class IndexBuffer {
+class IndexBuffer : public IDestroyableObject {
 private:
     static inline SeriesObject<vk::BufferCreateInfo> createInfos = SeriesObject<vk::BufferCreateInfo>();
 public:
@@ -53,7 +53,6 @@ private:
     vk::IndexType indexType;
 public:
     void bind(vk::CommandBuffer cmd) {
-        vk::DeviceSize offset = 0;
         cmd.bindIndexBuffer(buffer->getBuffer(), 0, vk::IndexType::eUint32);
     }
 
@@ -67,6 +66,12 @@ public:
 
     vk::DeviceAddress getBufferAddress(vk::DispatchLoaderDynamic &loaderDynamic) {
         return buffer->getAddress(loaderDynamic);
+    }
+
+
+    void destroy() override {
+        destroyed = true;
+        buffer->destroy();
     }
 };
 

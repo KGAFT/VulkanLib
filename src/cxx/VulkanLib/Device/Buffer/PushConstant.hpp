@@ -5,7 +5,7 @@
 
 #include <vulkan/vulkan.hpp>
 
-class PushConstant : IDestroyableObject{
+class PushConstant : public IDestroyableObject{
 public:
     PushConstant(size_t size, vk::PipelineLayout pipelineLayout) : size(size), layout(pipelineLayout){
         data = malloc(size);
@@ -28,6 +28,7 @@ public:
 public:
     void destroy() override {
         destroyed = true;
+        free(data);
     }
 };
 

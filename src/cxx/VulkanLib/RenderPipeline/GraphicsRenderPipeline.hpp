@@ -40,7 +40,8 @@ public:
     void setAttachmentsPerStepAmount(uint32_t attachmentsPerStepAmount) {
         RenderPipelineBuilder::attachmentsPerStepAmount = attachmentsPerStepAmount;
     }
-    void clear(){
+
+    void clear() {
         GraphicsPipelineBuilder::releaseBuilderInstance(pGraphicsPipelineBuilder);
         RenderPipelineBuilder::pGraphicsPipelineBuilder = GraphicsPipelineBuilder::getInstance();
         attachmentsPerStepAmount = 0;
@@ -52,22 +53,30 @@ public:
 
 };
 
-class GraphicsRenderPipeline {
+class GraphicsRenderPipeline : public IDestroyableObject {
 private:
     static inline std::shared_ptr<RenderImagePool> renderImages = std::make_shared<RenderImagePool>();
     static inline bool initializedRenderImagePool = false;
-    static void checkPool(std::shared_ptr<LogicalDevice> device){
-        if(!initializedRenderImagePool){
+
+    static void checkPool(std::shared_ptr<LogicalDevice> device) {
+        if (!initializedRenderImagePool) {
             renderImages = std::make_shared<RenderImagePool>(device);
             initializedRenderImagePool = true;
         }
     }
+
 public:
-    GraphicsRenderPipeline(Instance& instance, std::shared_ptr<LogicalDevice> device, RenderPipelineBuilder *pBuilder,
+    static void releaseRenderImagePool() {
+        renderImages->destroy();
+        initializedRenderImagePool = false;
+    }
+
+public:
+    GraphicsRenderPipeline(Instance &instance, std::shared_ptr<LogicalDevice> device, RenderPipelineBuilder *pBuilder,
                            Shader *shader,
                            vk::Extent2D renderArea,
-                           uint32_t maxFramesInFlight) : instance(instance), renderArea(renderArea),
-                                                 imagePerStepAmount(pBuilder->attachmentsPerStepAmount) {
+                           uint32_t maxFramesInFlight) : instance(instance), imagePerStepAmount(pBuilder->attachmentsPerStepAmount), renderArea(renderArea)
+                                                          {
         checkPool(device);
         bool populated = false;
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
@@ -77,7 +86,7 @@ public:
                 if (!populated)
                     pBuilder->pGraphicsPipelineBuilder->addColorAttachmentInfo(colorImage->getImageInfo().format);
             }
-            auto depthImage = renderImages->acquiredDepthImage(renderArea.width, renderArea.height);
+            auto depthImage = renderImages->acquireDepthImage(renderArea.width, renderArea.height);
             baseDepthImages.push_back(depthImage);
             pBuilder->pGraphicsPipelineBuilder->setDepthAttachmentInfo(depthImage->getImageInfo().format);
             populated = true;
@@ -95,17 +104,19 @@ public:
 
     }
 
-    GraphicsRenderPipeline(Instance& instance, std::shared_ptr<LogicalDevice> device, std::shared_ptr<SwapChain> swapChain,
+    GraphicsRenderPipeline(Instance &instance, std::shared_ptr<LogicalDevice> device,
+                           std::shared_ptr<SwapChain> swapChain,
                            RenderPipelineBuilder *pBuilder,
                            Shader *shader,
                            vk::Extent2D renderArea,
-                           uint32_t maxFramesInFlight) : instance(instance), renderArea(renderArea), imagePerStepAmount(1), forSwapChain(true),
-                                                 swapChain(swapChain) {
+                           uint32_t maxFramesInFlight) :
+            swapChain(swapChain), instance(instance), imagePerStepAmount(1), renderArea(renderArea),
+            forSwapChain(true) {
         checkPool(device);
 
         pBuilder->pGraphicsPipelineBuilder->addColorAttachmentInfo(swapChain->getFormat().format);
-        for (int i = 0; i < maxFramesInFlight; ++i) {
-            auto depthImage = renderImages->acquiredDepthImage(renderArea.width, renderArea.height);
+        for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
+            auto depthImage = renderImages->acquireDepthImage(renderArea.width, renderArea.height);
             pBuilder->pGraphicsPipelineBuilder->setDepthAttachmentInfo(depthImage->getImageInfo().format);
             baseDepthImages.push_back(depthImage);
 
@@ -121,7 +132,7 @@ public:
 
 private:
     std::shared_ptr<SwapChain> swapChain;
-    Instance& instance;
+    Instance &instance;
     std::vector<std::shared_ptr<Image>> baseRenderImages;
     std::vector<std::shared_ptr<Image>> baseDepthImages;
     std::shared_ptr<GraphicsPipeline> graphicsPipeline;
@@ -144,15 +155,16 @@ private:
 public:
 
 
-    void begin(vk::CommandBuffer cmd, uint32_t currentImage){
+public:
+
+    void begin(vk::CommandBuffer cmd, uint32_t currentImage) {
         prepareBarriersBeforeRendering(currentImage);
         bindBarriers(cmd);
         depthInfo.imageView = baseDepthImages[currentImage]->getImageViews()[0]->getBase();
-        if(forSwapChain){
+        if (forSwapChain) {
             colorInfos[0].imageView = swapChain->getSwapchainImageViews()[currentImage]->getBase();
-        }
-        else{
-            for(uint32_t i = currentImage*imagePerStepAmount; i<(currentImage+1)*imagePerStepAmount; i++){
+        } else {
+            for (uint32_t i = currentImage * imagePerStepAmount; i < (currentImage + 1) * imagePerStepAmount; i++) {
                 uint32_t infoIndex = i - currentImage * imagePerStepAmount;
                 colorInfos[infoIndex].imageView = baseRenderImages[i]->getImageViews()[0]->getBase();
             }
@@ -161,27 +173,28 @@ public:
         cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline->getGraphicsPipeline());
 
     }
-    void endRender(vk::CommandBuffer cmd, uint32_t currentImage){
+
+    void endRender(vk::CommandBuffer cmd, uint32_t currentImage) {
         cmd.endRenderingKHR(instance.getDynamicLoader());
         prepareBarriersAfterRendering(currentImage);
         bindBarriers(cmd);
     }
 
-    void resize(uint32_t width, uint32_t height){
+    void resize(uint32_t width, uint32_t height) {
         d = false;
         firstRender = true;
         renderArea.width = width;
         renderArea.height = height;
         renderingInfoKhr.renderArea.extent.width = width;
         renderingInfoKhr.renderArea.extent.height = height;
-        if(forSwapChain){
+        if (forSwapChain) {
             swapChain->recreate(width, height, false);
         } else {
-            for (auto &item: baseRenderImages){
+            for (auto &item: baseRenderImages) {
                 item->resize(width, height);
             }
         }
-        for (auto &item: baseDepthImages){
+        for (auto &item: baseDepthImages) {
             item->resize(width, height);
         }
         graphicsPipeline->recreate(width, height);
@@ -202,12 +215,12 @@ public:
 
 private:
 
-    void bindBarriers(vk::CommandBuffer cmd){
-        for (const auto &item: barriers){
-            cmd.pipelineBarrier(    vk::PipelineStageFlagBits::eColorAttachmentOutput,
-                                    vk::PipelineStageFlagBits::eTopOfPipe,
-                                    vk::DependencyFlags (), 0, 0,
-                                    item
+    void bindBarriers(vk::CommandBuffer cmd) {
+        for (const auto &item: barriers) {
+            cmd.pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                                vk::PipelineStageFlagBits::eTopOfPipe,
+                                vk::DependencyFlags(), 0, 0,
+                                item
             );
         }
     }
@@ -238,12 +251,15 @@ private:
     }
 
     void prepareBarriersBeforeRendering(uint32_t currentImage) {
-        if(firstRender) firstRender = !(d&&currentImage==0);
+        if (firstRender) firstRender = !(d && currentImage == 0);
         for (uint32_t i = currentImage * imagePerStepAmount; i < (currentImage + 1) * imagePerStepAmount; i++) {
             uint32_t barIndex = i - currentImage * imagePerStepAmount;
             barriers[barIndex].sType = vk::StructureType::eImageMemoryBarrier;
             barriers[barIndex].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-            barriers[barIndex].oldLayout = firstRender?(forSwapChain?vk::ImageLayout::eUndefined:vk::ImageLayout::eGeneral):(forSwapChain?vk::ImageLayout::ePresentSrcKHR:vk::ImageLayout::eGeneral);
+            barriers[barIndex].oldLayout = firstRender ? (forSwapChain ? vk::ImageLayout::eUndefined
+                                                                       : vk::ImageLayout::eGeneral) : (forSwapChain
+                                                                                                       ? vk::ImageLayout::ePresentSrcKHR
+                                                                                                       : vk::ImageLayout::eGeneral);
             barriers[barIndex].newLayout = vk::ImageLayout::eColorAttachmentOptimal;
             barriers[barIndex].image = forSwapChain ? swapChain->getSwapchainImages()[i]->getBase()
                                                     : baseRenderImages[i]->getBase();
@@ -265,7 +281,7 @@ private:
             uint32_t barIndex = i - currentImage * imagePerStepAmount;
             barriers[barIndex].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
             barriers[barIndex].oldLayout = vk::ImageLayout::eColorAttachmentOptimal;
-            barriers[barIndex].newLayout = forSwapChain?vk::ImageLayout::ePresentSrcKHR:vk::ImageLayout::eGeneral;
+            barriers[barIndex].newLayout = forSwapChain ? vk::ImageLayout::ePresentSrcKHR : vk::ImageLayout::eGeneral;
             barriers[barIndex].image = forSwapChain ? swapChain->getSwapchainImages()[i]->getBase()
                                                     : baseRenderImages[i]->getBase();
 
@@ -278,6 +294,20 @@ private:
             };
 
         }
+    }
+
+public:
+    void destroy() override {
+        destroyed = true;
+        if (!forSwapChain) {
+            for (auto &item: baseRenderImages) {
+                renderImages->releaseColorImage(item);
+            }
+        }
+        for (auto &item: baseDepthImages) {
+            renderImages->releaseDepthImage(item);
+        }
+        graphicsPipeline->destroy();
     }
 };
 

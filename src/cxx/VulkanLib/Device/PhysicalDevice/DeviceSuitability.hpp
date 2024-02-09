@@ -55,12 +55,12 @@ public:
                 pOutput->queuesInfo.push_back(info);
 
             }
-            if (graphicsFound && ((presentFound && builder.requirePresentSupport)) || !builder.requirePresentSupport) {
+            if ((graphicsFound && ((presentFound && builder.requirePresentSupport))) || !builder.requirePresentSupport) {
                 break;
             }
             queueCounter++;
         }
-        if (!(graphicsFound && ((presentFound && builder.requirePresentSupport)) || !builder.requirePresentSupport)) {
+        if (!((graphicsFound && ((presentFound && builder.requirePresentSupport))) || !builder.requirePresentSupport)) {
             return false;
         } else {
             return true;

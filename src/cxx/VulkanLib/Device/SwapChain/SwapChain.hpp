@@ -15,7 +15,7 @@ struct SwapChainSupportDetails {
     std::vector<vk::PresentModeKHR> presentModes;
 };
 
-class SwapChain : IDestroyableObject {
+class SwapChain : public IDestroyableObject {
 private:
     static inline vk::SurfaceFormatKHR format = {};
 public:
@@ -101,7 +101,7 @@ private:
             swapchainKhr = device->getDevice().createSwapchainKHR(createInfo);
             baseImages = device->getDevice().getSwapchainImagesKHR(swapchainKhr);
             swapchainImages.resize(baseImages.size());
-            for (int i = 0; i < baseImages.size(); ++i) {
+            for (uint32_t i = 0; i < baseImages.size(); ++i) {
                 swapchainImages[i] = std::shared_ptr<Image>(new Image(device, baseImages[i]));
                 vk::ImageViewCreateInfo viewCreateInfo = {};
                 viewCreateInfo.image = baseImages[i];
@@ -128,17 +128,32 @@ private:
         vk::Result res;
         res = device->getBaseDevice()->getBase().getSurfaceCapabilitiesKHR(
                 surface, &output.capabilities);
+        if(res!=vk::Result::eSuccess){
+            std::cerr<<"Failed to gather swap chain info"<<std::endl;
+        }
         uint32_t formatCount;
         res = device->getBaseDevice()->getBase().getSurfaceFormatsKHR(
                 surface, &formatCount, nullptr);
+        if(res!=vk::Result::eSuccess){
+            std::cerr<<"Failed to gather swap chain info"<<std::endl;
+        }
         output.formats.resize(formatCount);
         res = device->getBaseDevice()->getBase().getSurfaceFormatsKHR(
                 surface, &formatCount, output.formats.data());
+        if(res!=vk::Result::eSuccess){
+            std::cerr<<"Failed to gather swap chain info"<<std::endl;
+        }
         res = device->getBaseDevice()->getBase().getSurfacePresentModesKHR(
                 surface, &formatCount, nullptr);
+        if(res!=vk::Result::eSuccess){
+            std::cerr<<"Failed to gather swap chain info"<<std::endl;
+        }
         output.presentModes.resize(formatCount);
         res = device->getBaseDevice()->getBase().getSurfacePresentModesKHR(
                 surface, &formatCount, output.presentModes.data());
+        if(res!=vk::Result::eSuccess){
+            std::cerr<<"Failed to gather swap chain info"<<std::endl;
+        }
     }
 
     vk::SurfaceFormatKHR
@@ -184,8 +199,8 @@ private:
             return extent;
         }
     }
-
-    virtual void destroy() override {
+public:
+     void destroy() override {
         for (const auto &item: swapchainImageViews) {
             item->destroy();
         }

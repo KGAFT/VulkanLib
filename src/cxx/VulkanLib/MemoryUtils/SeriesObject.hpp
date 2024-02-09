@@ -22,7 +22,7 @@ public:
                 return item.first;
             }
         }
-        T* res = static_cast<T*>(calloc(1, sizeof(T)));
+        T* res = new T;
         objectInstances[res] = true;
         return res;
     }
@@ -43,7 +43,11 @@ private:
         }
         unsigned int counter = 0;
         while(counter<toClear.size()-1){
-            free(toClear[counter]);
+            try{
+                delete toClear[counter];
+            }catch(std::exception& exception){
+
+            }
             objectInstances.erase(toClear[counter]);
             counter++;
         }
@@ -52,7 +56,11 @@ private:
 public:
     ~SeriesObject(){
         for (const auto &item: objectInstances){
-            free(item.first);
+            try{
+                delete item.first;
+            }catch (std::exception& e){
+
+            }
         }
     }
 };

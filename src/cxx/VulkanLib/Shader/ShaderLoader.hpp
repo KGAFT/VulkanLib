@@ -68,7 +68,11 @@ public:
         shaderCreateInfo.codeSize = createInfo.fileType==SRC_FILE?shaderBuffer.size()*sizeof(uint32_t):binarySize;
         vk::ShaderModule result = device.getDevice().createShaderModule(shaderCreateInfo);
         if(createInfo.fileType == BINARY_FILE){
-            free((void *) shaderBinaryBuffer);
+            try{
+                delete shaderBinaryBuffer;
+            }catch(std::exception& e){
+
+            }
         } else{
             shaderBuffer.clear();
         }
@@ -86,7 +90,12 @@ public:
             throw std::runtime_error("Failed to compile shader " + std::string(filePath) + " into SPIR-V:\n " +
                                              result.GetErrorMessage());
         }
-        free((void *) shaderCode);
+        try{
+            delete shaderCode;
+
+        }catch(std::exception& e){
+
+        }
 
         output = std::vector<uint32_t>(result.cbegin(), result.cend());
     }

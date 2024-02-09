@@ -23,7 +23,7 @@ public:
     }
 
     void addExtensions(const char **pExtensions, uint32_t extensionCount) {
-        for (int i = 0; i < extensionCount; ++i) {
+        for (uint32_t i = 0; i < extensionCount; ++i) {
             requestExtensions.push_back(pExtensions[i]);
         }
     }
