@@ -188,7 +188,7 @@ public:
         renderingInfoKhr.renderArea.extent.width = width;
         renderingInfoKhr.renderArea.extent.height = height;
         if (forSwapChain) {
-            swapChain->recreate(width, height, false);
+            swapChain->recreate(width, height);
         } else {
             for (auto &item: baseRenderImages) {
                 item->resize(width, height);

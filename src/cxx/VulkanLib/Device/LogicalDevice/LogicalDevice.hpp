@@ -65,6 +65,8 @@ private:
     vk::Device device;
     std::vector<std::shared_ptr<LogicalQueue>> queues;
     std::shared_ptr<PhysicalDevice> baseDevice;
+    vk::PhysicalDeviceMemoryProperties memProperties;
+    bool memoryPropertiesPopulated = false;
 public:
     const vk::Device &getDevice() const {
         return device;
@@ -100,8 +102,10 @@ public:
     }
 
     unsigned int findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
-        vk::PhysicalDeviceMemoryProperties memProperties;
-        baseDevice->getBase().getMemoryProperties(&memProperties);
+        if(!memoryPropertiesPopulated){
+            baseDevice->getBase().getMemoryProperties(&memProperties);
+            memoryPropertiesPopulated = true;
+        }
         for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
             if ((typeFilter & (1 << i)) &&
                 (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {

@@ -41,7 +41,7 @@ private:
     std::vector<std::shared_ptr<ImageView>> swapchainImageViews;
     uint32_t width;
     uint32_t height;
-    bool enableFrameLock;
+    bool enableFrameLock = false;
 public:
     const std::vector<std::shared_ptr<ImageView>> &getSwapchainImageViews() const {
         return swapchainImageViews;
@@ -49,6 +49,11 @@ public:
 
     const vk::SwapchainKHR &getSwapchainKhr() const {
         return swapchainKhr;
+    }
+    void recreate(uint32_t width, uint32_t height) {
+        destroy();
+        destroyed = false;
+        createSwapChain(width, height, enableFrameLock);
     }
 
     void recreate(uint32_t width, uint32_t height, bool refreshRateLock) {
