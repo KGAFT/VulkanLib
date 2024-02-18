@@ -78,7 +78,7 @@ namespace vkLibRt {
             device->getQueueByType(
                     vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(cmdBuf);
             instancesBuffer.destroy();
-           // scratchBuffer.destroy();z
+            scratchBuffer.destroy();
         }
     };
 }

@@ -10,7 +10,7 @@
 #include "VulkanLib/MemoryUtils/SeriesObject.hpp"
 #include <memory>
 
-class Buffer {
+class Buffer : public IDestroyableObject {
 private:
     static inline SeriesObject<vk::MemoryRequirements> requirements = SeriesObject<vk::MemoryRequirements>();
     static inline SeriesObject<vk::MemoryAllocateInfo> allocInfos = SeriesObject<vk::MemoryAllocateInfo>();
@@ -43,6 +43,7 @@ public:
     void initialize(size_t size, vk::BufferUsageFlags usageFlags, vk::MemoryPropertyFlags memoryFlags) {
         if(buffer){
             destroy();
+            destroyed = false;
         }
         vk::BufferCreateInfo *createInfo = createInfos.getObjectInstance();
         createInfo->sType = vk::StructureType::eBufferCreateInfo;
@@ -58,6 +59,8 @@ public:
     void initialize(vk::BufferCreateInfo *createInfo, vk::MemoryPropertyFlags memoryFlags) {
         if(buffer){
             destroy();
+            destroyed = false;
+
         }
         vk::Result res = device->getDevice().createBuffer(createInfo, nullptr, &buffer);
         if (res != vk::Result::eSuccess) {
@@ -126,7 +129,8 @@ public:
     }
 
 public:
-    void destroy() {
+    void destroy() override {
+        destroyed = true;
         device->getDevice().destroyBuffer(buffer);
         device->getDevice().freeMemory(bufferMemory);
         addressInfo = vk::BufferDeviceAddressInfo{};
