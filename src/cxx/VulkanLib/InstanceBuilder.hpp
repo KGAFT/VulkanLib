@@ -49,7 +49,6 @@ public:
 
     void presetForDebug() {
         layers.push_back("VK_LAYER_KHRONOS_validation");
-        layers.push_back("VK_LAYER_LUNARG_api_dump");
         extensions.push_back("VK_EXT_debug_utils");
         debugEnabled = true;
     }

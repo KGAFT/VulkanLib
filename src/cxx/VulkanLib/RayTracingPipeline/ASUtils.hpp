@@ -74,8 +74,8 @@ namespace vkLibRt {
             memcpy(&out_matrix, &temp, sizeof(VkTransformMatrixKHR));
             return out_matrix;
         }
-
-        static void cmdCreateTlas(std::shared_ptr<LogicalDevice> device, Instance &instance, vk::CommandBuffer cmdBuf,
+        //Scratch buffer must be created without info
+        static void cmdCreateTlas(std::shared_ptr<LogicalDevice> device, Instance &instance, vk::CommandBuffer cmdBuf, Buffer* scratchBuffer,
                                   uint32_t countInstance,
                                   vk::DeviceAddress instBufferAddr,
                                   vk::BuildAccelerationStructureFlagsKHR flags,
@@ -117,14 +117,12 @@ namespace vkLibRt {
             }
 
             // Allocate the scratch memory
-            Buffer scratchBuffer(device, sizeInfo.buildScratchSize,
-                                 vk::BufferUsageFlagBits::eShaderDeviceAddressKHR |
-                                 vk::BufferUsageFlagBits::eStorageBuffer |
-                                 vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR,
-                                 vk::MemoryPropertyFlags());
 
-            vk::BufferDeviceAddressInfo bufferInfo{scratchBuffer.getBuffer()};
-            VkDeviceAddress scratchAddress = scratchBuffer.getAddress(instance.getDynamicLoader());
+            scratchBuffer->initialize(sizeInfo.buildScratchSize,
+                                 vk::BufferUsageFlagBits::eShaderDeviceAddressKHR |
+                                 vk::BufferUsageFlagBits::eStorageBuffer,
+                                 vk::MemoryPropertyFlags());
+            VkDeviceAddress scratchAddress = scratchBuffer->getAddress(instance.getDynamicLoader());
 
             // Update build information
             buildInfo.srcAccelerationStructure = update ? tlas.accel : VK_NULL_HANDLE;
@@ -133,11 +131,10 @@ namespace vkLibRt {
 
             // Build Offsets info: n instances
             vk::AccelerationStructureBuildRangeInfoKHR buildOffsetInfo{countInstance, 0, 0, 0};
-
+            const vk::AccelerationStructureBuildRangeInfoKHR* pBuildOffsetInfo = &buildOffsetInfo;
 
             // Build the TLAS
-            cmdBuf.buildAccelerationStructuresKHR(buildInfo, &buildOffsetInfo, instance.getDynamicLoader());
-            scratchBuffer.destroy();
+            cmdBuf.buildAccelerationStructuresKHR(buildInfo, pBuildOffsetInfo, instance.getDynamicLoader());
         }
 
         static void
@@ -224,8 +221,8 @@ namespace vkLibRt {
             // Setting the buffer
             accel_.buffer = resultAccel.buffer->getBuffer();
             // Create the acceleration structure
-            device->getDevice().createAccelerationStructureKHR(&accel_, nullptr,
-                                                               &resultAccel.accel, loader);
+            assert(device->getDevice().createAccelerationStructureKHR(&accel_, nullptr,
+                                                               &resultAccel.accel, loader)==vk::Result::eSuccess);
             return resultAccel;
         }
     };

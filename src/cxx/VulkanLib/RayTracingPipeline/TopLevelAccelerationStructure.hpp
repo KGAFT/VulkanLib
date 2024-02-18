@@ -27,6 +27,7 @@ namespace vkLibRt {
 
 
             for (uint32_t i = 0; i < instances.size(); ++i){
+                MemoryUtils::memClear(&instances[i], sizeof(vk::AccelerationStructureInstanceKHR));
 
                 instances[i].transform                      = ASUtils::glmMat4toTransformMatrixKHR(transformMatrices[i]);  // Position of the instance
                 instances[i].instanceCustomIndex            = 0;                               // gl_InstanceCustomIndexEXT
@@ -68,16 +69,16 @@ namespace vkLibRt {
             vkCmdPipelineBarrier(cmdBuf, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                  VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
                                  0, 1, &barrier, 0, nullptr, 0, nullptr);
-
+            Buffer scratchBuffer(device);
             // Creating the TLAS
-            ASUtils::cmdCreateTlas(device, instance, cmdBuf, countInstance, instBufferAddr, flags, update, tlas);
+            ASUtils::cmdCreateTlas(device, instance, cmdBuf, &scratchBuffer, countInstance, instBufferAddr, flags, update, tlas);
 
             // Finalizing and destroying temporary data
 
             device->getQueueByType(
                     vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(cmdBuf);
-
             instancesBuffer.destroy();
+           // scratchBuffer.destroy();z
         }
     };
 }

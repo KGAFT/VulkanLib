@@ -10,7 +10,7 @@
 #include "VulkanLib/MemoryUtils/SeriesObject.hpp"
 #include <memory>
 
-class Buffer : public IDestroyableObject {
+class Buffer {
 private:
     static inline SeriesObject<vk::MemoryRequirements> requirements = SeriesObject<vk::MemoryRequirements>();
     static inline SeriesObject<vk::MemoryAllocateInfo> allocInfos = SeriesObject<vk::MemoryAllocateInfo>();
@@ -19,44 +19,48 @@ private:
 public:
     Buffer(std::shared_ptr<LogicalDevice> device, vk::BufferCreateInfo *createInfo, vk::MemoryPropertyFlags memoryFlags)
             : device(device) {
-        vk::Result res = device->getDevice().createBuffer(createInfo, nullptr, &buffer);
-        if(res!=vk::Result::eSuccess){
-            throw std::runtime_error("Failed to create buffer");
-        }
-        vk::MemoryRequirements *memReqs = requirements.getObjectInstance();
-        device->getDevice().getBufferMemoryRequirements(buffer, memReqs);
-        vk::MemoryAllocateInfo *info = allocInfos.getObjectInstance();
-        info->sType = vk::StructureType::eMemoryAllocateInfo;
-        info->allocationSize = memReqs->size;
-        info->memoryTypeIndex = device->findMemoryType(memReqs->memoryTypeBits, memoryFlags);
-
-        auto allocFlags = flagsInfo.getObjectInstance();
-        allocFlags->sType = vk::StructureType::eMemoryAllocateFlagsInfo;
-        allocFlags->flags = vk::MemoryAllocateFlagBits::eDeviceAddress;
-
-        info->pNext = allocFlags;
-
-        res = device->getDevice().allocateMemory(info, nullptr, &bufferMemory);
-        if(res!=vk::Result::eSuccess){
-            throw std::runtime_error("Failed to allocate buffer memory");
-        }
-        device->getDevice().bindBufferMemory(buffer, bufferMemory, 0);
-        bufferSize = createInfo->size;
-        requirements.releaseObjectInstance(memReqs);
-        allocInfos.releaseObjectInstance(info);
-        flagsInfo.releaseObjectInstance(allocFlags);
+        initialize(createInfo, memoryFlags);
     }
-    Buffer(std::shared_ptr<LogicalDevice> device, size_t size, vk::BufferUsageFlags usageFlags, vk::MemoryPropertyFlags memoryFlags) : device(device) {
 
+    Buffer(std::shared_ptr<LogicalDevice> device, size_t size, vk::BufferUsageFlags usageFlags,
+           vk::MemoryPropertyFlags memoryFlags) : device(device) {
+        initialize(size, usageFlags, memoryFlags);
+    }
+
+    explicit Buffer(const std::shared_ptr<LogicalDevice> &device) : device(device) {
+    }
+
+private:
+    vk::Buffer buffer = nullptr;
+    vk::DeviceMemory bufferMemory = nullptr;
+    std::shared_ptr<LogicalDevice> device;
+    SeriesObject<vk::BufferCopy> copyRegions;
+    size_t bufferSize;
+    vk::BufferDeviceAddressInfo addressInfo{};
+public:
+
+
+    void initialize(size_t size, vk::BufferUsageFlags usageFlags, vk::MemoryPropertyFlags memoryFlags) {
+        if(buffer){
+            destroy();
+        }
         vk::BufferCreateInfo *createInfo = createInfos.getObjectInstance();
         createInfo->sType = vk::StructureType::eBufferCreateInfo;
         createInfo->size = size;
         createInfo->usage = usageFlags;
         createInfo->sharingMode = vk::SharingMode::eExclusive;
 
+        initialize(createInfo, memoryFlags);
 
+        createInfos.releaseObjectInstance(createInfo);
+    }
+
+    void initialize(vk::BufferCreateInfo *createInfo, vk::MemoryPropertyFlags memoryFlags) {
+        if(buffer){
+            destroy();
+        }
         vk::Result res = device->getDevice().createBuffer(createInfo, nullptr, &buffer);
-        if(res!=vk::Result::eSuccess){
+        if (res != vk::Result::eSuccess) {
             throw std::runtime_error("Failed to create buffer");
         }
         vk::MemoryRequirements *memReqs = requirements.getObjectInstance();
@@ -73,7 +77,7 @@ public:
         info->pNext = allocFlags;
 
         res = device->getDevice().allocateMemory(info, nullptr, &bufferMemory);
-        if(res!=vk::Result::eSuccess){
+        if (res != vk::Result::eSuccess) {
             throw std::runtime_error("Failed to allocate buffer memory");
         }
         device->getDevice().bindBufferMemory(buffer, bufferMemory, 0);
@@ -81,17 +85,8 @@ public:
         requirements.releaseObjectInstance(memReqs);
         allocInfos.releaseObjectInstance(info);
         flagsInfo.releaseObjectInstance(allocFlags);
-        createInfos.releaseObjectInstance(createInfo);
     }
 
-private:
-    vk::Buffer buffer;
-    vk::DeviceMemory bufferMemory;
-    std::shared_ptr<LogicalDevice> device;
-    SeriesObject<vk::BufferCopy> copyRegions;
-    size_t bufferSize;
-    vk::BufferDeviceAddressInfo addressInfo{};
-public:
     void copyFromBuffer(vk::CommandBuffer cmd, Buffer &source, size_t size, size_t srcOffset, size_t dstOffset) {
         vk::BufferCopy *copy = copyRegions.getObjectInstance();
         copy->size = size;
@@ -112,14 +107,16 @@ public:
 
     void map(void **output, size_t offset, vk::MemoryMapFlags mapFlags) {
         vk::Result res = device->getDevice().mapMemory(bufferMemory, offset, bufferSize, mapFlags, output);
-        if(res!=vk::Result::eSuccess){
+        if (res != vk::Result::eSuccess) {
             throw std::runtime_error("Failed to map buffer");
         }
     }
-    vk::DeviceAddress getAddress(vk::DispatchLoaderDynamic& dispatchLoaderDynamic){
-         addressInfo.buffer = buffer;
-         return device->getDevice().getBufferAddressKHR(addressInfo, dispatchLoaderDynamic);
+
+    vk::DeviceAddress getAddress(vk::DispatchLoaderDynamic &dispatchLoaderDynamic) {
+        addressInfo.buffer = buffer;
+        return device->getDevice().getBufferAddressKHR(addressInfo, dispatchLoaderDynamic);
     }
+
     void unMap() {
         device->getDevice().unmapMemory(bufferMemory);
     }
@@ -129,10 +126,10 @@ public:
     }
 
 public:
-    void destroy() override {
-        destroyed = true;
+    void destroy() {
         device->getDevice().destroyBuffer(buffer);
         device->getDevice().freeMemory(bufferMemory);
+        addressInfo = vk::BufferDeviceAddressInfo{};
     }
 };
 
