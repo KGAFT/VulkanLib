@@ -11,15 +11,13 @@ private:
 
 public:
     UniformBuffer(std::shared_ptr<LogicalDevice> device, size_t bufferSize){
-        uint32_t queueIndices[] = {device->getQueueByType(vk::QueueFlagBits::eGraphics)->getIndex()};
 
 
         vk::BufferCreateInfo *createInfo = createInfos.getObjectInstance();
         createInfo->sType = vk::StructureType::eBufferCreateInfo;
         createInfo->usage = vk::BufferUsageFlagBits::eUniformBuffer;
         createInfo->size = bufferSize;
-        createInfo->pQueueFamilyIndices = queueIndices;
-        createInfo->queueFamilyIndexCount = 1;
+
         createInfo->sharingMode = vk::SharingMode::eExclusive;
         base = new Buffer(device, createInfo, vk::MemoryPropertyFlagBits::eHostVisible|vk::MemoryPropertyFlagBits::eHostCoherent);
 

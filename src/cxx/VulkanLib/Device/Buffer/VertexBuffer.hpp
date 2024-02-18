@@ -13,7 +13,6 @@ public:
                  vk::Format format, bool forRayTracing)
             : device(device), vertexCount(verticesAmount), format(format), stepSize(stepSize),
               verticesAmount(verticesAmount) {
-        uint32_t queueIndices[] = {device->getQueueByType(vk::QueueFlagBits::eGraphics)->getIndex()};
 
 
         vk::BufferCreateInfo *createInfo = createInfos.getObjectInstance();
@@ -21,8 +20,7 @@ public:
         createInfo->size = verticesAmount * stepSize;
         createInfo->usage = vk::BufferUsageFlagBits::eTransferSrc;
         createInfo->sharingMode = vk::SharingMode::eExclusive;
-        createInfo->pQueueFamilyIndices = queueIndices;
-        createInfo->queueFamilyIndexCount = 1;
+
 
         void *mapPoint = nullptr;
 
@@ -62,6 +60,8 @@ public:
     size_t getStepSize() const {
         return stepSize;
     }
+
+
 
     void drawAll(vk::CommandBuffer cmd) {
         cmd.draw(vertexCount, 1, 0, 0);

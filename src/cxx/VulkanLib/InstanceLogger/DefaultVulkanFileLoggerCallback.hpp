@@ -1,14 +1,23 @@
 //
-// Created by kgaft on 11/4/23.
+// Created by kgaft on 2/18/24.
 //
-#pragma once
+
+#ifndef VULKANRENDERENGINE_DEFAULTVULKANFILELOGGERCALLBACK_HPP
+#define VULKANRENDERENGINE_DEFAULTVULKANFILELOGGERCALLBACK_HPP
 
 #include <chrono>
 #include "IInstanceLoggerCallback.hpp"
-#include <iostream>
+#include <fstream>
 
-class DefaultVulkanLoggerCallback : public IInstanceLoggerCallback
+class DefaultVulkanFileLoggerCallback : public IInstanceLoggerCallback
 {
+public:
+    DefaultVulkanFileLoggerCallback(const char* whereToPutLog): filePath(whereToPutLog){
+        logFile.open(whereToPutLog);
+    }
+private:
+    std::ofstream logFile;
+    const char* filePath;
 public:
     LoggerCallbackType getCallBackMode() override{
         return TRANSLATED_DEFS;
@@ -20,20 +29,17 @@ public:
     }
 
     void translatedMessage(const char *severity, const char *type, std::string& message) override{
+
         auto currentTime = std::chrono::system_clock::now();
         auto time = std::chrono::system_clock::to_time_t(currentTime);
         std::string outputTime = std::string(ctime(&time));
         outputTime[outputTime.size() - 1] = ' ';
         std::string outputMessage = outputTime + "VULKAN" + " [" + severity + "] " + type + " " + message;
         std::string severityS = severity;
-        if (!severityS.compare("ERROR"))
-        {
-            std::cerr << outputMessage << std::endl;
-        }
-        else
-        {
-            std::cout << outputMessage << std::endl;
-        }
-        std::cout.flush();
+        logFile<<outputMessage<<std::endl;
+        logFile.flush();
     }
 };
+
+
+#endif //VULKANRENDERENGINE_DEFAULTVULKANFILELOGGERCALLBACK_HPP

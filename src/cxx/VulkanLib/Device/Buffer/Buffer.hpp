@@ -15,7 +15,7 @@ private:
     static inline SeriesObject<vk::MemoryRequirements> requirements = SeriesObject<vk::MemoryRequirements>();
     static inline SeriesObject<vk::MemoryAllocateInfo> allocInfos = SeriesObject<vk::MemoryAllocateInfo>();
     static inline SeriesObject<vk::MemoryAllocateFlagsInfo> flagsInfo = SeriesObject<vk::MemoryAllocateFlagsInfo>();
-
+    static inline SeriesObject<vk::BufferCreateInfo> createInfos = SeriesObject<vk::BufferCreateInfo>();
 public:
     Buffer(std::shared_ptr<LogicalDevice> device, vk::BufferCreateInfo *createInfo, vk::MemoryPropertyFlags memoryFlags)
             : device(device) {
@@ -45,6 +45,43 @@ public:
         requirements.releaseObjectInstance(memReqs);
         allocInfos.releaseObjectInstance(info);
         flagsInfo.releaseObjectInstance(allocFlags);
+    }
+    Buffer(std::shared_ptr<LogicalDevice> device, size_t size, vk::BufferUsageFlags usageFlags, vk::MemoryPropertyFlags memoryFlags) : device(device) {
+
+        vk::BufferCreateInfo *createInfo = createInfos.getObjectInstance();
+        createInfo->sType = vk::StructureType::eBufferCreateInfo;
+        createInfo->size = size;
+        createInfo->usage = usageFlags;
+        createInfo->sharingMode = vk::SharingMode::eExclusive;
+
+
+        vk::Result res = device->getDevice().createBuffer(createInfo, nullptr, &buffer);
+        if(res!=vk::Result::eSuccess){
+            throw std::runtime_error("Failed to create buffer");
+        }
+        vk::MemoryRequirements *memReqs = requirements.getObjectInstance();
+        device->getDevice().getBufferMemoryRequirements(buffer, memReqs);
+        vk::MemoryAllocateInfo *info = allocInfos.getObjectInstance();
+        info->sType = vk::StructureType::eMemoryAllocateInfo;
+        info->allocationSize = memReqs->size;
+        info->memoryTypeIndex = device->findMemoryType(memReqs->memoryTypeBits, memoryFlags);
+
+        auto allocFlags = flagsInfo.getObjectInstance();
+        allocFlags->sType = vk::StructureType::eMemoryAllocateFlagsInfo;
+        allocFlags->flags = vk::MemoryAllocateFlagBits::eDeviceAddress;
+
+        info->pNext = allocFlags;
+
+        res = device->getDevice().allocateMemory(info, nullptr, &bufferMemory);
+        if(res!=vk::Result::eSuccess){
+            throw std::runtime_error("Failed to allocate buffer memory");
+        }
+        device->getDevice().bindBufferMemory(buffer, bufferMemory, 0);
+        bufferSize = createInfo->size;
+        requirements.releaseObjectInstance(memReqs);
+        allocInfos.releaseObjectInstance(info);
+        flagsInfo.releaseObjectInstance(allocFlags);
+        createInfos.releaseObjectInstance(createInfo);
     }
 
 private:

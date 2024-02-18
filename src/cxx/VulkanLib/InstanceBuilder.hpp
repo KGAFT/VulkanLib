@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <SDL.h>
 #include <SDL_vulkan.h>
+#include "VulkanLib/InstanceLogger/IInstanceLoggerCallback.hpp"
 
 class InstanceBuilder {
     friend class Instance;
@@ -18,8 +19,10 @@ public:
 private:
     std::vector<const char *> layers;
     std::vector<const char *> extensions{"VK_KHR_get_physical_device_properties2"};
+    std::vector<IInstanceLoggerCallback*> startLoggerCallbacks;
     bool debugEnabled = false;
     const char *applicationName = nullptr;
+    bool saveDefaultVulkanLoggerCallback = false;
 public:
     void addLayer(const char *layer) {
         layers.push_back(layer);
@@ -40,11 +43,19 @@ public:
             InstanceBuilder::layers.push_back(layers[i]);
         }
     }
+    void addLoggerCallback(IInstanceLoggerCallback* instanceLoggerCallback){
+        startLoggerCallbacks.push_back(instanceLoggerCallback);
+    }
 
     void presetForDebug() {
         layers.push_back("VK_LAYER_KHRONOS_validation");
+        layers.push_back("VK_LAYER_LUNARG_api_dump");
         extensions.push_back("VK_EXT_debug_utils");
         debugEnabled = true;
+    }
+
+    void setSaveDefaultVulkanLoggerCallback(bool saveDefaultVulkanLoggerCallback) {
+        InstanceBuilder::saveDefaultVulkanLoggerCallback = saveDefaultVulkanLoggerCallback;
     }
 
     void presetForGlfw() {

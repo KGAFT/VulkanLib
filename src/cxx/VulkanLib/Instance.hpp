@@ -38,7 +38,7 @@ public:
             instance = vk::createInstance(createInfo, nullptr);
             dynamicLoader = vk::DispatchLoaderDynamic(instance, vkGetInstanceProcAddr);
             if (pBuilder.debugEnabled) {
-                logger = new InstanceLogger(instance, dynamicLoader);
+                logger = new InstanceLogger(instance, dynamicLoader, pBuilder.startLoggerCallbacks, pBuilder.saveDefaultVulkanLoggerCallback);
                 enabledLayers = pBuilder.layers;
             }
         } catch (vk::SystemError &error) {

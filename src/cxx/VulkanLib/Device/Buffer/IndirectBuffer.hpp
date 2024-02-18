@@ -14,7 +14,6 @@ private:
     static inline SeriesObject<vk::BufferCreateInfo> createInfos = SeriesObject<vk::BufferCreateInfo>();
 public:
     IndirectBuffer(std::shared_ptr<LogicalDevice> device, uint32_t structuresAmount, size_t sizeOfStructure)  {
-        uint32_t queueIndices[] = {device->getQueueByType(vk::QueueFlagBits::eGraphics)->getIndex()};
 
 
         auto createInfo = createInfos.getObjectInstance();
@@ -23,8 +22,6 @@ public:
         createInfo->usage = vk::BufferUsageFlagBits::eIndirectBuffer | vk::BufferUsageFlagBits::eTransferDst |
                             vk::BufferUsageFlagBits::eTransferSrc;
         createInfo->sharingMode = vk::SharingMode::eExclusive;
-        createInfo->pQueueFamilyIndices = queueIndices;
-        createInfo->queueFamilyIndexCount = 1;
         buffer = std::make_shared<Buffer>(device, createInfo, vk::MemoryPropertyFlagBits::eHostVisible|vk::MemoryPropertyFlagBits::eHostCoherent);
         createInfos.releaseObjectInstance(createInfo);
         buffer->map(&mapPoint, 0, vk::MemoryMapFlags());

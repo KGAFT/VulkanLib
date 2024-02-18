@@ -42,6 +42,24 @@ public:
         loggers.push_back(this);
         messenger=instance.createDebugUtilsMessengerEXT(createInfo, nullptr, dynamicLoader);
     }
+    InstanceLogger(vk::Instance &instance, vk::DispatchLoaderDynamic &dynamicLoader, std::vector<IInstanceLoggerCallback*>& startCallbacks, bool saveDefaultCallback) : instance(instance), loaderDynamic(dynamicLoader){
+        for (const auto &item: startCallbacks){
+            loggerCallbacks.push_back(item);
+        }
+        if(saveDefaultCallback)
+            loggerCallbacks.push_back(new DefaultVulkanLoggerCallback);
+        vk::DebugUtilsMessengerCreateInfoEXT createInfo = vk::DebugUtilsMessengerCreateInfoEXT(
+                vk::DebugUtilsMessengerCreateFlagsEXT(),
+                vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo|
+                vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
+                vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+                vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |  vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding,
+                debugCallback,
+                this
+        );
+        loggers.push_back(this);
+        messenger=instance.createDebugUtilsMessengerEXT(createInfo, nullptr, dynamicLoader);
+    }
 private:
     std::vector<IInstanceLoggerCallback*> loggerCallbacks;
     DefaultVulkanLoggerCallback defaultCallback;

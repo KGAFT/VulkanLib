@@ -6,106 +6,159 @@
 #define VULKANRENDERENGINE_BOTTOMLEVELACCELERATIONSTRUCTURE_HPP
 
 #include <vulkan/vulkan.hpp>
+#include <numeric>
 #include "VulkanLib/Device/Buffer/VertexBuffer.hpp"
 #include "VulkanLib/Device/Buffer/IndexBuffer.hpp"
+#include "RTTypes.hpp"
+#include "ASUtils.hpp"
 
-class BottomLevelAccelerationStructure {
-private:
-    static inline SeriesObject<vk::AccelerationStructureGeometryTrianglesDataKHR> trianglesInfos = SeriesObject<vk::AccelerationStructureGeometryTrianglesDataKHR>();
-    static inline SeriesObject<vk::AccelerationStructureGeometryKHR> geometriesInfos = SeriesObject<vk::AccelerationStructureGeometryKHR>();
-    static inline SeriesObject<vk::AccelerationStructureBuildRangeInfoKHR> buildRangeInfos = SeriesObject<vk::AccelerationStructureBuildRangeInfoKHR>();
-    static inline SeriesObject<vk::AccelerationStructureBuildGeometryInfoKHR> buildGeometriesInfos = SeriesObject<vk::AccelerationStructureBuildGeometryInfoKHR>();
-    static inline SeriesObject<vk::BufferCreateInfo> scratchBufferCreateInfos = SeriesObject<vk::BufferCreateInfo>();
-    static inline SeriesObject<vk::AccelerationStructureCreateInfoKHR> accelerationCreateInfos = SeriesObject<vk::AccelerationStructureCreateInfoKHR>();
-public:
 
-    vk::AccelerationStructureKHR bottomLevelAccelerationStructure{};
+namespace vkLibRt {
 
-    void build(std::shared_ptr<LogicalDevice> device, std::shared_ptr<VertexBuffer> vBuffer,
-               std::shared_ptr<IndexBuffer> iBuffer, vk::DispatchLoaderDynamic &loader) {
-        auto triangleInfo = trianglesInfos.getObjectInstance();
-        triangleInfo->sType = vk::StructureType::eAccelerationStructureGeometryTrianglesDataKHR;
-        triangleInfo->vertexFormat = vBuffer->getFormat();
-        triangleInfo->vertexData.deviceAddress = vBuffer->getBufferAddress(loader);
-        triangleInfo->vertexStride = vBuffer->getStepSize();
-        triangleInfo->maxVertex = vBuffer->getVerticesAmount() - 1;
-        triangleInfo->indexData.deviceAddress = iBuffer->getBufferAddress(loader);
+    class BottomLevelAccelerationStructure {
+    public:
+        BottomLevelAccelerationStructure(std::shared_ptr<LogicalDevice> device, Instance &instance) : device(device),
+                                                                                                      instance(
+                                                                                                              instance) {}
 
-        triangleInfo->indexType = iBuffer->getIndexType();
-        triangleInfo->transformData = VK_NULL_HANDLE;
-        auto geometryData = geometriesInfos.getObjectInstance();
-        geometryData->sType = vk::StructureType::eAccelerationStructureGeometryKHR;
+    private:
+        std::shared_ptr<LogicalDevice> device;
+        Instance &instance;
+        vk::AccelerationStructureKHR bottomLevelAccelerationStructure{};
+        SeriesObject<vk::BufferCreateInfo> bufferCreateInfos;
+        std::vector<AccelKHR> accelerationStructures;
+        std::vector<BlasInput> objectsInfos;
+    public:
+        void storeObject(std::shared_ptr<VertexBuffer> vBuffer, std::shared_ptr<IndexBuffer> iBuffer) {
+            objectsInfos.push_back({});
+            ASUtils::objectToVkGeometryKHR(vBuffer, iBuffer, &objectsInfos[objectsInfos.size() - 1],
+                                           instance.getDynamicLoader());
+        }
 
-        geometryData->geometryType = vk::GeometryTypeKHR::eTriangles;
-        geometryData->setGeometry(*triangleInfo);
-        geometryData->flags = vk::GeometryFlagBitsKHR::eOpaque;
+        void confirmObjectsAndCreateBLASes() {
+            buildBlas(instance, device, objectsInfos, vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace);
+        }
 
-        auto buildRangeInfo = buildRangeInfos.getObjectInstance();
-        buildRangeInfo->primitiveCount = vBuffer->getVerticesAmount();
-        buildRangeInfo->primitiveOffset = 0;
-        buildRangeInfo->firstVertex = 0;
-        buildRangeInfo->transformOffset = 0;
+        std::vector<AccelKHR> &getAccelerationStructures() {
+            return accelerationStructures;
+        }
 
-        auto buildGeometryInfo = buildGeometriesInfos.getObjectInstance();
-        buildGeometryInfo->sType = vk::StructureType::eAccelerationStructureBuildGeometryInfoKHR;
-        buildGeometryInfo->type = vk::AccelerationStructureTypeKHR::eBottomLevel;
-        buildGeometryInfo->flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastBuild;
-        buildGeometryInfo->mode = vk::BuildAccelerationStructureModeKHR::eBuild;
-        buildGeometryInfo->srcAccelerationStructure = VK_NULL_HANDLE;
-        buildGeometryInfo->geometryCount = 1;
-        buildGeometryInfo->pGeometries = geometryData;
-        buildGeometryInfo->ppGeometries = nullptr;
-        buildGeometryInfo->dstAccelerationStructure = VK_NULL_HANDLE;
+    private:
+        void buildBlas(Instance &instance, std::shared_ptr<LogicalDevice> device, std::vector<BlasInput> &input,
+                       vk::BuildAccelerationStructureFlagsKHR flags) {
+            auto nbBlas = static_cast<uint32_t>(input.size());
+            VkDeviceSize asTotalSize{0};     // Memory size of all allocated BLAS
+            uint32_t nbCompactions{0};   // Nb of BLAS requesting compaction
+            VkDeviceSize maxScratchSize{0};  // Largest scratch size
 
-        vk::AccelerationStructureBuildSizesInfoKHR buildSize;
-        device->getDevice().getAccelerationStructureBuildSizesKHR(vk::AccelerationStructureBuildTypeKHR::eDevice,
-                                                                  buildGeometryInfo, &buildRangeInfo->primitiveCount,
-                                                                  &buildSize, loader);
+            // Preparing the information for the acceleration build commands.
+            std::vector<BuildAccelerationStructure> buildAs(nbBlas);
+            for (uint32_t idx = 0; idx < nbBlas; idx++) {
+                // Filling partially the VkAccelerationStructureBuildGeometryInfoKHR for querying the build sizes.
+                // Other information will be filled in the createBlas (see #2)
+                buildAs[idx].buildInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;
+                buildAs[idx].buildInfo.mode = vk::BuildAccelerationStructureModeKHR::eBuild;
+                buildAs[idx].buildInfo.flags = input[idx].flags | flags;
+                buildAs[idx].buildInfo.geometryCount = static_cast<uint32_t>(input[idx].asGeometry.size());
+                buildAs[idx].buildInfo.pGeometries = input[idx].asGeometry.data();
 
-        auto scratchBuffer = getScratchBuffer(device, buildSize.buildScratchSize);
+                // Build range information
+                buildAs[idx].rangeInfo = input[idx].asBuildOffsetInfo.data();
 
-        auto createInfo = accelerationCreateInfos.getObjectInstance();
-        createInfo->sType = vk::StructureType::eAccelerationStructureCreateInfoKHR;
-        createInfo->createFlags = vk::AccelerationStructureCreateFlagsKHR();
-        createInfo->buffer = scratchBuffer->getBuffer();
-        createInfo->offset = 0;
-        createInfo->size = buildSize.buildScratchSize;
-        createInfo->type = vk::AccelerationStructureTypeKHR::eBottomLevel;
-        createInfo->deviceAddress = 0;
-        device->getDevice().createAccelerationStructureKHR(createInfo, nullptr,
-                                                           &bottomLevelAccelerationStructure, loader);
-        buildGeometryInfo->dstAccelerationStructure = bottomLevelAccelerationStructure;
-        buildGeometryInfo->scratchData.deviceAddress = scratchBuffer->getAddress(loader);
-        vk::CommandBuffer cmd = device->getQueueByType(vk::QueueFlagBits::eGraphics)->beginSingleTimeCommands();
-        cmd.buildAccelerationStructuresKHR(1, buildGeometryInfo,
-                                           &buildRangeInfo,
-                                           loader);
-        device->getQueueByType(vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(cmd);
-        trianglesInfos.releaseObjectInstance(triangleInfo);
-        geometriesInfos.releaseObjectInstance(geometryData);
-        buildRangeInfos.releaseObjectInstance(buildRangeInfo);
-        buildGeometriesInfos.releaseObjectInstance(buildGeometryInfo);
-        accelerationCreateInfos.releaseObjectInstance(createInfo);
-        scratchBuffer->destroy();
-    }
+                // Finding sizes to create acceleration structures and scratch
+                std::vector<uint32_t> maxPrimCount(input[idx].asBuildOffsetInfo.size());
+                for (auto tt = 0; tt < input[idx].asBuildOffsetInfo.size(); tt++)
+                    maxPrimCount[tt] = input[idx].asBuildOffsetInfo[tt].primitiveCount;  // Number of primitives/triangles
+                device->getDevice().getAccelerationStructureBuildSizesKHR(
+                        vk::AccelerationStructureBuildTypeKHR::eDevice,
+                        &buildAs[idx].buildInfo, maxPrimCount.data(),
+                        &buildAs[idx].sizeInfo, instance.getDynamicLoader());
 
-private:
-    std::shared_ptr<Buffer> getScratchBuffer(std::shared_ptr<LogicalDevice> device, size_t size) {
-        uint32_t queueIndices[] = {device->getQueueByType(vk::QueueFlagBits::eGraphics)->getIndex()};
 
-        auto createInfo = scratchBufferCreateInfos.getObjectInstance();
-        createInfo->sType = vk::StructureType::eBufferCreateInfo;
-        createInfo->size = size;
-        createInfo->usage = vk::BufferUsageFlagBits::eShaderDeviceAddressKHR | vk::BufferUsageFlagBits::eStorageBuffer |
-                            vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR;
-        createInfo->sharingMode = vk::SharingMode::eExclusive;
-        createInfo->pQueueFamilyIndices = queueIndices;
-        createInfo->queueFamilyIndexCount = 1;
-        auto result = std::make_shared<Buffer>(device, createInfo, vk::MemoryPropertyFlags());
-        scratchBufferCreateInfos.releaseObjectInstance(createInfo);
-        return result;
-    }
-};
+                // Extra info
+                asTotalSize += buildAs[idx].sizeInfo.accelerationStructureSize;
+                maxScratchSize = std::max(maxScratchSize, buildAs[idx].sizeInfo.buildScratchSize);
+                nbCompactions += (
+                        (buildAs[idx].buildInfo.flags & vk::BuildAccelerationStructureFlagBitsKHR::eAllowCompaction) ==
+                        vk::BuildAccelerationStructureFlagBitsKHR::eAllowCompaction);
+            }
+            Buffer scratchBuffer(device, maxScratchSize,
+                                 vk::BufferUsageFlagBits::eShaderDeviceAddressKHR |
+                                 vk::BufferUsageFlagBits::eStorageBuffer |
+                                 vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR,
+                                 vk::MemoryPropertyFlags());
 
+            vk::DeviceAddress scratchAddress = scratchBuffer.getAddress(instance.getDynamicLoader());
+
+            // Allocate a query pool for storing the needed size for every BLAS compaction.
+            vk::QueryPool queryPool{VK_NULL_HANDLE};
+            if (nbCompactions > 0)  // Is compaction requested?
+            {
+                assert(nbCompactions == nbBlas);  // Don't allow mix of on/off compaction
+                vk::QueryPoolCreateInfo qpci{};
+                qpci.queryCount = nbBlas;
+                qpci.queryType = vk::QueryType::eAccelerationStructureCompactedSizeKHR;
+                queryPool = device->getDevice().createQueryPool(qpci);
+            }
+
+            // Batching creation/compaction of BLAS to allow staying in restricted amount of memory
+            std::vector<uint32_t> indices;  // Indices of the BLAS to create
+            vk::DeviceSize batchSize{0};
+            vk::DeviceSize batchLimit{256'000'000};  // 256 MB
+            for (uint32_t idx = 0; idx < nbBlas; idx++) {
+                indices.push_back(idx);
+                batchSize += buildAs[idx].sizeInfo.accelerationStructureSize;
+                // Over the limit or last BLAS element
+                if (batchSize >= batchLimit || idx == nbBlas - 1) {
+                    vk::CommandBuffer cmdBuf = device->getQueueByType(
+                            vk::QueueFlagBits::eGraphics)->beginSingleTimeCommands();
+                    ASUtils::cmdCreateBlas(device, instance, cmdBuf, indices, buildAs, scratchAddress, queryPool);
+                    device->getQueueByType(
+                            vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(cmdBuf);
+
+                    if (queryPool) {
+                        vk::CommandBuffer cmdBuf = device->getQueueByType(
+                                vk::QueueFlagBits::eGraphics)->beginSingleTimeCommands();
+                        ASUtils::cmdCompactBlas(device, cmdBuf, indices, buildAs, queryPool,
+                                                instance.getDynamicLoader());
+                        device->getQueueByType(
+                                vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(cmdBuf);
+
+                        // Destroy the non-compacted version
+                        for (const auto &item: buildAs) {
+                            device->getDevice().destroyAccelerationStructureKHR(item.cleanupAS.accel, nullptr,
+                                                                                instance.getDynamicLoader());
+                            item.cleanupAS.buffer->destroy();
+                        }
+                    }
+                    // Reset
+
+                    batchSize = 0;
+                    indices.clear();
+                }
+            }
+
+            // Logging reduction
+            if (queryPool) {
+                VkDeviceSize compactSize = std::accumulate(buildAs.begin(), buildAs.end(), 0ULL,
+                                                           [](const auto &a, const auto &b) {
+                                                               return a + b.sizeInfo.accelerationStructureSize;
+                                                           });
+                const float fractionSmaller = (asTotalSize == 0) ? 0 : (asTotalSize - compactSize) / float(asTotalSize);
+
+            }
+
+            // Keeping all the created acceleration structures
+            for (auto &b: buildAs) {
+                accelerationStructures.push_back(b.as);
+            }
+
+            scratchBuffer.destroy();
+            device->getDevice().destroyQueryPool(queryPool);
+        }
+
+
+    };
+}
 
 #endif //VULKANRENDERENGINE_BOTTOMLEVELACCELERATIONSTRUCTURE_HPP

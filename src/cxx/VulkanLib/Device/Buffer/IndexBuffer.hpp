@@ -14,7 +14,7 @@ public:
     IndexBuffer(std::shared_ptr<LogicalDevice> device, void *indices, uint32_t indexCount, vk::IndexType indexType,
                 bool forRayTracing)
             : device(device), indexCount(indexCount), indexType(indexType) {
-        uint32_t queueIndices[] = {device->getQueueByType(vk::QueueFlagBits::eGraphics)->getIndex()};
+
 
 
         vk::BufferCreateInfo *createInfo = createInfos.getObjectInstance();
@@ -22,8 +22,7 @@ public:
         createInfo->size = indexCount * sizeof(uint32_t);
         createInfo->usage = vk::BufferUsageFlagBits::eTransferSrc;
         createInfo->sharingMode = vk::SharingMode::eExclusive;
-        createInfo->pQueueFamilyIndices = queueIndices;
-        createInfo->queueFamilyIndexCount = 1;
+
 
         void *mapPoint = nullptr;
 
@@ -66,6 +65,10 @@ public:
 
     vk::DeviceAddress getBufferAddress(vk::DispatchLoaderDynamic &loaderDynamic) {
         return buffer->getAddress(loaderDynamic);
+    }
+
+    uint32_t getIndexCount() const {
+        return indexCount;
     }
 
 
