@@ -2,8 +2,8 @@
 // Created by kgaft on 2/17/24.
 //
 
-#ifndef VULKANRENDERENGINE_RTTYPES_HPP
-#define VULKANRENDERENGINE_RTTYPES_HPP
+#ifndef VULKANRENDERENGINE_ASTYPES_HPP
+#define VULKANRENDERENGINE_ASTYPES_HPP
 
 #include <vulkan/vulkan_core.h>
 #include "VulkanLib/Device/Buffer/Buffer.hpp"
@@ -29,4 +29,4 @@ namespace vkLibRt {
         AccelKHR cleanupAS;
     };
 }
-#endif //VULKANRENDERENGINE_RTTYPES_HPP
+#endif //VULKANRENDERENGINE_ASTYPES_HPP

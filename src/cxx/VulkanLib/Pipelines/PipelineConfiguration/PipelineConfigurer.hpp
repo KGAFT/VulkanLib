@@ -6,13 +6,13 @@
 #include <vulkan/vulkan.hpp>
 #include <vector>
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
-#include "GraphicsPipelineBuilder.hpp"
+#include "VulkanLib/Pipelines/GraphicsPipeline/Configuration/GraphicsPipelineBuilder.hpp"
 
-class GraphicsPipelineConfigurer : public IDestroyableObject{
+class PipelineConfigurer : public IDestroyableObject{
     friend class GraphicsPipeline;
 
 public:
-     GraphicsPipelineConfigurer(LogicalDevice &device, GraphicsPipelineBuilder* builder) : device(device) {
+     PipelineConfigurer(LogicalDevice &device, PipelineBuilder* builder) : device(device) {
          loadDescriptorSetLayout(builder);
          loadPipelineLayout(builder);
          prepareBinding(builder->vertexInputs);
@@ -26,9 +26,9 @@ private:
     vk::VertexInputBindingDescription inputBindDesc{};
     std::vector<vk::VertexInputAttributeDescription> inputAttribDescs;
 private:
-    void loadDescriptorSetLayout(GraphicsPipelineBuilder *endConfiguration) {
+    void loadDescriptorSetLayout(PipelineBuilder *endConfiguration) {
         std::vector<vk::DescriptorSetLayoutBinding> bindings;
-        bindings.resize(endConfiguration->uniformBufferInfo.size()+endConfiguration->samplersInfo.size());
+        bindings.resize(endConfiguration->uniformBufferInfo.size()+endConfiguration->samplersInfo.size()+endConfiguration->storageImagesInfos.size()+endConfiguration->accelerationStructuresInfos.size());
         size_t counter = 0;
         for (auto &element: endConfiguration->uniformBufferInfo) {
             uboToBind(element, bindings[counter]);
@@ -36,6 +36,14 @@ private:
         }
         for (auto &element: endConfiguration->samplersInfo) {
             samplerToBind(element, bindings[counter]);
+            counter++;
+        }
+        for (auto &item: endConfiguration->accelerationStructuresInfos){
+            asToBind(item, bindings[counter]);
+            counter++;
+        }
+        for (auto &item: endConfiguration->storageImagesInfos){
+            storageImageToBind(item, bindings[counter]);
             counter++;
         }
         if (!bindings.empty()) {
@@ -49,7 +57,7 @@ private:
         }
     }
 
-    void loadPipelineLayout(GraphicsPipelineBuilder *endConfiguration) {
+    void loadPipelineLayout(PipelineBuilder *endConfiguration) {
         std::vector<vk::PushConstantRange> pushConstantRanges;
         pushConstantRanges.resize(endConfiguration->pushConstantInfos.size());
         size_t counter = 0;
@@ -112,6 +120,18 @@ private:
         result.descriptorType = vk::DescriptorType::eCombinedImageSampler;
         result.descriptorCount = 1;
         result.stageFlags = samplerInfo.shaderStages;
+    }
+    static void asToBind(AccelerationStructureInfo& asInfo, vk::DescriptorSetLayoutBinding& result){
+        result.binding = asInfo.binding;
+        result.descriptorType = vk::DescriptorType::eAccelerationStructureKHR;
+        result.descriptorCount = 1;
+        result.stageFlags = asInfo.shaderStages;
+    }
+    static void storageImageToBind(StorageImageInfo& storageImageInfo, vk::DescriptorSetLayoutBinding& result){
+        result.binding = storageImageInfo.binding;
+        result.descriptorType = vk::DescriptorType::eStorageImage;
+        result.descriptorCount = 1;
+        result.stageFlags = storageImageInfo.shaderStages;
     }
 
 public:

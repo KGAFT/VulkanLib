@@ -21,6 +21,12 @@ struct DescriptorImageInfo {
     vk::DescriptorType descriptorType;
 };
 
+struct DescriptorAccelerationStructureInfo{
+    vk::WriteDescriptorSetAccelerationStructureKHR base;
+    uint32_t binding;
+    vk::DescriptorType descriptorType;
+};
+
 class DescriptorSet {
     friend class DescriptorPool;
 
@@ -28,6 +34,8 @@ private:
     std::vector<vk::DescriptorSet> descriptorSet;
     std::vector<DescriptorBufferInfo*> buffersInfo;
     std::vector<DescriptorImageInfo*> imagesInfo;
+    std::vector<DescriptorAccelerationStructureInfo*> asInfo;
+
     std::vector<vk::WriteDescriptorSet> writes;
     std::shared_ptr<LogicalDevice> device;
     uint32_t imageInfoPerInstanceAmount = 0;
@@ -62,7 +70,7 @@ public:
             delete item;
         }
         buffersInfo.clear();
-
+        asInfo.clear();
         writes.clear();
     }
 
@@ -95,6 +103,20 @@ public:
         writes[writes.size()-1].descriptorType = imagesInfo[imagesInfo.size()-1]->descriptorType;
         writes[writes.size()-1].descriptorCount = 1;
         writes[writes.size()-1].pImageInfo = &imagesInfo[imagesInfo.size()-1]->base;
+    }
+
+    void addAccelerationStructureInfo(DescriptorAccelerationStructureInfo& acsInfo){
+        asInfo.push_back(new DescriptorAccelerationStructureInfo);
+        writes.push_back({});
+        memcpy(&asInfo[asInfo.size()-1], &acsInfo, sizeof(DescriptorAccelerationStructureInfo));
+
+        writes[writes.size()-1].sType = vk::StructureType::eWriteDescriptorSet;
+        writes[writes.size()-1].dstSet = descriptorSet[0];
+        writes[writes.size()-1].dstBinding = asInfo[asInfo.size()-1]->binding;
+        writes[writes.size()-1].dstArrayElement = 0;
+        writes[writes.size()-1].descriptorType = asInfo[asInfo.size()-1]->descriptorType;
+        writes[writes.size()-1].descriptorCount = 1;
+        writes[writes.size()-1].pNext = &asInfo[asInfo.size()-1]->base;
     }
 
     void setImageInfoPerInstanceAmount(uint32_t imageInfoPerInstanceAmount) {

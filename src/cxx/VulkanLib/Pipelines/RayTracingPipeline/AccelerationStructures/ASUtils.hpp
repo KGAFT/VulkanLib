@@ -6,7 +6,7 @@
 #define VULKANRENDERENGINE_ASUTILS_HPP
 
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
-#include "RTTypes.hpp"
+#include "ASTypes.hpp"
 #include "VulkanLib/Device/Buffer/VertexBuffer.hpp"
 #include "VulkanLib/Device/Buffer/IndexBuffer.hpp"
 

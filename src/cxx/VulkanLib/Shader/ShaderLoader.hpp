@@ -31,7 +31,7 @@ public:
 private:
     ShaderLoader() {
         compileOptions.SetIncluder(std::unique_ptr<shaderc::CompileOptions::IncluderInterface>{std::make_unique<ShaderLoaderIncluder>(ShaderLoaderIncluder())});
-
+        compileOptions.SetTargetSpirv(shaderc_spirv_version_1_5);
     }
 
 private:
@@ -112,6 +112,16 @@ public:
                 return shaderc_geometry_shader;
             case vk::ShaderStageFlagBits::eMeshEXT:
                 return shaderc_mesh_shader;
+            case vk::ShaderStageFlagBits::eRaygenKHR:
+                return shaderc_raygen_shader;
+            case vk::ShaderStageFlagBits::eClosestHitKHR:
+                return shaderc_closesthit_shader;
+            case vk::ShaderStageFlagBits::eAnyHitKHR:
+                return shaderc_anyhit_shader;
+            case vk::ShaderStageFlagBits::eMissKHR:
+                return shaderc_miss_shader;
+            case vk::ShaderStageFlagBits::eIntersectionKHR:
+                return shaderc_intersection_shader;
             default:
                 return shaderc_vertex_shader;
         }

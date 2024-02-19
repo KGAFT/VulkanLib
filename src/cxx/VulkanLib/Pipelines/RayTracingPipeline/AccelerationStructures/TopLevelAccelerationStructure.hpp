@@ -5,7 +5,7 @@
 #ifndef VULKANRENDERENGINE_TOPLEVELACCELERATIONSTRUCTURE_HPP
 #define VULKANRENDERENGINE_TOPLEVELACCELERATIONSTRUCTURE_HPP
 
-#include "RTTypes.hpp"
+#include "ASTypes.hpp"
 #include "ASUtils.hpp"
 #include "BottomLevelAccelerationStructure.hpp"
 #include "glm/glm.hpp"

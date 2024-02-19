@@ -3,10 +3,10 @@
 //
 #pragma once
 
-#include "Configuration/GraphicsPipelineConfig.hpp"
+#include "VulkanLib/Pipelines/GraphicsPipeline/Configuration/GraphicsPipelineConfig.hpp"
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
-#include "Configuration/GraphicsPipelineBuilder.hpp"
-#include "VulkanLib/GraphicsPipeline/Configuration/GraphicsPipelineConfigurer.hpp"
+#include "VulkanLib/Pipelines/GraphicsPipeline/Configuration/GraphicsPipelineBuilder.hpp"
+#include "VulkanLib/Pipelines/PipelineConfiguration/PipelineConfigurer.hpp"
 #include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
 #include "VulkanLib/MemoryUtils/SeriesObject.hpp"
 #include "Shader.hpp"
@@ -28,7 +28,7 @@ public:
                      unsigned int attachmentPerStepAmount,
                      unsigned int width, unsigned int height) :
             attachmentsFormats(builder->colorAttachmentInfo),
-            depthFormat(builder->depthAttachmentInfo), configurer(device, builder), device(device),
+            depthFormat(builder->depthAttachmentInfo), configurer(device, &builder->pipelineBuilder), device(device),
             shader(shader), attachmentPerStepAmount(attachmentPerStepAmount) {
         create(attachmentPerStepAmount, width, height, shader, attachmentsFormats, depthFormat);
     }
@@ -36,7 +36,7 @@ public:
 private:
     std::vector<vk::Format> attachmentsFormats;
     vk::Format depthFormat;
-    GraphicsPipelineConfigurer configurer;
+    PipelineConfigurer configurer;
     vk::Pipeline graphicsPipeline;
     LogicalDevice &device;
     Shader *shader;

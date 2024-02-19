@@ -6,32 +6,12 @@
 #include <vector>
 #include "VulkanLib/Device/Image/ImageView.hpp"
 #include "VulkanLib/MemoryUtils/SeriesObject.hpp"
+#include "VulkanLib/Pipelines/PipelineConfiguration/PipelineBuilder.hpp"
 
-struct VertexInput {
-    unsigned int location;
-    unsigned int coordinatesAmount;
-    size_t typeSize;
-    vk::Format format;
-};
 
-struct PushConstantInfo {
-    vk::ShaderStageFlags shaderStages;
-    size_t size;
-};
-
-struct UniformBufferInfo {
-    int binding;
-    size_t size;
-    vk::ShaderStageFlags shaderStages;
-};
-
-struct SamplerInfo {
-    int binding;
-    vk::ShaderStageFlags shaderStages;
-};
 
 class GraphicsPipelineBuilder : public IDestroyableObject {
-    friend class GraphicsPipelineConfigurer;
+    friend class PipelineConfigurer;
 
     friend class GraphicsRenderPipeline;
 
@@ -52,30 +32,26 @@ public:
     }
 
 private:
-
-    std::vector<VertexInput> vertexInputs;
-    std::vector<UniformBufferInfo> uniformBufferInfo;
-    std::vector<PushConstantInfo> pushConstantInfos;
-    std::vector<SamplerInfo> samplersInfo;
+    PipelineBuilder pipelineBuilder;
     std::vector<vk::Format> colorAttachmentInfo;
     vk::Format depthAttachmentInfo;
 public:
 
 
     void addVertexInput(VertexInput input) {
-        vertexInputs.push_back(input);
+        pipelineBuilder.addVertexInput(input);
     }
 
     void addPushConstantInfo(PushConstantInfo info) {
-        pushConstantInfos.push_back(info);
+        pipelineBuilder.addPushConstantInfo(info);
     }
 
     void addUniformBuffer(UniformBufferInfo info) {
-        uniformBufferInfo.push_back(info);
+        pipelineBuilder.addUniformBuffer(info);
     }
 
     void addSamplerInfo(SamplerInfo info) {
-        samplersInfo.push_back(info);
+        pipelineBuilder.addSamplerInfo(info);
     }
 
     void addColorAttachmentInfo(vk::Format colorAttachmentFormat) {
@@ -87,15 +63,6 @@ public:
         this->depthAttachmentInfo = depthAttachmentInfo;
     }
 
-    /**
-     * @throws runtime_error if is not properly populated
-     */
-    void checkIfBuilderComplete() {
-
-        if (vertexInputs.empty()) {
-            throw std::runtime_error("Error: you need to add at least one vertex input");
-        }
-    }
 
 public:
     void destroy() override {
