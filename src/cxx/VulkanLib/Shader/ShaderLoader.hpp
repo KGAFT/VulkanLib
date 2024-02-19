@@ -12,7 +12,7 @@
 #include "ShaderLoaderIncluder.hpp"
 #include "VulkanLib/MemoryUtils/FileReader.hpp"
 #include "ShaderCreateInfo.hpp"
-#include "VulkanLib/Pipelines/GraphicsPipeline/Shader.hpp"
+#include "VulkanLib/Pipelines/Shader.hpp"
 
 
 

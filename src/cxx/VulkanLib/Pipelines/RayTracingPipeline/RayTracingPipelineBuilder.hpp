@@ -5,9 +5,11 @@
 #ifndef VULKANRENDERENGINE_RAYTRACINGPIPELINEBUILDER_HPP
 #define VULKANRENDERENGINE_RAYTRACINGPIPELINEBUILDER_HPP
 
+#include <vulkan/vulkan.hpp>
 
 class RayTracingPipelineBuilder {
-
+private:
+    std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shaderGroups
 };
 
 

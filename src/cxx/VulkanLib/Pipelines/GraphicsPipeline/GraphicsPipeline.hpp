@@ -9,7 +9,7 @@
 #include "VulkanLib/Pipelines/PipelineConfiguration/PipelineConfigurer.hpp"
 #include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
 #include "VulkanLib/MemoryUtils/SeriesObject.hpp"
-#include "Shader.hpp"
+#include "VulkanLib/Pipelines/Shader.hpp"
 
 struct GraphicsPipelineCreateStrip {
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
