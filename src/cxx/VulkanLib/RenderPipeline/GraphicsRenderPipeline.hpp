@@ -6,7 +6,7 @@
 #define VULKANLIB_RENDERPIPELINE_HPP
 
 #include <VulkanLib/Device/SwapChain/SwapChain.hpp>
-#include <VulkanLib/GraphicsPipeline/GraphicsPipeline.hpp>
+#include <VulkanLib/Pipelines/GraphicsPipeline/GraphicsPipeline.hpp>
 #include "RenderImagePool.hpp"
 
 class RenderPipelineBuilder {
