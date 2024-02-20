@@ -23,7 +23,7 @@ file(REMOVE ${UNNECESSARY_CPP})
 if(MSVC)
     target_compile_options(VulkanLib PRIVATE /W4 /WX)
 else()
-    target_compile_options(VulkanLib PRIVATE -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter)
+    target_compile_options(VulkanLib PRIVATE -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter )
 endif()
 
 if(DEFINED VulkanSDKPath)

@@ -62,7 +62,9 @@ public:
     void setDepthAttachmentInfo(vk::Format depthAttachmentInfo) {
         this->depthAttachmentInfo = depthAttachmentInfo;
     }
-
+    void addStorageImageInfo(StorageImageInfo storageImageInfo){
+        pipelineBuilder.addStorageImageInfo(storageImageInfo);
+    }
 
 public:
     void destroy() override {

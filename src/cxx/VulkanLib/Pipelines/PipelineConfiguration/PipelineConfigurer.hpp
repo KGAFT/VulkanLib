@@ -10,7 +10,6 @@
 
 class PipelineConfigurer : public IDestroyableObject{
     friend class GraphicsPipeline;
-
 public:
      PipelineConfigurer(LogicalDevice &device, PipelineBuilder* builder) : device(device) {
          loadDescriptorSetLayout(builder);
@@ -56,6 +55,25 @@ private:
 
         }
     }
+
+public:
+    const vk::PipelineLayout &getPipelineLayout() const {
+        return pipelineLayout;
+    }
+
+    const vk::DescriptorSetLayout &getDescriptorSetLayout() const {
+        return descriptorSetLayout;
+    }
+
+    const vk::VertexInputBindingDescription &getInputBindDesc() const {
+        return inputBindDesc;
+    }
+
+    const vector<vk::VertexInputAttributeDescription> &getInputAttribDescs() const {
+        return inputAttribDescs;
+    }
+
+private:
 
     void loadPipelineLayout(PipelineBuilder *endConfiguration) {
         std::vector<vk::PushConstantRange> pushConstantRanges;

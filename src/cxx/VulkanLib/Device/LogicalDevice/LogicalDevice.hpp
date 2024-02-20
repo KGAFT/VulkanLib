@@ -27,10 +27,13 @@ public:
         newFeatures.bufferDeviceAddress = true;
         newFeatures.descriptorIndexing = true;
         dynamicRenderingFeature.pNext = &newFeatures;
-
+        vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeaturesKhr{};
+        rayTracingPipelineFeaturesKhr.sType = vk::StructureType::ePhysicalDeviceRayTracingPipelineFeaturesKHR;
+        rayTracingPipelineFeaturesKhr.rayTracingPipeline = true;
         if(builder.rayTracingSupport){
             accelStructure.accelerationStructure = true;
             newFeatures.pNext = &accelStructure;
+            accelStructure.pNext = &rayTracingPipelineFeaturesKhr;
         }
 
         vk::DeviceCreateInfo deviceInfo = vk::DeviceCreateInfo(
