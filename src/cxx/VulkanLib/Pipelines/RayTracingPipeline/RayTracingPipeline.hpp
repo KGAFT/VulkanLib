@@ -93,6 +93,12 @@ namespace vkLibRt {
         vk::Pipeline getRayTracingPipelineKhr() {
             return rayTracingPipelineKhr;
         }
+        vk::DescriptorSetLayout getDescriptorSetLayout(){
+            return configurer.getDescriptorSetLayout();
+        }
+        vk::PipelineLayout getPipelineLayout(){
+            return configurer.getPipelineLayout();
+        }
     };
 }
 

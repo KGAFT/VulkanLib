@@ -116,7 +116,7 @@ private:
 
 private:
     static inline vk::ImageCreateInfo defaultColorCreateInfo = {vk::ImageCreateFlags(),
-                                                                vk::ImageType::e2D, vk::Format::eR8G8B8A8Srgb,
+                                                                vk::ImageType::e2D, vk::Format::eR32G32B32A32Sfloat,
                                                                 vk::Extent3D{800, 600, 1},
                                                                 1, 1, vk::SampleCountFlagBits::e1,
                                                                 vk::ImageTiling::eOptimal,
@@ -130,7 +130,7 @@ private:
     };
     static inline vk::ImageViewCreateInfo defaultColorViewCreateInfo = {vk::ImageViewCreateFlags(),
                                                                         nullptr, vk::ImageViewType::e2D,
-                                                                        vk::Format::eR8G8B8A8Srgb, {},
+                                                                        vk::Format::eR32G32B32A32Sfloat, {},
                                                                         vk::ImageSubresourceRange{
                                                                                 vk::ImageAspectFlagBits::eColor, 0, 1,
                                                                                 0, 1}};

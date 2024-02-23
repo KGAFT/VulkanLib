@@ -38,6 +38,11 @@ namespace vkLibRt {
             }
             buildTlas(instance, device, instances);
         }
+
+         vk::AccelerationStructureKHR &getAccelerationStructure()  {
+            return tlas.accel;
+        }
+
     private:
         void buildTlas(Instance &instance, std::shared_ptr<LogicalDevice> device,
                        std::vector<vk::AccelerationStructureInstanceKHR> &instances,
