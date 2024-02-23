@@ -22,6 +22,11 @@ namespace vkLibRt {
     private:
         Buffer sbtBuffer;
         std::vector<vk::StridedDeviceAddressRegionKHR> sbtRegions;
+    public:
+         vector<vk::StridedDeviceAddressRegionKHR> &getSbtRegions()  {
+            return sbtRegions;
+        }
+
     private:
         void
         createShaderBindingTable(vk::Pipeline rayTracingPipeline, std::shared_ptr<LogicalDevice> device,
@@ -47,7 +52,7 @@ namespace vkLibRt {
                 if (item.first == vk::ShaderStageFlagBits::eRaygenKHR) {
                     regionKhr.stride = MemoryUtils::alignUp(resHandleSize,
                                                             device->getBaseDevice()->getRayTracingPipelinePropertiesKhr().shaderGroupBaseAlignment);
-                    regionKhr.size = regionKhr.size;
+                    regionKhr.size = regionKhr.stride;
                 } else {
                     regionKhr.stride = resHandleSize;
                     regionKhr.size = MemoryUtils::alignUp(item.second * resHandleSize,
