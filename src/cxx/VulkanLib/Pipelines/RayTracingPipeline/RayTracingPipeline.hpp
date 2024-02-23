@@ -89,6 +89,10 @@ namespace vkLibRt {
                 shaderGroups.push_back(group);
             }
         }
+    public:
+        vk::Pipeline getRayTracingPipelineKhr() {
+            return rayTracingPipelineKhr;
+        }
     };
 }
 

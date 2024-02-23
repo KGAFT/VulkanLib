@@ -104,6 +104,10 @@ public:
     const std::vector<vk::ExtensionProperties> &getExtensionProperties() const {
         return extensionProperties;
     }
+
+    const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR &getRayTracingPipelinePropertiesKhr() const {
+        return rayTracingPipelinePropertiesKhr;
+    }
 };
 
 
