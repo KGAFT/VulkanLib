@@ -80,8 +80,7 @@ public:
     }
 
     void addBufferInfo(DescriptorBufferInfo& bufferInfo) {
-        buffersInfo.push_back(new DescriptorBufferInfo);
-        memcpy(buffersInfo[buffersInfo.size()-1], &bufferInfo, sizeof(DescriptorBufferInfo));
+        buffersInfo.push_back(new DescriptorBufferInfo(bufferInfo));
         writes.push_back({});
         writes[writes.size() - 1].sType = vk::StructureType::eWriteDescriptorSet;
         writes[writes.size() - 1].dstSet = descriptorSet[0];
@@ -92,10 +91,8 @@ public:
         writes[writes.size() - 1].pBufferInfo = &buffersInfo[buffersInfo.size()-1]->base;
     }
     void addImageInfo(DescriptorImageInfo& imageInfo){
-        imagesInfo.push_back(new DescriptorImageInfo);
+        imagesInfo.push_back(new DescriptorImageInfo(imageInfo));
         writes.push_back({});
-        memcpy(imagesInfo[imagesInfo.size()-1], &imageInfo, sizeof(DescriptorImageInfo));
-
         writes[writes.size()-1].sType = vk::StructureType::eWriteDescriptorSet;
         writes[writes.size()-1].dstSet = descriptorSet[0];
         writes[writes.size()-1].dstBinding = imagesInfo[imagesInfo.size()-1]->binding;
@@ -106,9 +103,8 @@ public:
     }
 
     void addAccelerationStructureInfo(DescriptorAccelerationStructureInfo& acsInfo){
-        asInfo.push_back(new DescriptorAccelerationStructureInfo);
+        asInfo.push_back(new DescriptorAccelerationStructureInfo(acsInfo));
         writes.push_back({});
-        memcpy(&asInfo[asInfo.size()-1], &acsInfo, sizeof(DescriptorAccelerationStructureInfo));
 
         writes[writes.size()-1].sType = vk::StructureType::eWriteDescriptorSet;
         writes[writes.size()-1].dstSet = descriptorSet[0];
