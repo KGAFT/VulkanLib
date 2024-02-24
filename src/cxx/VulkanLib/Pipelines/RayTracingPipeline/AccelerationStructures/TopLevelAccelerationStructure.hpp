@@ -49,7 +49,6 @@ namespace vkLibRt {
                        vk::BuildAccelerationStructureFlagsKHR flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace,
                        bool update = false) {
             // Cannot call buildTlas twice except to update.
-            AccelKHR tlas;
             assert(tlas.accel == VK_NULL_HANDLE || update);
             uint32_t countInstance = static_cast<uint32_t>(instances.size());
 
@@ -61,7 +60,7 @@ namespace vkLibRt {
             Buffer instancesBuffer(device, instances.size() * sizeof(VkAccelerationStructureInstanceKHR),
                                    vk::BufferUsageFlagBits::eShaderDeviceAddress
                                    | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR,
-                                   vk::MemoryPropertyFlags());  // Buffer of instances containing the matrices and BLAS ids
+                                   vk::MemoryPropertyFlagBits::eHostVisible| vk::MemoryPropertyFlagBits::eHostCoherent);  // Buffer of instances containing the matrices and BLAS ids
 
 
 

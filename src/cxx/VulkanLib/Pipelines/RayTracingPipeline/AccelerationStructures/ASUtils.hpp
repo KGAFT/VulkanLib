@@ -86,27 +86,25 @@ namespace vkLibRt {
 
             // Put the above into a VkAccelerationStructureGeometryKHR. We need to put the instances struct in a union and label it as instance data.
             vk::AccelerationStructureGeometryKHR topASGeometry{};
-            topASGeometry.geometryType = vk::GeometryTypeKHR::eInstances;
+            topASGeometry.geometryType       = vk::GeometryTypeKHR::eInstances;
             topASGeometry.geometry.instances = instancesVk;
 
             // Find sizes
             vk::AccelerationStructureBuildGeometryInfoKHR buildInfo{};
-            buildInfo.flags = flags;
+            buildInfo.flags         = flags;
             buildInfo.geometryCount = 1;
-            buildInfo.pGeometries = &topASGeometry;
-            buildInfo.mode = update ? vk::BuildAccelerationStructureModeKHR::eUpdate
-                                    : vk::BuildAccelerationStructureModeKHR::eBuild;
-            buildInfo.type = vk::AccelerationStructureTypeKHR::eTopLevel;
+            buildInfo.pGeometries   = &topASGeometry;
+            buildInfo.mode = update ? vk::BuildAccelerationStructureModeKHR::eUpdate : vk::BuildAccelerationStructureModeKHR::eBuild;
+            buildInfo.type                     = vk::AccelerationStructureTypeKHR::eTopLevel;
             buildInfo.srcAccelerationStructure = VK_NULL_HANDLE;
 
-            vk::AccelerationStructureBuildSizesInfoKHR sizeInfo{};
-            device->getDevice().getAccelerationStructureBuildSizesKHR(vk::AccelerationStructureBuildTypeKHR::eDevice,
-                                                                      &buildInfo, &countInstance, &sizeInfo,
-                                                                      instance.getDynamicLoader());
+            vk::AccelerationStructureBuildSizesInfoKHR sizeInfo{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR};
+            device->getDevice().getAccelerationStructureBuildSizesKHR(vk::AccelerationStructureBuildTypeKHR::eDevice, &buildInfo, &countInstance, &sizeInfo, instance.getDynamicLoader());
 
 
             // Create TLAS
-            if (update == false) {
+            if(update == false)
+            {
 
                 vk::AccelerationStructureCreateInfoKHR createInfo{};
                 createInfo.type = vk::AccelerationStructureTypeKHR::eTopLevel;
@@ -117,24 +115,22 @@ namespace vkLibRt {
             }
 
             // Allocate the scratch memory
+            scratchBuffer->initialize(sizeInfo.buildScratchSize, vk::BufferUsageFlagBits::eStorageBuffer|vk::BufferUsageFlagBits::eShaderDeviceAddress, vk::MemoryPropertyFlagBits::eHostVisible| vk::MemoryPropertyFlagBits::eHostCoherent);
 
-            scratchBuffer->initialize(sizeInfo.buildScratchSize,
-                                 vk::BufferUsageFlagBits::eShaderDeviceAddressKHR |
-                                 vk::BufferUsageFlagBits::eStorageBuffer,
-                                 vk::MemoryPropertyFlags());
-            VkDeviceAddress scratchAddress = scratchBuffer->getAddress(instance.getDynamicLoader());
+
+            vk::DeviceAddress           scratchAddress = scratchBuffer->getAddress(instance.getDynamicLoader());
 
             // Update build information
-            buildInfo.srcAccelerationStructure = update ? tlas.accel : VK_NULL_HANDLE;
-            buildInfo.dstAccelerationStructure = tlas.accel;
+            buildInfo.srcAccelerationStructure  = update ? tlas.accel : VK_NULL_HANDLE;
+            buildInfo.dstAccelerationStructure  = tlas.accel;
             buildInfo.scratchData.deviceAddress = scratchAddress;
 
             // Build Offsets info: n instances
-            vk::AccelerationStructureBuildRangeInfoKHR buildOffsetInfo{countInstance, 0, 0, 0};
+            vk::AccelerationStructureBuildRangeInfoKHR        buildOffsetInfo{countInstance, 0, 0, 0};
             const vk::AccelerationStructureBuildRangeInfoKHR* pBuildOffsetInfo = &buildOffsetInfo;
 
-            // Build the TLAS
-            cmdBuf.buildAccelerationStructuresKHR(buildInfo, pBuildOffsetInfo, instance.getDynamicLoader());
+            cmdBuf.buildAccelerationStructuresKHR(1, &buildInfo, &pBuildOffsetInfo, instance.getDynamicLoader());
+
         }
 
         static void
@@ -217,7 +213,7 @@ namespace vkLibRt {
             resultAccel.buffer = std::make_shared<Buffer>(device, accel_.size,
                                                           vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR
                                                           | vk::BufferUsageFlagBits::eShaderDeviceAddress,
-                                                          vk::MemoryPropertyFlags());
+                                                          vk::MemoryPropertyFlagBits::eHostVisible| vk::MemoryPropertyFlagBits::eHostCoherent);
             // Setting the buffer
             accel_.buffer = resultAccel.buffer->getBuffer();
             // Create the acceleration structure
