@@ -50,6 +50,8 @@ namespace vkLibRt {
             group.generalShader = VK_SHADER_UNUSED_KHR;
             group.intersectionShader = VK_SHADER_UNUSED_KHR;
             uint32_t i = 0;
+            if(!shader->isSortedForRayTracing())
+                shader->sortRayTracingShadersByGroups();
             for (const auto &item: shader->getCreateInfos()) {
                 switch (item.stage) {
                     case vk::ShaderStageFlagBits::eRaygenKHR:
@@ -70,16 +72,25 @@ namespace vkLibRt {
                     case vk::ShaderStageFlagBits::eClosestHitKHR:
                         group.type = vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup;
                         group.generalShader = VK_SHADER_UNUSED_KHR;
+                        group.anyHitShader = VK_SHADER_UNUSED_KHR;
+                        group.closestHitShader = VK_SHADER_UNUSED_KHR;
+                        group.intersectionShader = VK_SHADER_UNUSED_KHR;
                         group.closestHitShader = i;
                         break;
                     case vk::ShaderStageFlagBits::eAnyHitKHR:
                         group.type = vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup;
                         group.generalShader = VK_SHADER_UNUSED_KHR;
+                        group.anyHitShader = VK_SHADER_UNUSED_KHR;
+                        group.closestHitShader = VK_SHADER_UNUSED_KHR;
+                        group.intersectionShader = VK_SHADER_UNUSED_KHR;
                         group.anyHitShader = i;
                         break;
                     case vk::ShaderStageFlagBits::eIntersectionKHR:
                         group.type = vk::RayTracingShaderGroupTypeKHR::eGeneral;
                         group.generalShader = VK_SHADER_UNUSED_KHR;
+                        group.anyHitShader = VK_SHADER_UNUSED_KHR;
+                        group.closestHitShader = VK_SHADER_UNUSED_KHR;
+                        group.intersectionShader = VK_SHADER_UNUSED_KHR;
                         group.intersectionShader = i;
                         break;
                     default:

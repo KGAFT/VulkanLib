@@ -21,9 +21,9 @@ namespace vkLibRt {
 
     private:
         Buffer sbtBuffer;
-        std::vector<vk::StridedDeviceAddressRegionKHR> sbtRegions;
+        std::map<vk::ShaderStageFlagBits, vk::StridedDeviceAddressRegionKHR> sbtRegions;
     public:
-         vector<vk::StridedDeviceAddressRegionKHR> &getSbtRegions()  {
+        std::map<vk::ShaderStageFlagBits, vk::StridedDeviceAddressRegionKHR> &getSbtRegions()  {
             return sbtRegions;
         }
 
@@ -39,10 +39,11 @@ namespace vkLibRt {
 
             std::map<vk::ShaderStageFlagBits, uint32_t> shaders;
             for (const auto &item: shader->getCreateInfos()) {
-                if (shaders.find(item.stage) == shaders.end()) {
-                    shaders[item.stage] = 1;
+                vk::ShaderStageFlagBits stage = item.stage==vk::ShaderStageFlagBits::eClosestHitKHR?vk::ShaderStageFlagBits::eAnyHitKHR:item.stage;
+                if (shaders.find(stage) == shaders.end()) {
+                    shaders[stage] = 1;
                 } else {
-                    shaders[item.stage]++;
+                    shaders[stage]++;
                 }
             }
             size_t bufferSize = 0;
@@ -52,14 +53,14 @@ namespace vkLibRt {
                 if (item.first == vk::ShaderStageFlagBits::eRaygenKHR) {
                     regionKhr.stride = MemoryUtils::alignUp(resHandleSize,
                                                             device->getBaseDevice()->getRayTracingPipelinePropertiesKhr().shaderGroupBaseAlignment);
-                    regionKhr.size = regionKhr.stride;
+                    regionKhr.size = regionKhr.stride*item.second;
                 } else {
                     regionKhr.stride = resHandleSize;
                     regionKhr.size = MemoryUtils::alignUp(item.second * resHandleSize,
                                                           device->getBaseDevice()->getRayTracingPipelinePropertiesKhr().shaderGroupBaseAlignment);
                 }
                 bufferSize += regionKhr.size;
-                sbtRegions.push_back(regionKhr);
+                sbtRegions[item.first] = regionKhr;
             }
             uint32_t dataSize = handleCount * handleSize;
             std::vector<uint8_t> handles(dataSize);
@@ -74,8 +75,8 @@ namespace vkLibRt {
             vk::DeviceAddress bufferAddress = sbtBuffer.getAddress(instance.getDynamicLoader());
             size_t offsetCounter = 0;
             for (auto &item: sbtRegions) {
-                item.deviceAddress = bufferAddress + offsetCounter;
-                offsetCounter += item.size;
+                item.second.deviceAddress = bufferAddress + offsetCounter;
+                offsetCounter += item.second.size;
             }
             auto getHandle = [&](int i) { return handles.data() + i * handleSize; };
             void *sbtMapPoint;
@@ -86,10 +87,11 @@ namespace vkLibRt {
 
             pData = static_cast<uint8_t *>(sbtMapPoint);
             memcpy(pData, getHandle(handleIdx++), handleSize);
-            pData = reinterpret_cast<uint8_t *>((uintptr_t) sbtMapPoint + (uintptr_t) sbtRegions[0].size);
-            for (uint32_t i = 0; i < shaders.size(); ++i) {
+            pData = reinterpret_cast<uint8_t *>((uintptr_t) sbtMapPoint + (uintptr_t) sbtRegions[vk::ShaderStageFlagBits::eRaygenKHR].size);
+
+            for (const auto &item: sbtRegions){
                 memcpy(pData, getHandle(handleIdx++), handleSize);
-                pData = reinterpret_cast<uint8_t *>((uintptr_t) pData + sbtRegions[i].stride);
+                pData = reinterpret_cast<uint8_t *>((uintptr_t) pData + item.second.stride);
             }
             sbtBuffer.unMap();
         }
