@@ -11,7 +11,7 @@
 #include "RayTracingPipelineBuilder.hpp"
 
 namespace vkLibRt {
-    class RayTracingPipeline {
+    class RayTracingPipeline : public IDestroyableObject {
     public:
         RayTracingPipeline(Instance& instance, std::shared_ptr<LogicalDevice> &device, Shader *shader,
                            std::shared_ptr<RayTracingPipelineBuilder> pBuilder) : device(device), configurer(*device,
@@ -109,6 +109,14 @@ namespace vkLibRt {
         }
         vk::PipelineLayout getPipelineLayout(){
             return configurer.getPipelineLayout();
+        }
+
+    public:
+        void destroy() override {
+            destroyed = true;
+            device->getDevice().destroyPipeline(rayTracingPipelineKhr);
+            configurer.destroy();
+            shaderGroups.clear();
         }
     };
 }

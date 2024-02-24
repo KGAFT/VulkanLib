@@ -12,7 +12,7 @@
 
 namespace vkLibRt {
 
-    class ShaderBindingTable {
+    class ShaderBindingTable : public IDestroyableObject{
     public:
         ShaderBindingTable(std::shared_ptr<LogicalDevice> device, Instance &instance, Shader *shader,
                            vk::Pipeline rayTracingPipeline) : sbtBuffer(device) {
@@ -94,6 +94,13 @@ namespace vkLibRt {
                 pData = reinterpret_cast<uint8_t *>((uintptr_t) pData + item.second.stride);
             }
             sbtBuffer.unMap();
+        }
+
+    public:
+        void destroy() override {
+            destroyed = true;
+            sbtBuffer.destroy();
+            sbtRegions.clear();
         }
     };
 }

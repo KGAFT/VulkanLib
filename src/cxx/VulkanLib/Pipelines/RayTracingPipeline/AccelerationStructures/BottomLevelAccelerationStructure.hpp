@@ -15,7 +15,7 @@
 
 namespace vkLibRt {
 
-    class BottomLevelAccelerationStructure {
+    class BottomLevelAccelerationStructure : public IDestroyableObject{
     public:
         BottomLevelAccelerationStructure(std::shared_ptr<LogicalDevice> device, Instance &instance) : device(device),
                                                                                                       instance(
@@ -24,7 +24,6 @@ namespace vkLibRt {
     private:
         std::shared_ptr<LogicalDevice> device;
         Instance &instance;
-        vk::AccelerationStructureKHR bottomLevelAccelerationStructure{};
         SeriesObject<vk::BufferCreateInfo> bufferCreateInfos;
         std::vector<AccelKHR> accelerationStructures;
         std::vector<BlasInput> objectsInfos;
@@ -37,10 +36,22 @@ namespace vkLibRt {
 
         void confirmObjectsAndCreateBLASes() {
             buildBlas(instance, device, objectsInfos, vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace);
+            objectsInfos.clear();
         }
 
         std::vector<AccelKHR> &getAccelerationStructures() {
             return accelerationStructures;
+        }
+
+    public:
+        void destroy() override {
+            destroyed = true;
+            for (const auto &item: accelerationStructures){
+                device->getDevice().destroyAccelerationStructureKHR(item.accel, nullptr, instance.getDynamicLoader());
+                item.buffer->destroy();
+            }
+            accelerationStructures.clear();
+
         }
 
     private:

@@ -28,6 +28,7 @@ private:
             for(uint32_t i = 0; i<=10; i++){
                 poolSizes.push_back({(vk::DescriptorType)i, 10000});
             }
+            poolSizes.push_back({vk::DescriptorType::eAccelerationStructureKHR, 10000});
           }
         vk::DescriptorPoolCreateInfo poolInfo{};
         poolInfo.maxSets = 1500;

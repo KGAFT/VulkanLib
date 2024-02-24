@@ -11,7 +11,7 @@
 #include "glm/glm.hpp"
 
 namespace vkLibRt {
-    class TopLevelAccelerationStructure {
+    class TopLevelAccelerationStructure : public IDestroyableObject{
     public:
         TopLevelAccelerationStructure(Instance &instance,  std::shared_ptr<LogicalDevice> &device) : instance(
                 instance), device(device) {}
@@ -39,7 +39,15 @@ namespace vkLibRt {
             buildTlas(instance, device, instances);
         }
 
-         vk::AccelerationStructureKHR &getAccelerationStructure()  {
+    public:
+        void destroy() override {
+            destroyed = true;
+            device->getDevice().destroyAccelerationStructureKHR(tlas.accel, nullptr, instance.getDynamicLoader());
+            tlas.buffer->destroy();
+        }
+
+    public:
+        vk::AccelerationStructureKHR &getAccelerationStructure()  {
             return tlas.accel;
         }
 

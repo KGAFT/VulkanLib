@@ -9,7 +9,6 @@
 #include "VulkanLib/Pipelines/PipelineConfiguration/PipelineBuilder.hpp"
 namespace vkLibRt {
 
-
     class RayTracingPipelineBuilder {
         friend class RayTracingPipeline;
 

@@ -122,7 +122,7 @@ private:
                                                                 vk::ImageTiling::eOptimal,
                                                                 vk::ImageUsageFlagBits::eColorAttachment |
                                                                 vk::ImageUsageFlagBits::eSampled |
-                                                                vk::ImageUsageFlagBits::eTransferSrc,
+                                                                vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eStorage,
                                                                 vk::SharingMode::eExclusive,
                                                                 0, nullptr,
                                                                 vk::ImageLayout::eUndefined, nullptr
