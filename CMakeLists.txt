@@ -10,11 +10,9 @@ add_library(VulkanLib ${DEF_FILES} ${SRC_FILES})
 
 set_property(TARGET VulkanLib PROPERTY COMPILE_WARNING_AS_ERROR ON)
 
-add_subdirectory(subprojects/glfw)
 add_subdirectory(subprojects/glm)
 
 
-find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/cxx/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/include)
 file(GLOB_RECURSE UNNECESSARY_CPP ${CMAKE_CURRENT_BINARY_DIR}/include/*.cpp)
@@ -44,10 +42,10 @@ if(DEFINED VulkanSDKPath)
         target_link_directories(VulkanLib PUBLIC ${VulkanSDKPath}/bin ${VulkanSDKPath}/lib)
         set(VulkanLibList vulkan.1 shaderc_shared)
     endif()
-    target_link_libraries(VulkanLib PUBLIC ${VulkanLibList} glfw glm SDL3::SDL3)
+    target_link_libraries(VulkanLib PUBLIC ${VulkanLibList} glfw glm )
 else ()
     find_package(Vulkan REQUIRED shaderc_combined)
-    target_link_libraries(VulkanLib PUBLIC Vulkan::Vulkan Vulkan::shaderc_combined glfw glm SDL3::SDL3)
+    target_link_libraries(VulkanLib PUBLIC Vulkan::Vulkan Vulkan::shaderc_combined glm)
 endif ()
 
 target_include_directories(VulkanLib PUBLIC src/cxx)

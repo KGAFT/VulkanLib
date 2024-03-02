@@ -33,7 +33,7 @@ namespace vkLibRt {
                                  Instance &instance,
                                  Shader *shader) {
             size_t handleSize = device->getBaseDevice()->getRayTracingPipelinePropertiesKhr().shaderGroupHandleSize;
-            size_t resHandleSize = MemoryUtils::alignUp(handleSize,
+            size_t resHandleSize = Integral::alignUp(handleSize,
                                                         device->getBaseDevice()->getRayTracingPipelinePropertiesKhr().shaderGroupHandleAlignment);
             uint32_t handleCount = shader->getCreateInfos().size();
 
@@ -51,12 +51,12 @@ namespace vkLibRt {
             for (const auto &item: shaders) {
                 vk::StridedDeviceAddressRegionKHR regionKhr{};
                 if (item.first == vk::ShaderStageFlagBits::eRaygenKHR) {
-                    regionKhr.stride = MemoryUtils::alignUp(resHandleSize,
+                    regionKhr.stride = Integral::alignUp(resHandleSize,
                                                             device->getBaseDevice()->getRayTracingPipelinePropertiesKhr().shaderGroupBaseAlignment);
                     regionKhr.size = regionKhr.stride*item.second;
                 } else {
                     regionKhr.stride = resHandleSize;
-                    regionKhr.size = MemoryUtils::alignUp(item.second * resHandleSize,
+                    regionKhr.size = Integral::alignUp(item.second * resHandleSize,
                                                           device->getBaseDevice()->getRayTracingPipelinePropertiesKhr().shaderGroupBaseAlignment);
                 }
                 bufferSize += regionKhr.size;

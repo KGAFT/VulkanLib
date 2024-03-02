@@ -5,9 +5,7 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-#include <GLFW/glfw3.h>
-#include <SDL.h>
-#include <SDL_vulkan.h>
+
 #include "VulkanLib/InstanceLogger/IInstanceLoggerCallback.hpp"
 
 class InstanceBuilder {
@@ -57,18 +55,6 @@ public:
         InstanceBuilder::saveDefaultVulkanLoggerCallback = saveDefaultVulkanLoggerCallback;
     }
 
-    void presetForGlfw() {
-        uint32_t extCount;
-        const char **ppExtensions = glfwGetRequiredInstanceExtensions(&extCount);
-        addExtensions(ppExtensions, extCount);
-    }
-    void presetForSDL3(){
-        uint32_t extensionCount;
-        char const* const* ppExtensions = SDL_Vulkan_GetInstanceExtensions(&extensionCount);
-        for (uint32_t i = 0; i < extensionCount; ++i){
-            addExtension(ppExtensions[i]);
-        }
-    }
 
     void setApplicationName(const char *pApplicationName) {
         InstanceBuilder::applicationName = pApplicationName;

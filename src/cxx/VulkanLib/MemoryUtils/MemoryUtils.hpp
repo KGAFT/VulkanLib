@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
-namespace MemoryUtils {
+namespace Integral {
     template<class Integral>
     constexpr bool isAligned(Integral x, size_t a) noexcept {
         return (x & (Integral(a) - 1)) == 0;
@@ -23,7 +23,12 @@ namespace MemoryUtils {
         return Integral(x & ~Integral(a - 1));
     }
 
-    void memClear(void *data, size_t size) {
+
+}
+
+class MemoryUtils{
+public:
+    static void memClear(void *data, size_t size) {
         for (size_t i = 0; i < size; ++i) {
             ((char *) data)[i] = 0;
         }
@@ -38,4 +43,4 @@ namespace MemoryUtils {
         memcpy(&out_matrix, &temp, sizeof(glm::mat3x4));
         return out_matrix;
     }
-} // namespace MemoryUtils
+};
