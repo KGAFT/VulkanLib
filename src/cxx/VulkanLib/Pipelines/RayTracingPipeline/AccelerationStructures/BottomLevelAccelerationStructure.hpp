@@ -5,6 +5,7 @@
 #ifndef VULKANRENDERENGINE_BOTTOMLEVELACCELERATIONSTRUCTURE_HPP
 #define VULKANRENDERENGINE_BOTTOMLEVELACCELERATIONSTRUCTURE_HPP
 
+#include <memory>
 #include <vulkan/vulkan.hpp>
 #include <numeric>
 #include "VulkanLib/Device/Buffer/VertexBuffer.hpp"
@@ -28,9 +29,9 @@ namespace vkLibRt {
         std::vector<AccelKHR> accelerationStructures;
         std::vector<BlasInput> objectsInfos;
     public:
-        void storeObject(std::shared_ptr<VertexBuffer> vBuffer, std::shared_ptr<IndexBuffer> iBuffer) {
+        void storeObject(std::shared_ptr<VertexBuffer> vBuffer, std::shared_ptr<IndexBuffer> iBuffer, std::shared_ptr<Buffer> transformBuffer) {
             objectsInfos.push_back({});
-            ASUtils::objectToVkGeometryKHR(vBuffer, iBuffer, &objectsInfos[objectsInfos.size() - 1],
+            ASUtils::objectToVkGeometryKHR(vBuffer, iBuffer, transformBuffer, &objectsInfos[objectsInfos.size() - 1],
                                            instance.getDynamicLoader());
         }
 
