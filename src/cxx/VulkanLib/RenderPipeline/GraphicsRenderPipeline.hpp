@@ -14,7 +14,7 @@ class RenderPipelineBuilder {
 
 public:
     RenderPipelineBuilder() {
-        pGraphicsPipelineBuilder = GraphicsPipelineBuilder::getInstance();
+        pGraphicsPipelineBuilder = new GraphicsPipelineBuilder;
     }
 
 private:
@@ -42,13 +42,13 @@ public:
     }
 
     void clear() {
-        GraphicsPipelineBuilder::releaseBuilderInstance(pGraphicsPipelineBuilder);
-        RenderPipelineBuilder::pGraphicsPipelineBuilder = GraphicsPipelineBuilder::getInstance();
+        delete pGraphicsPipelineBuilder;
+        RenderPipelineBuilder::pGraphicsPipelineBuilder = new GraphicsPipelineBuilder;
         attachmentsPerStepAmount = 0;
     }
 
     virtual ~RenderPipelineBuilder() {
-        GraphicsPipelineBuilder::releaseBuilderInstance(pGraphicsPipelineBuilder);
+        delete pGraphicsPipelineBuilder;
     }
 
 };

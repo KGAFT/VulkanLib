@@ -20,13 +20,7 @@ class GraphicsPipelineBuilder : public IDestroyableObject {
 private:
     static inline SeriesObject<GraphicsPipelineBuilder> builders = SeriesObject<GraphicsPipelineBuilder>();
 public:
-    static GraphicsPipelineBuilder *getInstance() {
-        return builders.getObjectInstance();
-    }
-    static void releaseBuilderInstance(GraphicsPipelineBuilder* builder){
-        builders.releaseObjectInstance(builder);
-    }
-public:
+
     GraphicsPipelineBuilder() {
 
     }
