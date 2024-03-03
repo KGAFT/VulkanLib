@@ -13,7 +13,7 @@ class IndirectBuffer : public IDestroyableObject{
 private:
     static inline SeriesObject<vk::BufferCreateInfo> createInfos = SeriesObject<vk::BufferCreateInfo>();
 public:
-    IndirectBuffer(std::shared_ptr<LogicalDevice> device, uint32_t structuresAmount, size_t sizeOfStructure)  {
+    IndirectBuffer(std::shared_ptr<LogicalDevice> device, uint32_t structuresAmount, size_t sizeOfStructure) : structuresAmount(structuresAmount), sizeOfStructure(sizeOfStructure) {
 
 
         auto createInfo = createInfos.getObjectInstance();
@@ -29,12 +29,22 @@ public:
 private:
     std::shared_ptr<Buffer> buffer;
     void* mapPoint;
+    uint32_t structuresAmount;
+    size_t sizeOfStructure;
 public:
     void *getMapPoint()  {
         return mapPoint;
     }
     vk::Buffer& getBuffer(){
         return buffer->getBuffer();
+    }
+
+    uint32_t getStructuresAmount() const {
+        return structuresAmount;
+    }
+
+    size_t getSizeOfStructure() const {
+        return sizeOfStructure;
     }
 
     void destroy() override {

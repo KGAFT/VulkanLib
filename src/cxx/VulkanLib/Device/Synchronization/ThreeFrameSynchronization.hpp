@@ -41,7 +41,7 @@ public:
         }
         res = device->getDevice().acquireNextImageKHR(swapChain->getSwapchainKhr(), std::numeric_limits<uint64_t>::max(),
                                                      imageAvailableSemaphores[currentFrame],
-                                                     VK_NULL_HANDLE,
+                                                     vk::Fence(),
                                                      &result);
 
         if(res!=vk::Result::eSuccess){

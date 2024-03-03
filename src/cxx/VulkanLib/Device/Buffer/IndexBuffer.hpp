@@ -33,8 +33,8 @@ public:
         stagingBuffer.unMap();
 
         createInfo->usage = vk::BufferUsageFlagBits::eIndexBuffer |
-                            vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eShaderDeviceAddress |(
-                forRayTracing ? vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
+                            vk::BufferUsageFlagBits::eTransferDst  |(
+                forRayTracing ? vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress
                               : vk::BufferUsageFlags());;
 
         buffer = std::make_shared<Buffer>(device, createInfo, vk::MemoryPropertyFlagBits::eDeviceLocal);
