@@ -10,14 +10,15 @@
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
 
 struct DescriptorBufferInfo {
-    vk::DescriptorBufferInfo base;
+    std::vector<vk::DescriptorBufferInfo> base;
     uint32_t binding;
     vk::DescriptorType descriptorType;
 };
 
 struct DescriptorImageInfo {
-    vk::DescriptorImageInfo base;
+    std::vector<vk::DescriptorImageInfo> imageInfos;
     uint32_t binding;
+
     vk::DescriptorType descriptorType;
 };
 
@@ -87,8 +88,8 @@ public:
         writes[writes.size() - 1].dstBinding = buffersInfo[buffersInfo.size()-1]->binding;
         writes[writes.size() - 1].dstArrayElement = 0;
         writes[writes.size() - 1].descriptorType = buffersInfo[buffersInfo.size()-1]->descriptorType;
-        writes[writes.size() - 1].descriptorCount = 1;
-        writes[writes.size() - 1].pBufferInfo = &buffersInfo[buffersInfo.size()-1]->base;
+        writes[writes.size() - 1].descriptorCount = buffersInfo[buffersInfo.size()-1]->base.size();
+        writes[writes.size() - 1].pBufferInfo = buffersInfo[buffersInfo.size()-1]->base.data();
     }
     void addImageInfo(DescriptorImageInfo& imageInfo){
         imagesInfo.push_back(new DescriptorImageInfo(imageInfo));
@@ -98,8 +99,8 @@ public:
         writes[writes.size()-1].dstBinding = imagesInfo[imagesInfo.size()-1]->binding;
         writes[writes.size()-1].dstArrayElement = 0;
         writes[writes.size()-1].descriptorType = imagesInfo[imagesInfo.size()-1]->descriptorType;
-        writes[writes.size()-1].descriptorCount = 1;
-        writes[writes.size()-1].pImageInfo = &imagesInfo[imagesInfo.size()-1]->base;
+        writes[writes.size()-1].descriptorCount = imagesInfo[imagesInfo.size()-1]->imageInfos.size();
+        writes[writes.size()-1].pImageInfo = imagesInfo[imagesInfo.size()-1]->imageInfos.data();
     }
 
     void addAccelerationStructureInfo(DescriptorAccelerationStructureInfo& acsInfo){

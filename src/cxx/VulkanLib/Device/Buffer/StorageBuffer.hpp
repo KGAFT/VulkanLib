@@ -12,7 +12,7 @@
 class StorageBuffer : public IDestroyableObject {
 
 public:
-    StorageBuffer(std::shared_ptr<LogicalDevice> device, size_t bufferSize, vk::BufferUsageFlags additionalFlags) {
+    StorageBuffer(std::shared_ptr<LogicalDevice> device, size_t bufferSize, vk::BufferUsageFlags additionalFlags) : bufferSize(bufferSize){
 
 
         buffer = std::make_shared<Buffer>(device, bufferSize, vk::BufferUsageFlagBits::eStorageBuffer |
@@ -26,9 +26,14 @@ public:
 private:
     std::shared_ptr<Buffer> buffer;
     void *mapPoint;
+    size_t bufferSize;
 public:
     void *getMapPoint() {
         return mapPoint;
+    }
+
+    size_t getBufferSize() const {
+        return bufferSize;
     }
 
     vk::Buffer &getBuffer() {
