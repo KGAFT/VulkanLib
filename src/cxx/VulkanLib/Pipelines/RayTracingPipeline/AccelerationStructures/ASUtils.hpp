@@ -103,7 +103,6 @@ namespace vkLibRt {
             buildInfo.mode = update ? vk::BuildAccelerationStructureModeKHR::eUpdate
                                     : vk::BuildAccelerationStructureModeKHR::eBuild;
             buildInfo.type = vk::AccelerationStructureTypeKHR::eTopLevel;
-            buildInfo.srcAccelerationStructure = VK_NULL_HANDLE;
 
             vk::AccelerationStructureBuildSizesInfoKHR sizeInfo{
                     VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR};
@@ -133,7 +132,7 @@ namespace vkLibRt {
                     scratchBuffer->getAddress(instance.getDynamicLoader());
 
             // Update build information
-            buildInfo.srcAccelerationStructure = update ? tlas.accel : VK_NULL_HANDLE;
+            buildInfo.srcAccelerationStructure = update ? tlas.accel : vk::AccelerationStructureKHR{};
             buildInfo.dstAccelerationStructure = tlas.accel;
             buildInfo.scratchData.deviceAddress = scratchAddress;
 

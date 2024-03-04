@@ -106,7 +106,7 @@ namespace vkLibRt {
             vk::DeviceAddress scratchAddress = scratchBuffer.getAddress(instance.getDynamicLoader());
 
             // Allocate a query pool for storing the needed size for every BLAS compaction.
-            vk::QueryPool queryPool{VK_NULL_HANDLE};
+            vk::QueryPool queryPool{};
             if (nbCompactions > 0)  // Is compaction requested?
             {
                 assert(nbCompactions == nbBlas);  // Don't allow mix of on/off compaction

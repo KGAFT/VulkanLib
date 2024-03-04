@@ -10,7 +10,7 @@
 
 namespace vkLibRt {
     struct AccelKHR {
-        vk::AccelerationStructureKHR accel = VK_NULL_HANDLE;
+        vk::AccelerationStructureKHR accel = {};
         std::shared_ptr<Buffer> buffer;
     };
 
