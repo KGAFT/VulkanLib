@@ -69,7 +69,7 @@ public:
         return inputBindDesc;
     }
 
-    const vector<vk::VertexInputAttributeDescription> &getInputAttribDescs() const {
+    const std::vector<vk::VertexInputAttributeDescription> &getInputAttribDescs() const {
         return inputAttribDescs;
     }
 
