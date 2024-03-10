@@ -1,82 +1,43 @@
 //
 // Created by kgaft on 11/4/23.
 //
-#pragma once
+#ifndef VULKANLIB_INSTANCE_HPP
+#define VULKANLIB_INSTANCE_HPP
 
 #include <vulkan/vulkan.hpp>
 #include "InstanceBuilder.hpp"
 #include "VulkanLib/InstanceLogger/InstanceLogger.hpp"
 #include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
 
-class Instance : IDestroyableObject{
+class Instance : IDestroyableObject {
 public:
-    static bool debugSupported(){
-        for ( auto &item: vk::enumerateInstanceLayerProperties()){
-            if(!strcmp(item.layerName, "VK_LAYER_KHRONOS_validation")){
-                return true;
-            }
-        }
-        return false;
-    }
+    static bool debugSupported();
 
 public:
-    Instance(InstanceBuilder &pBuilder) {
-        vk::ApplicationInfo appInfo(
-                pBuilder.applicationName,
-                VK_MAKE_VERSION(1, 0, 0),
-                "VulkanLib",
-                VK_MAKE_VERSION(1, 0, 0),
-                VK_API_VERSION_1_2
-        );
-        vk::InstanceCreateInfo createInfo(
-                vk::InstanceCreateFlags(),
-                &appInfo,
-                pBuilder.layers.size(), pBuilder.layers.data(),
-                pBuilder.extensions.size(), pBuilder.extensions.data()
-        );
-        try {
-            instance = vk::createInstance(createInfo, nullptr);
-            dynamicLoader = vk::DispatchLoaderDynamic(instance, vkGetInstanceProcAddr);
-            if (pBuilder.debugEnabled) {
-                logger = new InstanceLogger(instance, dynamicLoader, pBuilder.startLoggerCallbacks, pBuilder.saveDefaultVulkanLoggerCallback);
-                enabledLayers = pBuilder.layers;
-            }
-        } catch (vk::SystemError &error) {
-            std::cerr << error.what() << std::endl;
-        }
-    }
-    Instance(){}
+    explicit Instance(InstanceBuilder &pBuilder);
+
+    Instance() = default;
+
 private:
     vk::Instance instance{nullptr};
     vk::DispatchLoaderDynamic dynamicLoader;
-    std::vector<const char*> enabledLayers;
+    std::vector<const char *> enabledLayers;
     InstanceLogger *logger = nullptr;
 public:
-    InstanceLogger *getLogger() const {
-        return logger;
-    }
+    [[nodiscard]] InstanceLogger *getLogger() const;
 
-    vk::Instance &getInstance() {
-        return instance;
-    }
+    vk::Instance &getInstance();
 
-    const std::vector<const char *> &getEnabledLayers() const {
-        return enabledLayers;
-    }
+    [[nodiscard]] const std::vector<const char *> &getEnabledLayers() const;
 
-     vk::DispatchLoaderDynamic &getDynamicLoader() {
-        return dynamicLoader;
-    }
+    vk::DispatchLoaderDynamic &getDynamicLoader();
 
 public:
-    void destroy() override {
-        delete logger;
-        instance.destroy();
-        destroyed = true;
-    }
+    void destroy() override;
 
 };
 
+#endif
 
 
 

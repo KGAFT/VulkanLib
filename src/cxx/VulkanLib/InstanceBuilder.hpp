@@ -1,7 +1,8 @@
 //
 // Created by kgaft on 11/4/23.
 //
-#pragma once
+#ifndef VULKANLIB_INSTANCEBUILDER_HPP
+#define VULKANLIB_INSTANCEBUILDER_HPP
 
 #include <vulkan/vulkan.h>
 #include <vector>
@@ -12,52 +13,32 @@ class InstanceBuilder {
     friend class Instance;
 
 public:
-    InstanceBuilder() {}
+    InstanceBuilder() = default;
 
 private:
     std::vector<const char *> layers;
     std::vector<const char *> extensions{"VK_KHR_get_physical_device_properties2"};
-    std::vector<IInstanceLoggerCallback*> startLoggerCallbacks;
+    std::vector<IInstanceLoggerCallback *> startLoggerCallbacks;
     bool debugEnabled = false;
     const char *applicationName = nullptr;
     bool saveDefaultVulkanLoggerCallback = false;
 public:
-    void addLayer(const char *layer) {
-        layers.push_back(layer);
-    }
+    void addLayer(const char *layer);
 
-    void addExtension(const char *extension) {
-        extensions.push_back(extension);
-    }
+    void addExtension(const char *extension);
 
-    void addExtensions(const char **extensions, unsigned int extensionCount) {
-        for (unsigned int i = 0; i < extensionCount; ++i) {
-            InstanceBuilder::extensions.push_back(extensions[i]);
-        }
-    }
+    void addExtensions(const char **ppExtensions, unsigned int extensionCount);
 
-    void addLayers(const char **layers, unsigned int layersCount) {
-        for (unsigned int i = 0; i < layersCount; ++i) {
-            InstanceBuilder::layers.push_back(layers[i]);
-        }
-    }
-    void addLoggerCallback(IInstanceLoggerCallback* instanceLoggerCallback){
-        startLoggerCallbacks.push_back(instanceLoggerCallback);
-    }
+    void addLayers(const char **ppLayers, unsigned int layersCount);
 
-    void presetForDebug() {
-        layers.push_back("VK_LAYER_KHRONOS_validation");
-        extensions.push_back("VK_EXT_debug_utils");
-        debugEnabled = true;
-    }
+    void addLoggerCallback(IInstanceLoggerCallback *instanceLoggerCallback);
 
-    void setSaveDefaultVulkanLoggerCallback(bool saveDefaultVulkanLoggerCallback) {
-        InstanceBuilder::saveDefaultVulkanLoggerCallback = saveDefaultVulkanLoggerCallback;
-    }
+    void presetForDebug();
+
+    void setSaveDefaultVulkanLoggerCallback(bool isSaveDefaultVulkanLoggerCallback);
 
 
-    void setApplicationName(const char *pApplicationName) {
-        InstanceBuilder::applicationName = pApplicationName;
-    }
+    void setApplicationName(const char *pApplicationName);
 };
 
+#endif

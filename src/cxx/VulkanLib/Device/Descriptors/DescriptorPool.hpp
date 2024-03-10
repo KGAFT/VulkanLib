@@ -1,7 +1,8 @@
 //
 // Created by kgaft on 11/28/23.
 //
-#pragma once
+#ifndef VULKANLIB_DESCRIPTORPOOL_HPP
+#define VULKANLIB_DESCRIPTORPOOL_HPP
 
 #include <vulkan/vulkan.hpp>
 #include <memory>
@@ -11,66 +12,24 @@
 
 class DescriptorPool : public IDestroyableObject {
 private:
-    static inline std::shared_ptr<DescriptorPool> instance = std::shared_ptr<DescriptorPool>();
+    static inline auto instance = std::shared_ptr<DescriptorPool>();
     static inline bool initialized = false;
 public:
-    static std::shared_ptr<DescriptorPool> getInstance(std::shared_ptr<LogicalDevice> device){
-        if(!initialized){
-            instance = std::shared_ptr<DescriptorPool>(new DescriptorPool(device));
-            initialized = true;
-        }
-        return instance;
-    }
+    static std::shared_ptr<DescriptorPool> getInstance(std::shared_ptr<LogicalDevice> device);
 private:
-    DescriptorPool( std::shared_ptr<LogicalDevice> logicalDevice) : logicalDevice(logicalDevice) {
-        std::vector<vk::DescriptorPoolSize> poolSizes = std::vector<vk::DescriptorPoolSize>();
-        if(poolSizes.empty()){
-            for(uint32_t i = 0; i<=10; i++){
-                poolSizes.push_back({(vk::DescriptorType)i, 10000});
-            }
-            poolSizes.push_back({vk::DescriptorType::eAccelerationStructureKHR, 10000});
-          }
-        vk::DescriptorPoolCreateInfo poolInfo{};
-        poolInfo.maxSets = 1500;
-        poolInfo.pPoolSizes = poolSizes.data();
-        poolInfo.poolSizeCount = poolSizes.size();
-        descriptorPool = logicalDevice->getDevice().createDescriptorPool(poolInfo);
-    }
-    DescriptorPool(){
-
-    }
+    DescriptorPool( std::shared_ptr<LogicalDevice> logicalDevice);
+    DescriptorPool() = default;
 private:
     vk::DescriptorPool descriptorPool;
     std::shared_ptr<LogicalDevice> logicalDevice;
     std::vector<vk::DescriptorSetLayout> layouts;
     SeriesObject<vk::DescriptorSetAllocateInfo> allocInfos;
 public:
-    std::shared_ptr<DescriptorSet> allocateDescriptorSet(uint32_t instanceCount, vk::DescriptorSetLayout layout){
-        std::shared_ptr<DescriptorSet> res = std::make_shared<DescriptorSet>();
-        layouts.clear();
-        layouts.resize(instanceCount, layout);
-
-        vk::DescriptorSetAllocateInfo* allocateInfo = allocInfos.getObjectInstance();
-        allocateInfo->sType = vk::StructureType::eDescriptorSetAllocateInfo;
-        allocateInfo->descriptorPool = descriptorPool;
-        allocateInfo->pSetLayouts = layouts.data();
-        allocateInfo->descriptorSetCount = instanceCount;
-
-        res->descriptorSet.resize(instanceCount);
-        res->device = logicalDevice;
-
-        vk::Result allocRes = logicalDevice->getDevice().allocateDescriptorSets(allocateInfo, res->descriptorSet.data());
-        if(allocRes!=vk::Result::eSuccess){
-            throw std::runtime_error("Failed to allocate descriptor set");
-        }
-        return res;
-    }
+    std::shared_ptr<DescriptorSet> allocateDescriptorSet(uint32_t instanceCount, vk::DescriptorSetLayout layout);
 
 public:
-    void destroy() override {
-        destroyed = true;
-        logicalDevice->getDevice().destroyDescriptorPool(descriptorPool);
-    }
+    void destroy() override;
 };
 
+#endif
 

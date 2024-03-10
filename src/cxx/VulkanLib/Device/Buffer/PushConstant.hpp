@@ -1,35 +1,27 @@
 //
 // Created by kgaft on 12/3/23.
 //
-#pragma once
+#ifndef VULKANLIB_PUSHCONSTANT_HPP
+#define VULKANLIB_PUSHCONSTANT_HPP
 
 #include <vulkan/vulkan.hpp>
+#include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
 
-class PushConstant : public IDestroyableObject{
+class PushConstant : public IDestroyableObject {
 public:
-    PushConstant(size_t size, vk::PipelineLayout pipelineLayout) : size(size), layout(pipelineLayout){
-        data = malloc(size);
-    }
+    PushConstant(size_t size, vk::PipelineLayout pipelineLayout);
+
 private:
-    void* data;
+    void *data;
     size_t size;
     vk::PipelineLayout layout;
 public:
-    void bind(vk::CommandBuffer cmd, vk::ShaderStageFlags bindPoint){
-        cmd.pushConstants(layout, bindPoint, 0, size, data);
-    }
-    void writeData(void* data, size_t writeSize){
-        if(writeSize>size){
-            throw std::runtime_error("Error: you cannot write data that size exceeds the push constant size");
-        }
-        memcpy(PushConstant::data, data, writeSize);
-    }
+    void bind(vk::CommandBuffer cmd, vk::ShaderStageFlags bindPoint);
 
+    void writeData(void *pData, size_t writeSize);
 public:
-    void destroy() override {
-        destroyed = true;
-        free(data);
-    }
+    void destroy() override;
 };
 
+#endif
 

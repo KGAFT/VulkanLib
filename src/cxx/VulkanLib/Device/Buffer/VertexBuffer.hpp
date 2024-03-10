@@ -1,48 +1,17 @@
 //
 // Created by kgaft on 11/27/23.
 //
-#pragma once
+#ifndef VULKANLIB_VERTEXBUFFER_HPP
+#define VULKANLIB_VERTEXBUFFER_HPP
 
 #include "Buffer.hpp"
 
 class VertexBuffer : public IDestroyableObject {
 private:
-    static inline SeriesObject<vk::BufferCreateInfo> createInfos = SeriesObject<vk::BufferCreateInfo>();
+    static inline auto createInfos = SeriesObject<vk::BufferCreateInfo>();
 public:
     VertexBuffer(std::shared_ptr<LogicalDevice> device, void *vertices, uint32_t verticesAmount, size_t stepSize,
-                 vk::Format format, bool forRayTracing)
-            : device(device), vertexCount(verticesAmount), format(format), stepSize(stepSize),
-              verticesAmount(verticesAmount) {
-
-
-        vk::BufferCreateInfo *createInfo = createInfos.getObjectInstance();
-        createInfo->sType = vk::StructureType::eBufferCreateInfo;
-        createInfo->size = verticesAmount * stepSize;
-        createInfo->usage = vk::BufferUsageFlagBits::eTransferSrc;
-        createInfo->sharingMode = vk::SharingMode::eExclusive;
-
-
-        void *mapPoint = nullptr;
-
-        Buffer stagingBuffer(device, createInfo,
-                             vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-        stagingBuffer.map(&mapPoint, 0, vk::MemoryMapFlags());
-        memcpy(mapPoint, vertices, verticesAmount * stepSize);
-        stagingBuffer.unMap();
-
-        createInfo->usage = vk::BufferUsageFlagBits::eVertexBuffer |
-                            vk::BufferUsageFlagBits::eTransferDst |
-                            (forRayTracing ? vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR|
-                                             vk::BufferUsageFlagBits::eShaderDeviceAddress
-                                           : vk::BufferUsageFlags());
-
-        buffer = std::make_shared<Buffer>(device, createInfo, vk::MemoryPropertyFlagBits::eDeviceLocal);
-        vk::CommandBuffer cmd = device->getQueueByType(vk::QueueFlagBits::eGraphics)->beginSingleTimeCommands();
-        buffer->copyFromBuffer(cmd, stagingBuffer, createInfo->size, 0, 0);
-        device->getQueueByType(vk::QueueFlagBits::eGraphics)->endSingleTimeCommands(cmd);
-        createInfos.releaseObjectInstance(createInfo);
-        stagingBuffer.destroy();
-    }
+                 vk::Format format, bool forRayTracing);
 
 private:
     std::shared_ptr<LogicalDevice> device;
@@ -52,37 +21,20 @@ private:
     size_t stepSize;
     size_t verticesAmount;
 public:
-    void bind(vk::CommandBuffer cmd) {
-        vk::DeviceSize offset = 0;
-        cmd.bindVertexBuffers(0, buffer->getBuffer(), offset);
-    }
+    void bind(vk::CommandBuffer cmd);
 
-    size_t getStepSize() const {
-        return stepSize;
-    }
+    size_t getStepSize() const;
 
+    void drawAll(vk::CommandBuffer cmd);
 
+    vk::Format getFormat() const;
 
-    void drawAll(vk::CommandBuffer cmd) {
-        cmd.draw(vertexCount, 1, 0, 0);
-    }
+    size_t getVerticesAmount() const;
 
-    vk::Format getFormat() const {
-        return format;
-    }
+    vk::DeviceAddress getBufferAddress(vk::DispatchLoaderDynamic &loaderDynamic);
 
-    size_t getVerticesAmount() const {
-        return verticesAmount;
-    }
-
-    vk::DeviceAddress getBufferAddress(vk::DispatchLoaderDynamic &loaderDynamic) {
-        return buffer->getAddress(loaderDynamic);
-    }
-
-    void destroy() override {
-        destroyed = true;
-        buffer->destroy();
-    }
+    void destroy() override;
 };
 
+#endif
 
