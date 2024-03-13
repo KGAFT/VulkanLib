@@ -5,8 +5,9 @@
 
 #include <fstream>
 
-namespace FileReader{
-    const char *readText(const char *filePath, size_t* sizeOutput) {
+class FileReader{
+public:
+    static const char *readText(const char *filePath, size_t* sizeOutput) {
         std::ifstream fileReader(filePath, std::ios::binary);
         if (fileReader) {
             char *content;
@@ -21,7 +22,7 @@ namespace FileReader{
         }
         return nullptr;
     }
-    const char* readBinary(const char* filePath, size_t* sizeOutput){
+    static const char* readBinary(const char* filePath, size_t* sizeOutput){
         std::ifstream file{filePath, std::ios::ate | std::ios::binary};
 
         if (!file.is_open())
@@ -38,4 +39,4 @@ namespace FileReader{
         file.close();
         return buffer;
     }
-}
+};

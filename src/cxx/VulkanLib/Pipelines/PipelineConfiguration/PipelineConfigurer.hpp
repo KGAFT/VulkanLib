@@ -20,7 +20,7 @@ public:
 
 private:
     vk::PipelineLayout pipelineLayout;
-    vk::DescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+    vk::DescriptorSetLayout descriptorSetLayout{std::nullptr_t()};
     LogicalDevice &device;
     vk::VertexInputBindingDescription inputBindDesc{};
     std::vector<vk::VertexInputAttributeDescription> inputAttribDescs;

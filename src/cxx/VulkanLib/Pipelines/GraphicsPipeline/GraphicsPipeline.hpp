@@ -94,7 +94,7 @@ private:
         createStrip->pipelineInfo.subpass = config->subpass;
 
         createStrip->pipelineInfo.basePipelineIndex = -1;
-        createStrip->pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+        createStrip->pipelineInfo.basePipelineHandle = vk::Pipeline(std::nullptr_t());
 
         vk::PipelineRenderingCreateInfo renderingCreateInfo{};
         renderingCreateInfo.colorAttachmentCount = (uint32_t) colorFormats.size();
