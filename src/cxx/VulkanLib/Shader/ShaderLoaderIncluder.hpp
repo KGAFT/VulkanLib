@@ -8,22 +8,30 @@
 #include <cstring>
 #include <VulkanLib/MemoryUtils/FileReader.hpp>
 class ShaderLoaderIncluder : public shaderc::CompileOptions::IncluderInterface{
+public:
+    ShaderLoaderIncluder(std::string &workDirectory, const std::vector<std::string> &includeDirectories)
+            : workDirectory(workDirectory), includeDirectories(includeDirectories) {}
+
 private:
     SeriesObject<shaderc_include_result> includes;
-
+    std::string workDirectory;
+    const std::vector<std::string> includeDirectories;
 public:
     shaderc_include_result *
     GetInclude(const char *requested_source, shaderc_include_type type, const char *requesting_source,
                size_t include_depth) override {
-        if(type==shaderc_include_type_relative){
-            std::cout<<"Include relative"<<std::endl;
-        }
-        if(include_depth>1){
-            std::cout<<include_depth<<std::endl;
-        }
+
         auto *result = (shaderc_include_result *) includes.getObjectInstance();
         size_t codeLength;
-        const char* code = FileReader::readText(requested_source, &codeLength);
+        const char* code = FileReader::readText((workDirectory+std::string(requested_source)).c_str(), &codeLength);
+        if(!code){
+            for (auto &item: includeDirectories){
+                code = FileReader::readText((item+"/"+std::string(requested_source)).c_str(), &codeLength);
+                if(code){
+                    break;
+                }
+            }
+        }
         if(!code){
             throw std::runtime_error(std::string("Include error: no such file: ")+requested_source+" included in "+requesting_source);
         }

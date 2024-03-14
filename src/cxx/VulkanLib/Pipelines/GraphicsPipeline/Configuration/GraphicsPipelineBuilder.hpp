@@ -36,6 +36,10 @@ public:
         pipelineBuilder.addVertexInput(input);
     }
 
+    void addStorageBufferInfo(StorageBufferInfo info){
+        pipelineBuilder.addStorageBuffer(info);
+    }
+
     void addPushConstantInfo(PushConstantInfo info) {
         pipelineBuilder.addPushConstantInfo(info);
     }
@@ -51,7 +55,6 @@ public:
     void addColorAttachmentInfo(vk::Format colorAttachmentFormat) {
         colorAttachmentInfo.push_back(colorAttachmentFormat);
     }
-
 
     void setDepthAttachmentInfo(vk::Format depthAttachmentInfo) {
         this->depthAttachmentInfo = depthAttachmentInfo;

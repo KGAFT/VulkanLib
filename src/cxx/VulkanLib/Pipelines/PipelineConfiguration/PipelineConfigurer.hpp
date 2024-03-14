@@ -8,15 +8,16 @@
 #include "VulkanLib/Device/LogicalDevice/LogicalDevice.hpp"
 #include "VulkanLib/Pipelines/GraphicsPipeline/Configuration/GraphicsPipelineBuilder.hpp"
 
-class PipelineConfigurer : public IDestroyableObject{
+class PipelineConfigurer : public IDestroyableObject {
     friend class GraphicsPipeline;
+
 public:
-     PipelineConfigurer(LogicalDevice &device, PipelineBuilder* builder) : device(device) {
-         loadDescriptorSetLayout(builder);
-         loadPipelineLayout(builder);
-         prepareBinding(builder->vertexInputs);
-         prepareInputAttribs(builder->vertexInputs);
-     }
+    PipelineConfigurer(LogicalDevice &device, PipelineBuilder *builder) : device(device) {
+        loadDescriptorSetLayout(builder);
+        loadPipelineLayout(builder);
+        prepareBinding(builder->vertexInputs);
+        prepareInputAttribs(builder->vertexInputs);
+    }
 
 private:
     vk::PipelineLayout pipelineLayout;
@@ -27,7 +28,10 @@ private:
 private:
     void loadDescriptorSetLayout(PipelineBuilder *endConfiguration) {
         std::vector<vk::DescriptorSetLayoutBinding> bindings;
-        bindings.resize(endConfiguration->uniformBufferInfo.size()+endConfiguration->samplersInfo.size()+endConfiguration->storageImagesInfos.size()+endConfiguration->accelerationStructuresInfos.size());
+        bindings.resize(endConfiguration->uniformBufferInfo.size() + endConfiguration->samplersInfo.size() +
+                        endConfiguration->storageImagesInfos.size() +
+                        endConfiguration->accelerationStructuresInfos.size() +
+                        endConfiguration->storageBufferInfos.size());
         size_t counter = 0;
         for (auto &element: endConfiguration->uniformBufferInfo) {
             uboToBind(element, bindings[counter]);
@@ -37,12 +41,16 @@ private:
             samplerToBind(element, bindings[counter]);
             counter++;
         }
-        for (auto &item: endConfiguration->accelerationStructuresInfos){
+        for (auto &item: endConfiguration->accelerationStructuresInfos) {
             asToBind(item, bindings[counter]);
             counter++;
         }
-        for (auto &item: endConfiguration->storageImagesInfos){
+        for (auto &item: endConfiguration->storageImagesInfos) {
             storageImageToBind(item, bindings[counter]);
+            counter++;
+        }
+        for(auto& item : endConfiguration->storageBufferInfos){
+            sboToBind(item, bindings[counter]);
             counter++;
         }
         if (!bindings.empty()) {
@@ -120,35 +128,44 @@ private:
         }
     }
 
-    static void infoToRange(PushConstantInfo &info, vk::PushConstantRange& range) {
+    static void infoToRange(PushConstantInfo &info, vk::PushConstantRange &range) {
         range.size = info.size;
         range.offset = 0;
         range.stageFlags = info.shaderStages;
     }
 
-    static void uboToBind(UniformBufferInfo &bufferInfo, vk::DescriptorSetLayoutBinding& result) {
+    static void uboToBind(UniformBufferInfo &bufferInfo, vk::DescriptorSetLayoutBinding &result) {
         result.binding = bufferInfo.binding;
         result.descriptorType = vk::DescriptorType::eUniformBuffer;
-        result.descriptorCount = 1;
+        result.descriptorCount = bufferInfo.descriptorCount;
         result.stageFlags = bufferInfo.shaderStages;
     }
 
-    static void samplerToBind(SamplerInfo &samplerInfo, vk::DescriptorSetLayoutBinding& result) {
+    static void sboToBind(StorageBufferInfo &bufferInfo, vk::DescriptorSetLayoutBinding &result) {
+        result.binding = bufferInfo.binding;
+        result.descriptorType = vk::DescriptorType::eStorageBuffer;
+        result.descriptorCount = bufferInfo.descriptorCount;
+        result.stageFlags = bufferInfo.stageFlags;
+    }
+
+    static void samplerToBind(SamplerInfo &samplerInfo, vk::DescriptorSetLayoutBinding &result) {
         result.binding = samplerInfo.binding;
         result.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-        result.descriptorCount = 1;
+        result.descriptorCount = samplerInfo.descriptorCount;
         result.stageFlags = samplerInfo.shaderStages;
     }
-    static void asToBind(AccelerationStructureInfo& asInfo, vk::DescriptorSetLayoutBinding& result){
+
+    static void asToBind(AccelerationStructureInfo &asInfo, vk::DescriptorSetLayoutBinding &result) {
         result.binding = asInfo.binding;
         result.descriptorType = vk::DescriptorType::eAccelerationStructureKHR;
-        result.descriptorCount = 1;
+        result.descriptorCount = asInfo.descriptorCount;
         result.stageFlags = asInfo.shaderStages;
     }
-    static void storageImageToBind(StorageImageInfo& storageImageInfo, vk::DescriptorSetLayoutBinding& result){
+
+    static void storageImageToBind(StorageImageInfo &storageImageInfo, vk::DescriptorSetLayoutBinding &result) {
         result.binding = storageImageInfo.binding;
         result.descriptorType = vk::DescriptorType::eStorageImage;
-        result.descriptorCount = 1;
+        result.descriptorCount = storageImageInfo.descriptorCount;
         result.stageFlags = storageImageInfo.shaderStages;
     }
 

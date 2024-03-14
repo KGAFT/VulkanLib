@@ -9,8 +9,8 @@
 #include <vulkan/vulkan.hpp>
 
 struct VertexInput {
-    unsigned int location;
-    unsigned int coordinatesAmount;
+    uint32_t location;
+    uint32_t coordinatesAmount;
     size_t typeSize;
     vk::Format format;
 };
@@ -21,24 +21,34 @@ struct PushConstantInfo {
 };
 
 struct UniformBufferInfo {
-    int binding;
+    uint32_t binding;
     size_t size;
+    uint32_t descriptorCount;
     vk::ShaderStageFlags shaderStages;
 };
 
 struct SamplerInfo {
-    int binding;
+    uint32_t binding;
+    uint32_t descriptorCount;
     vk::ShaderStageFlags shaderStages;
 };
 
 struct AccelerationStructureInfo{
-    int binding;
+    uint32_t binding;
+    uint32_t descriptorCount;
     vk::ShaderStageFlags shaderStages;
 };
 
 struct StorageImageInfo{
-    int binding;
+    uint32_t binding;
+    uint32_t descriptorCount;
     vk::ShaderStageFlags shaderStages;
+};
+
+struct StorageBufferInfo{
+    uint32_t binding;
+    uint32_t descriptorCount;
+    vk::ShaderStageFlags stageFlags;
 };
 
 class PipelineBuilder {
@@ -51,6 +61,7 @@ private:
     std::vector<SamplerInfo> samplersInfo;
     std::vector<AccelerationStructureInfo> accelerationStructuresInfos;
     std::vector<StorageImageInfo> storageImagesInfos;
+    std::vector<StorageBufferInfo> storageBufferInfos;
 public:
     void addVertexInput(VertexInput input) {
         vertexInputs.push_back(input);
@@ -62,6 +73,10 @@ public:
 
     void addUniformBuffer(UniformBufferInfo info) {
         uniformBufferInfo.push_back(info);
+    }
+
+    void addStorageBuffer(StorageBufferInfo info){
+        storageBufferInfos.push_back(info);
     }
 
     void addSamplerInfo(SamplerInfo info) {

@@ -7,6 +7,8 @@ LogicalDevice::LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice>
                              DeviceSuitabilityResults *results)
         : baseDevice(device) {
     sanitizeQueueCreateInfos(results);
+    vk::PhysicalDeviceFeatures features{};
+    features.shaderInt64 = true;
     vk::PhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature {};
     vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelStructure{};
 
@@ -30,7 +32,7 @@ LogicalDevice::LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice>
             usedQueueCreateInfos, queueCreateInfos.data(),
             instance.getEnabledLayers().size(), instance.getEnabledLayers().data(),
             builder.requestExtensions.size(), builder.requestExtensions.data(),
-            nullptr
+            &features
     );
     deviceInfo.pNext = &dynamicRenderingFeature;
     try {

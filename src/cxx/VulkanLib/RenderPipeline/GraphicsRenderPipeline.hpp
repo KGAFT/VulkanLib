@@ -37,6 +37,10 @@ public:
         pGraphicsPipelineBuilder->addSamplerInfo(info);
     }
 
+    void addStorageBufferInfo(StorageBufferInfo info){
+        pGraphicsPipelineBuilder->addStorageBufferInfo(info);
+    }
+
     void setAttachmentsPerStepAmount(uint32_t attachmentsPerStepAmount) {
         RenderPipelineBuilder::attachmentsPerStepAmount = attachmentsPerStepAmount;
     }

@@ -20,7 +20,9 @@ namespace vkLibRt {
             RayTracingPipelineBuilder::maxRayRecursionDepth = maxRayRecursionDepth;
         }
 
-
+        void addStorageBufferInfo(StorageBufferInfo info){
+            pipelineBuilder.addStorageBuffer(info);
+        }
 
         void addVertexInput(VertexInput input) {
             pipelineBuilder.addVertexInput(input);
