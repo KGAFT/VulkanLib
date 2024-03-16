@@ -25,6 +25,8 @@ public:
 
     vk::Buffer &getBuffer();
 
+    std::shared_ptr<Buffer> getBase();
+
     void destroy() override;
 };
 

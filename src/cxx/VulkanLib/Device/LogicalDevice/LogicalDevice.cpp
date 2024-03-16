@@ -17,6 +17,7 @@ LogicalDevice::LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice>
     vk::PhysicalDeviceVulkan12Features newFeatures{};
     newFeatures.bufferDeviceAddress = true;
     newFeatures.descriptorIndexing = true;
+    newFeatures.runtimeDescriptorArray = true;
     dynamicRenderingFeature.pNext = &newFeatures;
     vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeaturesKhr{};
     rayTracingPipelineFeaturesKhr.sType = vk::StructureType::ePhysicalDeviceRayTracingPipelineFeaturesKHR;

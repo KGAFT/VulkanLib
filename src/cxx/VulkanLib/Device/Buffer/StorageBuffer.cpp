@@ -24,6 +24,11 @@ vk::Buffer &StorageBuffer::getBuffer() {
     return buffer->getBuffer();
 }
 
+std::shared_ptr<Buffer> StorageBuffer::getBase(){
+    return buffer;
+}
+
+
 void StorageBuffer::destroy() {
     destroyed = true;
     buffer->unMap();
