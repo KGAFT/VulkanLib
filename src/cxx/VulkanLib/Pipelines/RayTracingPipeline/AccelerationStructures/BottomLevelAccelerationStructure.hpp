@@ -29,13 +29,18 @@ namespace vkLibRt {
         std::vector<AccelKHR> accelerationStructures;
         std::vector<BlasInput> objectsInfos;
     public:
-        void storeObject(std::shared_ptr<VertexBuffer> vBuffer, std::shared_ptr<IndexBuffer> iBuffer, std::shared_ptr<Buffer> transformBuffer,
-                         size_t vertexOffset = 0, size_t indexOffset = 0, size_t transformOffset = 0, uint32_t maxIndex = 0, uint32_t maxVertex = 0) {
-            objectsInfos.push_back({});
+        void storeGeometryObject(std::shared_ptr<VertexBuffer> vBuffer, std::shared_ptr<IndexBuffer> iBuffer, std::shared_ptr<Buffer> transformBuffer,
+                                 size_t vertexOffset = 0, size_t indexOffset = 0, size_t transformOffset = 0, uint32_t maxIndex = 0, uint32_t maxVertex = 0) {
+            if(objectsInfos.empty()){
+                newBlas();
+            }
             uint32_t index = maxIndex==0?iBuffer->getIndexCount():maxIndex;
             uint32_t vertex = maxVertex==0?vBuffer->getVerticesAmount()-1:maxVertex;
             ASUtils::objectToVkGeometryKHR(vBuffer, iBuffer, transformBuffer, &objectsInfos[objectsInfos.size() - 1],
                                            instance.getDynamicLoader(), vertexOffset, indexOffset, transformOffset, index, vertex);
+        }
+        void newBlas(){
+            objectsInfos.push_back({});
         }
 
         void confirmObjectsAndCreateBLASes() {

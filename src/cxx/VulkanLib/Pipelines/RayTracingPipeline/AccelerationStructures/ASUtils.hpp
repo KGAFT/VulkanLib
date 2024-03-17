@@ -174,7 +174,6 @@ namespace vkLibRt {
             pOutObjectGeomtry->asGeometry[pOutObjectGeomtry->asGeometry.size() - 1]
                     .geometry.triangles.transformData =
                     transformBuffer->getAddress(loaderDynamic) + transformOffset;
-
             // Indicate identity transform by setting transformData to null device
             // pointer.
             // triangles.transformData = {};
