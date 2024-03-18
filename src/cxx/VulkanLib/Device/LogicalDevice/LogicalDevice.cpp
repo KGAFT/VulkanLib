@@ -18,6 +18,7 @@ LogicalDevice::LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice>
     newFeatures.bufferDeviceAddress = true;
     newFeatures.descriptorIndexing = true;
     newFeatures.runtimeDescriptorArray = true;
+    newFeatures.shaderSampledImageArrayNonUniformIndexing = true;
     dynamicRenderingFeature.pNext = &newFeatures;
     vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeaturesKhr{};
     rayTracingPipelineFeaturesKhr.sType = vk::StructureType::ePhysicalDeviceRayTracingPipelineFeaturesKHR;
@@ -26,6 +27,7 @@ LogicalDevice::LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice>
         accelStructure.accelerationStructure = true;
         newFeatures.pNext = &accelStructure;
         accelStructure.pNext = &rayTracingPipelineFeaturesKhr;
+
     }
 
     vk::DeviceCreateInfo deviceInfo = vk::DeviceCreateInfo(
