@@ -18,7 +18,7 @@ Instance::Instance(InstanceBuilder &pBuilder) {
             VK_MAKE_VERSION(1, 0, 0),
             "VulkanLib",
             VK_MAKE_VERSION(1, 0, 0),
-            VK_API_VERSION_1_2
+            VK_API_VERSION_1_3
     );
     vk::InstanceCreateInfo createInfo(
             vk::InstanceCreateFlags(),
