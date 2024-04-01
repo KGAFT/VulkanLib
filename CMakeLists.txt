@@ -18,9 +18,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/cxx/ DESTINATION ${CMAKE_CURRENT_BINAR
 file(GLOB_RECURSE UNNECESSARY_CPP ${CMAKE_CURRENT_BINARY_DIR}/include/*.cpp)
 file(REMOVE ${UNNECESSARY_CPP})
 
-if(MSVC)
-    target_compile_options(VulkanLib PRIVATE /W4 /WX)
-else()
+if(NOT MSVC)
     target_compile_options(VulkanLib PRIVATE -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter )
 endif()
 
@@ -44,6 +42,7 @@ if(DEFINED VulkanSDKPath)
     endif()
     target_link_libraries(VulkanLib PUBLIC ${VulkanLibList} glm )
 else ()
+    message("Auto detected vulkan")
     find_package(Vulkan REQUIRED shaderc_combined)
     target_link_libraries(VulkanLib PUBLIC Vulkan::Vulkan Vulkan::shaderc_combined glm)
 endif ()
