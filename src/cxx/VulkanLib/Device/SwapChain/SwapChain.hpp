@@ -163,14 +163,20 @@ private:
 
     vk::SurfaceFormatKHR
     chooseSurfaceFormat(std::vector<vk::SurfaceFormatKHR> &formats) {
-
-        for (vk::SurfaceFormatKHR format: formats) {
-            if (format.format == vk::Format::eB8G8R8A8Srgb &&
-                format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
-                return format;
+        std::vector<vk::Format> preferredFormats = {vk::Format::eR64G64B64A64Sfloat, vk::Format::eR32G32B32A32Sfloat, vk::Format::eR16G16B16A16Sfloat, vk::Format::eB8G8R8A8Srgb};
+        vk::SurfaceFormatKHR selectedFormat {};
+        selectedFormat.format = static_cast<vk::Format>(0);
+        selectedFormat.colorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
+        for (const auto &item: formats){
+            for (const auto &citem: preferredFormats){
+                if(item.format==citem && (item.format>selectedFormat.format || (item.colorSpace>=selectedFormat.colorSpace && item.format>=selectedFormat.format))){
+                    selectedFormat = item;
+                }
             }
         }
-
+        if(static_cast<int>(selectedFormat.format) != 0){
+            return selectedFormat;
+        }
         return formats[0];
     }
 
