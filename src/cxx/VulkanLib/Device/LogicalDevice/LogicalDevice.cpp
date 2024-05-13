@@ -43,8 +43,7 @@ LogicalDevice::LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice>
         for (const auto &item: results->queuesInfo) {
             queues.push_back(
                     std::make_shared<LogicalQueue>(LogicalDevice::device.getQueue(item.index, 0), LogicalDevice::device, item.supportPresentation,
-                                                   item.properties.queueFlags & vk::QueueFlagBits::eGraphics
-                                                   ? vk::QueueFlagBits::eGraphics : vk::QueueFlagBits::eCompute,
+                                                   item.properties.queueFlags,
                                                    item.index));
         }
     } catch (vk::SystemError &error) {

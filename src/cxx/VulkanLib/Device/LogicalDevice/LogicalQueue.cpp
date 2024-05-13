@@ -4,7 +4,7 @@
 
 #include "LogicalQueue.hpp"
 
-LogicalQueue::LogicalQueue(vk::Queue queue, vk::Device device, bool supportPresentation, vk::QueueFlagBits queueType,
+LogicalQueue::LogicalQueue(vk::Queue queue, vk::Device device, bool supportPresentation, vk::QueueFlags queueType,
                            unsigned int index) : queue(
         queue),
                                                  supportPresentation(
@@ -51,7 +51,7 @@ bool LogicalQueue::isSupportPresentation() const {
     return supportPresentation;
 }
 
-vk::QueueFlagBits LogicalQueue::getQueueType() const {
+vk::QueueFlags LogicalQueue::getQueueType() const {
     return queueType;
 }
 

@@ -12,12 +12,12 @@ class LogicalQueue : IDestroyableObject{
     friend class LogicalDevice;
 
 public:
-    LogicalQueue(vk::Queue queue, vk::Device device, bool supportPresentation, vk::QueueFlagBits queueType, unsigned int index);
+    LogicalQueue(vk::Queue queue, vk::Device device, bool supportPresentation, vk::QueueFlags queueType, unsigned int index);
 
 private:
     vk::Queue queue;
     bool supportPresentation;
-    vk::QueueFlagBits queueType;
+    vk::QueueFlags queueType;
     vk::CommandPool commandPool;
     vk::Device device;
     unsigned int index;
@@ -36,7 +36,7 @@ public:
 
     bool isSupportPresentation() const;
 
-    vk::QueueFlagBits getQueueType() const;
+    vk::QueueFlags getQueueType() const;
 
     const vk::CommandPool &getCommandPool() const;
 

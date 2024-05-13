@@ -15,6 +15,7 @@ private:
     std::vector<const char *> requestExtensions;
     bool requirePresentSupport = false;
     bool requireGraphicsSupport = false;
+    bool requireComputeSupport = false;
     vk::SurfaceKHR surfaceForPresentationCheck;
     bool rayTracingSupport = false;
 public:
@@ -50,7 +51,10 @@ public:
         requestExtensions.push_back("VK_KHR_maintenance3");
         requestExtensions.push_back("VK_KHR_device_group");
         rayTracingSupport = true;
+    }
 
+    void requestComputeSupport() {
+        requireComputeSupport = true;
     }
 
     void requestPresentSupport(VkSurfaceKHR surface) {
