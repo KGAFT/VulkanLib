@@ -17,7 +17,7 @@ public:
 
 private:
     std::vector<const char *> layers;
-    std::vector<const char *> extensions{"VK_KHR_get_physical_device_properties2", "VK_EXT_swapchain_colorspace"};
+    std::vector<const char *> extensions{"VK_KHR_get_physical_device_properties2"};
     std::vector<IInstanceLoggerCallback *> startLoggerCallbacks;
     bool debugEnabled = false;
     const char *applicationName = nullptr;

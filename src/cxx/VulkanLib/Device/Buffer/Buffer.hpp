@@ -52,6 +52,8 @@ public:
 
 public:
     void destroy() override;
+
+    virtual ~Buffer() = default;
 };
 
 #endif

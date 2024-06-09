@@ -23,10 +23,11 @@ public:
 
         auto *result = (shaderc_include_result *) includes.getObjectInstance();
         size_t codeLength;
-        const char* code = FileReader::readText((workDirectory+std::string(requested_source)).c_str(), &codeLength);
+        std::vector<AdditionalLine> additionalLine;
+        const char* code = FileReader::readText((workDirectory+std::string(requested_source)).c_str(), &codeLength, additionalLine);
         if(!code){
             for (auto &item: includeDirectories){
-                code = FileReader::readText((item+"/"+std::string(requested_source)).c_str(), &codeLength);
+                code = FileReader::readText((item+"/"+std::string(requested_source)).c_str(), &codeLength, additionalLine);
                 if(code){
                     break;
                 }

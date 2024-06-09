@@ -44,6 +44,8 @@ public:
 
 private:
     void destroy() override;
+public:
+    virtual ~LogicalQueue() = default;
 };
 
 #endif

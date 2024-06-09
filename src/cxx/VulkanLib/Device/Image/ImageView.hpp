@@ -28,7 +28,7 @@ public:
 public:
     void destroy() override;
 
-
+    virtual ~ImageView() = default;
 };
 #endif
 

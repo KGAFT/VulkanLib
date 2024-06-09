@@ -8,10 +8,16 @@ void InstanceBuilder::addLayer(const char *layer) {
 }
 
 void InstanceBuilder::addExtension(const char *extension) {
+    if(extensions.empty()) {
+        extensions.push_back("VK_EXT_swapchain_colorspace");
+    }
     extensions.push_back(extension);
 }
 
 void InstanceBuilder::addExtensions(const char **ppExtensions, unsigned int extensionCount) {
+    if(extensions.empty()) {
+        extensions.push_back("VK_EXT_swapchain_colorspace");
+    }
     for (unsigned int i = 0; i < extensionCount; ++i) {
         InstanceBuilder::extensions.push_back(ppExtensions[i]);
     }

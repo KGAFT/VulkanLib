@@ -29,6 +29,8 @@ public:
 
 public:
     void destroy() override;
+
+    virtual ~DescriptorPool() = default;
 };
 
 #endif

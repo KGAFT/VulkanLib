@@ -61,7 +61,7 @@ public:
             FileReader::readBinary(createInfo.pathToFile, &binarySize);
         } else {
             compileShader(createInfo.pathToFile, createInfo.fileName, vkTypeToShadercType(createInfo.stage),
-                          shaderBuffer);
+                          shaderBuffer, createInfo.additionalLines);
         }
         MemoryUtils::memClear(&shaderCreateInfo, sizeof(vk::ShaderModuleCreateInfo));
         shaderCreateInfo.sType = vk::StructureType::eShaderModuleCreateInfo;
@@ -83,9 +83,9 @@ public:
     }
 
     void compileShader(const char *filePath, const char *fileName, shaderc_shader_kind shaderKind,
-                       std::vector<uint32_t> &output) const {
+                       std::vector<uint32_t> &output, std::vector<AdditionalLine>& additionalLines) const {
         size_t codeSize;
-        const char *shaderCode = FileReader::readText(filePath, &codeSize);
+        const char *shaderCode = FileReader::readText(filePath, &codeSize, additionalLines);
         std::string workDirectory(filePath);
         workDirectory = workDirectory.substr(0, workDirectory.size() - strlen(fileName));
         shaderc::CompileOptions compileOptions;

@@ -175,6 +175,8 @@ public:
         device.getDevice().destroyPipelineLayout(pipelineLayout);
         device.getDevice().destroyDescriptorSetLayout(descriptorSetLayout);
     }
+
+    virtual ~PipelineConfigurer() = default;
 };
 
 
