@@ -99,6 +99,17 @@ public:
                                                                                 codeSize * sizeof(char),
                                                                                 shaderKind, fileName, compileOptions);
         if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
+            std::cerr<<"Shader code: "<<std::endl;
+            uint32_t i = 0;
+            uint32_t line = 0;
+            while(shaderCode[i]!='\0') {
+                std::cerr<<shaderCode[i];
+                if(shaderCode[i]=='\n') {
+                    line++;
+                    std::cerr<<line<< " ";
+                }
+                i++;
+            }
             throw std::runtime_error("Failed to compile shader " + std::string(filePath) + " into SPIR-V:\n " +
                                      result.GetErrorMessage());
         }
