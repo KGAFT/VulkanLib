@@ -2,6 +2,7 @@ package com.kgaft.VulkanLib;
 
 import com.kgaft.VulkanLib.Instance.Instance;
 import com.kgaft.VulkanLib.Instance.InstanceBuilder;
+import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanLoggerCallback;
 import com.kgaft.VulkanLib.Window.Window;
 
 import java.lang.instrument.IllegalClassFormatException;
@@ -17,6 +18,10 @@ public class Main {
         instanceBuilder.setApplicationVersion(1,0,0);
         instanceBuilder.setEngineVersion(1,0,0);
         instanceBuilder.presetForPresent();
+        instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanLoggerCallback());
         Instance instance = new Instance(instanceBuilder);
+        while(window.isWindowActive()){
+            window.postEvents();
+        }
     }
 }

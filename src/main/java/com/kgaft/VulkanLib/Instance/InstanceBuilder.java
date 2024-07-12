@@ -1,5 +1,6 @@
 package com.kgaft.VulkanLib.Instance;
 
+import com.kgaft.VulkanLib.Instance.InstanceLogger.IVulkanLoggerCallback;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.StringByteBuffer;
 import org.lwjgl.PointerBuffer;
@@ -19,11 +20,14 @@ public class InstanceBuilder {
     private LwjglObject<VkApplicationInfo> applicationInfo = new LwjglObject<>(VkApplicationInfo.class);
     private LwjglObject<VkInstanceCreateInfo> createInfo = new LwjglObject<>(VkInstanceCreateInfo.class);
     private ArrayList<String> extensionNames = new ArrayList<>();
-    private ArrayList<String> layersNames = new ArrayList<>();
+    protected ArrayList<String> layersNames = new ArrayList<>();
     private PointerBuffer layersNamePB = null;
     private PointerBuffer extensionsNamesPB = null;
+    protected List<IVulkanLoggerCallback> loggerCallbacks = new ArrayList<>();
     protected boolean debugEnabled = false;
     protected boolean presentEnabled = false;
+
+
     public InstanceBuilder() throws IllegalClassFormatException {
         applicationInfo.get().sType$Default();
         applicationInfo.get().apiVersion(VK_API_VERSION_1_3);
@@ -47,6 +51,14 @@ public class InstanceBuilder {
 
     public void setEngineVersion(int major, int minor, int patch) {
         applicationInfo.get().engineVersion(VK_MAKE_VERSION(major, minor, patch));
+    }
+
+    public void addStartingVulkanLoggerCallback(IVulkanLoggerCallback callback){
+        if(debugEnabled){
+            loggerCallbacks.add(callback);
+        } else{
+            throw new RuntimeException("Error: you cannot add logger callbacks when debugging is disabled!");
+        }
     }
 
     public void addExtension(String extensionName) {
