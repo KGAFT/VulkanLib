@@ -3,6 +3,7 @@ package com.kgaft.VulkanLib.Instance.InstanceLogger;
 import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.VerboseUtil;
+import com.kgaft.VulkanLib.Utils.VkErrorException;
 import org.lwjgl.vulkan.*;
 
 import java.io.PrintStream;
@@ -40,12 +41,11 @@ public class InstanceLogger extends DestroyableObject implements VkDebugUtilsMes
         createInfo.pNext(this.createInfo.get());
     }
 
-    public void init(VkInstance instance){
+    public void init(VkInstance instance) throws VkErrorException {
         long[] res = new long[1];
         int status = vkCreateDebugUtilsMessengerEXT(instance, createInfo.get(), null, res);
         if(status!=VK_SUCCESS){
-            VerboseUtil.printVkErrorToString(status);
-            throw new RuntimeException("Failed to create vulkan debugger");
+            throw new VkErrorException("Failed to create vulkan debugger ", status);
         }
         this.handle = res[0];
         this.instance = instance;

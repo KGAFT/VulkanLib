@@ -4,13 +4,15 @@ import com.kgaft.VulkanLib.Instance.Instance;
 import com.kgaft.VulkanLib.Instance.InstanceBuilder;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanFileLoggerCallback;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanLoggerCallback;
+import com.kgaft.VulkanLib.PhysicalDevice.PhysicalDevice;
+import com.kgaft.VulkanLib.Utils.VkErrorException;
 import com.kgaft.VulkanLib.Window.Window;
 
 import java.io.FileNotFoundException;
 import java.lang.instrument.IllegalClassFormatException;
 
 public class Main {
-    public static void main(String[] args) throws IllegalClassFormatException, FileNotFoundException {
+    public static void main(String[] args) throws IllegalClassFormatException, FileNotFoundException, VkErrorException {
         Window.prepareWindow(1280, 720, "Vulan lib development", true);
         Window window = Window.getWindow();
         InstanceBuilder instanceBuilder = new InstanceBuilder();
@@ -23,6 +25,9 @@ public class Main {
         instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanLoggerCallback());
         instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanFileLoggerCallback());
         Instance instance = new Instance(instanceBuilder);
+        PhysicalDevice.getPhysicalDevices(instance).forEach(element->{
+            System.out.println(element.getProperties().get().deviceNameString());
+        });
         while(window.isWindowActive()){
             window.postEvents();
         }

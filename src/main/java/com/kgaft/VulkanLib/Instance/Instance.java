@@ -3,6 +3,7 @@ package com.kgaft.VulkanLib.Instance;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.InstanceLogger;
 import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.VerboseUtil;
+import com.kgaft.VulkanLib.Utils.VkErrorException;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.vulkan.VkInstance;
 import org.lwjgl.vulkan.VkInstanceCreateInfo;
@@ -18,7 +19,7 @@ public class Instance extends DestroyableObject {
     private VkInstance instance;
     private InstanceLogger logger;
     private List<String> enabledLayers = new ArrayList<>();
-    public Instance(InstanceBuilder builder){
+    public Instance(InstanceBuilder builder) throws VkErrorException {
         PointerBuffer pb = PointerBuffer.allocateDirect(1);
         VkInstanceCreateInfo createInfo = builder.getCreateInfo();
         if(builder.debugEnabled){
@@ -28,8 +29,7 @@ public class Instance extends DestroyableObject {
         }
         int res = vkCreateInstance(createInfo, null, pb);
         if(res !=VK_SUCCESS){
-            VerboseUtil.printVkErrorToString(res);
-            throw new RuntimeException("Failed to create instance");
+            throw new VkErrorException("Failed to create instance", res);
         }
         this.instance = new VkInstance(pb.get(), createInfo);
         this.enabledLayers = builder.layersNames;
