@@ -15,7 +15,7 @@ import static org.lwjgl.vulkan.VK13.*;
 public class PhysicalDevice {
     private static List<PhysicalDevice> physicalDevices = new ArrayList<>();
 
-    public static List<PhysicalDevice> getPhysicalDevices(Instance instance) throws IllegalClassFormatException, VkErrorException {
+    public static List<PhysicalDevice> getPhysicalDevices(Instance instance) throws VkErrorException {
         if (physicalDevices.isEmpty()) {
             int[] physicalDevicesCount = new int[1];
             vkEnumeratePhysicalDevices(instance.getInstance(), physicalDevicesCount, null);
@@ -36,7 +36,7 @@ public class PhysicalDevice {
     private LwjglObject<VkQueueFamilyProperties.Buffer> queueProperties;
     private LwjglObject<VkPhysicalDeviceRayTracingPipelinePropertiesKHR> rayTracingPipelineProperties;
 
-    public PhysicalDevice(VkPhysicalDevice base) throws IllegalClassFormatException, VkErrorException {
+    public PhysicalDevice(VkPhysicalDevice base) throws VkErrorException {
         this.base = base;
         init(base);
     }
@@ -45,33 +45,38 @@ public class PhysicalDevice {
 
     }
 
-    public void init(VkPhysicalDevice device) throws IllegalClassFormatException, VkErrorException {
-        int[] propertyCount = new int[1];
-        int res;
-        res = vkEnumerateDeviceExtensionProperties(device, (CharSequence) null, propertyCount, null);
+    public void init(VkPhysicalDevice device) throws  VkErrorException {
+        try{
+            int[] propertyCount = new int[1];
+            int res;
+            res = vkEnumerateDeviceExtensionProperties(device, (CharSequence) null, propertyCount, null);
 
-        if (res != VK_SUCCESS) {
-            throw new VkErrorException("Failed to find any extensions ", res);
+            if (res != VK_SUCCESS) {
+                throw new VkErrorException("Failed to find any extensions ", res);
+            }
+            extensionProperties = new LwjglObject<>(VkExtensionProperties.class, VkExtensionProperties.Buffer.class, propertyCount[0]);
+            res = vkEnumerateDeviceExtensionProperties(device, (CharSequence) null, propertyCount, extensionProperties.get());
+            if (res != VK_SUCCESS) {
+                throw new VkErrorException("Failed to find any extensions ", res);
+            }
+            features = new LwjglObject<>(VkPhysicalDeviceFeatures.class);
+            vkGetPhysicalDeviceFeatures(device, features.get());
+            properties = new LwjglObject<>(VkPhysicalDeviceProperties.class);
+            vkGetPhysicalDeviceProperties(device, properties.get());
+            int[] queueFamilyCount = new int[1];
+            vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, null);
+            queueProperties = new LwjglObject<>(VkQueueFamilyProperties.class, VkQueueFamilyProperties.Buffer.class, queueFamilyCount[0]);
+            vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueProperties.get());
+            LwjglObject<VkPhysicalDeviceProperties2> prop2 = new LwjglObject<>(VkPhysicalDeviceProperties2.class);
+            rayTracingPipelineProperties = new LwjglObject<>(VkPhysicalDeviceRayTracingPipelinePropertiesKHR.class);
+            prop2.get().pNext(rayTracingPipelineProperties.get());
+            prop2.get().sType$Default();
+            rayTracingPipelineProperties.get().sType$Default();
+            vkGetPhysicalDeviceProperties2(device, prop2.get());
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        extensionProperties = new LwjglObject<>(VkExtensionProperties.class, VkExtensionProperties.Buffer.class, propertyCount[0]);
-        res = vkEnumerateDeviceExtensionProperties(device, (CharSequence) null, propertyCount, extensionProperties.get());
-        if (res != VK_SUCCESS) {
-            throw new VkErrorException("Failed to find any extensions ", res);
-        }
-        features = new LwjglObject<>(VkPhysicalDeviceFeatures.class);
-        vkGetPhysicalDeviceFeatures(device, features.get());
-        properties = new LwjglObject<>(VkPhysicalDeviceProperties.class);
-        vkGetPhysicalDeviceProperties(device, properties.get());
-        int[] queueFamilyCount = new int[1];
-        vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, null);
-        queueProperties = new LwjglObject<>(VkQueueFamilyProperties.class, VkQueueFamilyProperties.Buffer.class, queueFamilyCount[0]);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueProperties.get());
-        LwjglObject<VkPhysicalDeviceProperties2> prop2 = new LwjglObject<>(VkPhysicalDeviceProperties2.class);
-        rayTracingPipelineProperties = new LwjglObject<>(VkPhysicalDeviceRayTracingPipelinePropertiesKHR.class);
-        prop2.get().pNext(rayTracingPipelineProperties.get());
-        prop2.get().sType$Default();
-        rayTracingPipelineProperties.get().sType$Default();
-        vkGetPhysicalDeviceProperties2(device, prop2.get());
+
     }
 
     public VkPhysicalDevice getBase() {

@@ -1,6 +1,7 @@
 package com.kgaft.VulkanLib;
 
 import com.kgaft.VulkanLib.Device.DeviceBuilder;
+import com.kgaft.VulkanLib.Device.LogicalDevice.LogicalDevice;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.DeviceSuitability;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.DeviceSuitabilityResults;
 import com.kgaft.VulkanLib.Instance.Instance;
@@ -33,6 +34,7 @@ public class Main {
         builder.requestGraphicSupport();
         builder.requestPresentSupport(window.getSurface(instance.getInstance()));
         builder.requestComputeSupport();
+        builder.requestRayTracingSupport();
         HashMap<PhysicalDevice, DeviceSuitabilityResults> supportedDevices = new HashMap<>();
         PhysicalDevice.getPhysicalDevices(instance).forEach(element->{
             try {
@@ -47,6 +49,7 @@ public class Main {
         supportedDevices.forEach((element, val)->{
             System.out.println(element.getProperties().get().deviceNameString());
         });
+        LogicalDevice device = new LogicalDevice(instance, PhysicalDevice.getPhysicalDevices(instance).get(0), builder, supportedDevices.get(PhysicalDevice.getPhysicalDevices(instance).get(0)));
 
         while(window.isWindowActive()){
             window.postEvents();

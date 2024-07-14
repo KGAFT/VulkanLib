@@ -25,12 +25,16 @@ public class LwjglObject<T> {
         Optional<Method> freeMethod = Arrays.stream(typeParameterClass.getMethods())
                 .filter(method -> method.getName().equals("free"))
                 .filter(method -> method.getParameters().length == 0).findFirst();
+        Optional<Method> sTypeMethod = Arrays.stream(typeParameterClass.getMethods()).filter(method -> method.getName().equals("sType$Default")).findFirst();
         if (optAllocateMethod.isEmpty() || freeMethod.isEmpty()) {
             throw new IllegalClassFormatException("It is not lwjgl allocatable object");
         }
         Method allocateMethod = optAllocateMethod.get();
         try {
             baseObject = (T) allocateMethod.invoke(null);
+            if(sTypeMethod.isPresent()){
+                sTypeMethod.get().invoke(baseObject);
+            }
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }

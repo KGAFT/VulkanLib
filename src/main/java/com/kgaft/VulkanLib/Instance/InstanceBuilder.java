@@ -29,9 +29,7 @@ public class InstanceBuilder {
 
 
     public InstanceBuilder() throws IllegalClassFormatException {
-        applicationInfo.get().sType$Default();
         applicationInfo.get().apiVersion(VK_API_VERSION_1_3);
-        createInfo.get().sType$Default();
         createInfo.get().pApplicationInfo(applicationInfo.get());
 
 

@@ -54,12 +54,13 @@ public class DeviceSuitability {
                     info = new QueueFamilyInfo(queueCounter, item, true);
                 }
             }
+            results.queueFamilyInfos.add(info);
+            queueCounter++;
             if ((graphicsFound == builder.isRequireGraphicsSupport()) && (presentFound == builder.isRequirePresentSupport()) &&
                     (computeFound == builder.isRequireComputeSupport())) {
                 break;
             }
-            results.queueFamilyInfos.add(info);
-            queueCounter++;
+
         }
         device.getQueueProperties().get().rewind();
         if (!((graphicsFound == builder.isRequireGraphicsSupport()) && (presentFound == builder.isRequirePresentSupport()) &&
