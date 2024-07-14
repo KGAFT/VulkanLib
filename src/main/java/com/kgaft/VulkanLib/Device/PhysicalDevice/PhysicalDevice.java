@@ -1,4 +1,4 @@
-package com.kgaft.VulkanLib.PhysicalDevice;
+package com.kgaft.VulkanLib.Device.PhysicalDevice;
 
 import com.kgaft.VulkanLib.Instance.Instance;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
@@ -37,6 +37,7 @@ public class PhysicalDevice {
     private LwjglObject<VkPhysicalDeviceRayTracingPipelinePropertiesKHR> rayTracingPipelineProperties;
 
     public PhysicalDevice(VkPhysicalDevice base) throws IllegalClassFormatException, VkErrorException {
+        this.base = base;
         init(base);
     }
 
@@ -96,4 +97,5 @@ public class PhysicalDevice {
     public LwjglObject<VkPhysicalDeviceRayTracingPipelinePropertiesKHR> getRayTracingPipelineProperties() {
         return rayTracingPipelineProperties;
     }
+
 }
