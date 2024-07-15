@@ -173,6 +173,11 @@ public class LogicalDevice extends DestroyableObject {
         }
         queueCreateInfos.get().rewind();
     }
+
+    public VkDevice getDevice() {
+        return device;
+    }
+
     public int findSupportedFormat(List<Integer> candidates, int tiling, int features) {
         try{
             for (int format : candidates) {
