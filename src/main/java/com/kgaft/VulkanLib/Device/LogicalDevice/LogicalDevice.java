@@ -4,6 +4,7 @@ import com.kgaft.VulkanLib.Device.DeviceBuilder;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.DeviceSuitabilityResults;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.PhysicalDevice;
 import com.kgaft.VulkanLib.Instance.Instance;
+import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.StringByteBuffer;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
@@ -15,10 +16,10 @@ import static org.lwjgl.vulkan.VK13.*;
 
 import java.lang.instrument.IllegalClassFormatException;
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.IntStream;
 
-public class LogicalDevice {
+public class LogicalDevice extends DestroyableObject {
     public LogicalDevice(Instance instance, PhysicalDevice device, DeviceBuilder builder, DeviceSuitabilityResults suitabilityResults) throws VkErrorException {
         try {
             try (MemoryStack stack = MemoryStack.stackPush()) {
@@ -85,6 +86,17 @@ public class LogicalDevice {
             this.device = new VkDevice(pb.get(), device.getBase(), createInfo.get());
             extensionsBuffer.free();
             layersBuf.free();
+            pb.rewind();
+            suitabilityResults.queueFamilyInfos.forEach(element->{
+
+                vkGetDeviceQueue(this.device, element.index, 0, pb);
+                try {
+                    queues.add(new LogicalQueue(new VkQueue(pb.get(), this.device), this.device, element.supportPresentation, element.properties.queueFlags(), element.index));
+                } catch (VkErrorException e) {
+                    throw new RuntimeException(e);
+                }
+                pb.rewind();
+            });
             pb.free();
         } catch (Exception e) {
             e.printStackTrace();
@@ -96,6 +108,59 @@ public class LogicalDevice {
     private VkDevice device;
     private LwjglObject<VkDeviceQueueCreateInfo.Buffer> queueCreateInfos;
     private FloatBuffer queuePriority;
+    private List<LogicalQueue> queues = new ArrayList<>();
+
+
+    public LogicalQueue getQueueByType(int queueType){
+        Optional<LogicalQueue> queue = queues.stream().filter(element-> (element.getQueueType() &queueType)>0).findFirst();
+        if(queue.isPresent()){
+            return queue.get();
+        }
+        throw new RuntimeException("Failed to find suitable queue");
+    }
+
+    public LogicalQueue getPresentQueue(){
+        Optional<LogicalQueue> queue = queues.stream().filter(element-> element.isSupportPresentation()).findFirst();
+        if(queue.isPresent()){
+            return queue.get();
+        }
+        throw new RuntimeException("Failed to find suitable queue");
+    }
+
+    public int findDepthFormat(){
+        ArrayList<Integer> candidates = new ArrayList<>();
+        candidates.add(VK_FORMAT_D32_SFLOAT);
+        candidates.add(VK_FORMAT_D32_SFLOAT_S8_UINT);
+        candidates.add(VK_FORMAT_D24_UNORM_S8_UINT);
+        candidates.add(VK_FORMAT_D16_UNORM);
+        candidates.add(VK_FORMAT_D16_UNORM_S8_UINT);
+        return findSupportedFormat(candidates, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    }
+
+    public int findMemoryType(int typeFilter, int properties){
+
+        try {
+            LwjglObject<VkPhysicalDeviceMemoryProperties> memProperties = new LwjglObject<>(VkPhysicalDeviceMemoryProperties.class);
+            vkGetPhysicalDeviceMemoryProperties(base.getBase(), memProperties.get());
+            OptionalInt res = IntStream.range(0, memProperties.get().memoryTypeCount())
+                    .filter(i -> (typeFilter & (int) (1 << i)) > 0)
+                    .filter(i->(memProperties.get().memoryTypes(i).propertyFlags()&properties)== properties).findFirst();
+            if(res.isPresent()){
+                return res.getAsInt();
+            }
+
+            return -1;
+
+        } catch (IllegalClassFormatException e) {
+            return -1;
+        }
+
+    }
+
+
+    public int getQueuesAmount(){
+        return queues.size();
+    }
 
     private void sanitizeQueueCreateInfos(DeviceSuitabilityResults results) throws IllegalClassFormatException {
         int counter = 0;
@@ -107,5 +172,30 @@ public class LogicalDevice {
             counter++;
         }
         queueCreateInfos.get().rewind();
+    }
+    public int findSupportedFormat(List<Integer> candidates, int tiling, int features) {
+        try{
+            for (int format : candidates) {
+                LwjglObject<VkFormatProperties> props = new LwjglObject<>(VkFormatProperties.class);
+                vkGetPhysicalDeviceFormatProperties(base.getBase(), format, props.get());
+
+                if (tiling == VK_IMAGE_TILING_LINEAR && (props.get().linearTilingFeatures() & features) == features) {
+                    return format;
+                } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.get().optimalTilingFeatures() & features) == features) {
+                    return format;
+                }
+            }
+            throw new RuntimeException("failed to find supported format!");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    @Override
+    public void destroy() {
+        destroyed = true;
+        queues.forEach(LogicalQueue::destroy);
+        vkDestroyDevice(device, null);
     }
 }

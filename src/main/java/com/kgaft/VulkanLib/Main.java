@@ -50,7 +50,6 @@ public class Main {
             System.out.println(element.getProperties().get().deviceNameString());
         });
         LogicalDevice device = new LogicalDevice(instance, PhysicalDevice.getPhysicalDevices(instance).get(0), builder, supportedDevices.get(PhysicalDevice.getPhysicalDevices(instance).get(0)));
-
         while(window.isWindowActive()){
             window.postEvents();
         }
