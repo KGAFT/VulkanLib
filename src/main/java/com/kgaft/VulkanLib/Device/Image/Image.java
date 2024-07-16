@@ -1,6 +1,8 @@
 package com.kgaft.VulkanLib.Device.Image;
 
+import com.kgaft.VulkanLib.Device.Buffer.Buffer;
 import com.kgaft.VulkanLib.Device.LogicalDevice.LogicalDevice;
+import com.kgaft.VulkanLib.Device.LogicalDevice.LogicalQueue;
 import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
@@ -18,18 +20,18 @@ public class Image extends DestroyableObject {
     private ArrayList<ImageView> imageViews = new ArrayList<>();
     private long imageMemory;
     private boolean castCreated = false;
-
-    public Image(LogicalDevice device, long base) {
+    private LwjglObject<VkBufferImageCopy.Buffer> region = new LwjglObject<>(VkBufferImageCopy.class, VkBufferImageCopy.Buffer.class, 1);
+    public Image(LogicalDevice device, long base) throws IllegalClassFormatException {
         castCreated = true;
         this.device = device;
         this.base = base;
     }
 
-    public Image(LogicalDevice device, LwjglObject<VkImageCreateInfo> createInfo) throws VkErrorException {
+    public Image(LogicalDevice device, LwjglObject<VkImageCreateInfo> createInfo) throws VkErrorException, IllegalClassFormatException {
         initialize(device, createInfo);
     }
 
-    public Image() {
+    public Image() throws IllegalClassFormatException {
     }
 
     public void initialize(LogicalDevice device, long image) {
@@ -137,24 +139,24 @@ public class Image extends DestroyableObject {
         }
 
     }
-    public void copyFromBuffer(Buffer &buffer, uint32_t layerCount, LogicalQueue &queue) {
-        VkCommandBuffer cmd = queue.beginSingleTimeCommands();
-        transitionImageLayout(cmd, imageInfo.initialLayout, vk::ImageLayout::eTransferDstOptimal, vk::ImageAspectFlagBits::eColor);
-        vk::BufferImageCopy region{};
-        region.bufferOffset = 0;
-        region.bufferRowLength = 0;
-        region.bufferImageHeight = 0;
-        region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-        region.imageSubresource.mipLevel = 0;
-        region.imageSubresource.baseArrayLayer = 0;
-        region.imageSubresource.layerCount = layerCount;
-        region.imageOffset.x = 0;
-        region.imageOffset.y = 0;
-        region.imageOffset.z = 0;
-        region.imageExtent = imageInfo.extent;
-        cmd.copyBufferToImage(buffer.getBuffer(), base, vk::ImageLayout::eTransferDstOptimal, 1, &region);
-        transitionImageLayout(cmd,vk::ImageLayout::eTransferDstOptimal,  vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor);
-        imageInfo.initialLayout = vk::ImageLayout::eGeneral;
+    public void copyFromBuffer(Buffer buffer, int layerCount, LogicalQueue queue) {
+        VkCommandBuffer cmd = queue.beginCommandBuffer();
+        transitionImageLayout(cmd, imageInfo.get().initialLayout(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
+
+        region.get().bufferOffset(0);
+        region.get().bufferRowLength(0);
+        region.get().bufferImageHeight(0);
+        region.get().imageSubresource().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT);
+        region.get().imageSubresource().mipLevel(0);
+        region.get().imageSubresource().baseArrayLayer(0);
+        region.get().imageSubresource().layerCount(layerCount);
+        region.get().imageOffset().x(0);
+        region.get().imageOffset().y(0);
+        region.get().imageOffset().z(0);
+        region.get().imageExtent(imageInfo.get().extent());
+        vkCmdCopyBufferToImage(cmd, buffer.getBuffer(), base, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, region.get());
+        transitionImageLayout(cmd,VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,  VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT);
+        imageInfo.get().initialLayout(VK_IMAGE_LAYOUT_GENERAL);
         queue.endSingleTimeCommands(cmd);
     }
 
@@ -186,10 +188,21 @@ public class Image extends DestroyableObject {
 
     }
 
+    public long getBase() {
+        return base;
+    }
+
+    public LwjglObject<VkImageCreateInfo> getImageInfo() {
+        return imageInfo;
+    }
+
+    public ArrayList<ImageView> getImageViews() {
+        return imageViews;
+    }
+
     @Override
     public void destroy() {
         if(!castCreated){
-
             imageViews.forEach(ImageView::destroy);
             vkDestroyImage(device.getDevice(), base, null);
             vkFreeMemory(device.getDevice(), imageMemory, null);
