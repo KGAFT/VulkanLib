@@ -138,7 +138,7 @@ public class Image extends DestroyableObject {
 
     }
     public void copyFromBuffer(Buffer &buffer, uint32_t layerCount, LogicalQueue &queue) {
-        vk::CommandBuffer cmd = queue.beginSingleTimeCommands();
+        VkCommandBuffer cmd = queue.beginSingleTimeCommands();
         transitionImageLayout(cmd, imageInfo.initialLayout, vk::ImageLayout::eTransferDstOptimal, vk::ImageAspectFlagBits::eColor);
         vk::BufferImageCopy region{};
         region.bufferOffset = 0;
@@ -156,5 +156,44 @@ public class Image extends DestroyableObject {
         transitionImageLayout(cmd,vk::ImageLayout::eTransferDstOptimal,  vk::ImageLayout::eGeneral, vk::ImageAspectFlagBits::eColor);
         imageInfo.initialLayout = vk::ImageLayout::eGeneral;
         queue.endSingleTimeCommands(cmd);
+    }
+
+    public void resize(int width, int height) throws VkErrorException {
+        if (!castCreated) {
+            destroy();
+            destroyed = false;
+            imageInfo.get().extent().width(width);
+            imageInfo.get().extent().height(height);
+            imageInfo.get().extent().depth(1);
+            if(imageInfo.get().initialLayout()!=VK_IMAGE_LAYOUT_UNDEFINED){
+                int tmpLayout = imageInfo.get().initialLayout();
+                imageInfo.get().initialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
+                initialize(device, imageInfo);
+                transitionImageLayout(device, VK_IMAGE_LAYOUT_UNDEFINED, tmpLayout, VK_IMAGE_ASPECT_COLOR_BIT);
+                imageInfo.get().initialLayout(tmpLayout);
+            } else {
+                initialize(device, imageInfo);
+            }
+            imageViews.forEach(element->{
+                element.createInfo.get().image(base);
+                long[] res = new long[1];
+                vkCreateImageView(device.getDevice(), element.createInfo.get(), null, res);
+                element.imageView = res[0];
+                element.parentInfo = imageInfo;
+            });
+
+        }
+
+    }
+
+    @Override
+    public void destroy() {
+        if(!castCreated){
+
+            imageViews.forEach(ImageView::destroy);
+            vkDestroyImage(device.getDevice(), base, null);
+            vkFreeMemory(device.getDevice(), imageMemory, null);
+        }
+        destroyed = true;
     }
 }

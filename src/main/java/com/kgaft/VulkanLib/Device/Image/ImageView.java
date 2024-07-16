@@ -9,10 +9,10 @@ import org.lwjgl.vulkan.VkImageViewCreateInfo;
 import static org.lwjgl.vulkan.VK13.*;
 
 public class ImageView extends DestroyableObject {
-    private LwjglObject<VkImageCreateInfo> parentInfo;
-    LogicalDevice device;
-    long imageView;
-    LwjglObject<VkImageViewCreateInfo> createInfo;
+    protected LwjglObject<VkImageCreateInfo> parentInfo;
+    protected LogicalDevice device;
+    protected long imageView;
+    protected LwjglObject<VkImageViewCreateInfo> createInfo;
 
     public ImageView(LogicalDevice device, long imageView, LwjglObject<VkImageViewCreateInfo> createInfo, LwjglObject<VkImageCreateInfo> parentInfo) {
         this.device = device;
@@ -33,6 +33,9 @@ public class ImageView extends DestroyableObject {
         return parentInfo;
     }
 
+    protected void setDestroyed(boolean val){
+        this.destroyed = val;
+    }
     @Override
     public void destroy() {
         destroyed = true;
