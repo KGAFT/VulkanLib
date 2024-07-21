@@ -1,8 +1,9 @@
 package com.kgaft.VulkanLib.Device.PhysicalDevice;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class DeviceSuitabilityResults {
-    public ArrayList<QueueFamilyInfo> queueFamilyInfos = new ArrayList<>();
+    public List<QueueFamilyInfo> queueFamilyInfos = new ArrayList<>();
 }

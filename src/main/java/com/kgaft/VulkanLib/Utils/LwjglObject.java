@@ -63,6 +63,21 @@ public class LwjglObject<T> {
 
     }
 
+    public LwjglObject(T baseObject, Class<T> typeParameterClass) throws IllegalClassFormatException {
+        this.typeParameterClass = typeParameterClass;
+        Optional<Method> freeMethod = Arrays.stream(typeParameterClass.getMethods())
+                .filter(method -> method.getName().equals("free"))
+                .filter(method -> method.getParameters().length == 0).findFirst();
+        Optional<Method> sTypeMethod = Arrays.stream(typeParameterClass.getMethods()).filter(method -> method.getName().equals("sType$Default")).findFirst();
+        if (freeMethod.isEmpty()) {
+            throw new IllegalClassFormatException("It is not lwjgl allocatable object");
+        }
+
+        this.baseObject = baseObject;
+
+        this.freeMethod = freeMethod.get();
+    }
+
     public T get() {
         return baseObject;
     }

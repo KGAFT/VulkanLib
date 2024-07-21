@@ -3,6 +3,7 @@ package com.kgaft.VulkanLib.Device.LogicalDevice;
 import com.kgaft.VulkanLib.Device.DeviceBuilder;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.DeviceSuitabilityResults;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.PhysicalDevice;
+import com.kgaft.VulkanLib.Device.PhysicalDevice.QueueFamilyInfo;
 import com.kgaft.VulkanLib.Instance.Instance;
 import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
@@ -75,29 +76,24 @@ public class LogicalDevice extends DestroyableObject {
             createInfo.get().ppEnabledLayerNames(layersBuf);
             createInfo.get().pEnabledFeatures(features.get());
             createInfo.get().pNext(dynamicRenderingFeatures.get());
-            PointerBuffer pb = PointerBuffer.allocateDirect(1);
-            pb.rewind();
+            PointerBuffer pb = MemoryStack.stackPush().pointers(VK_NULL_HANDLE);
             int status = vkCreateDevice(device.getBase(), createInfo.get(), null, pb);
 
             if (status != VK_SUCCESS) {
                 throw new VkErrorException("Failed to create device", status);
             }
             this.base = device;
-            this.device = new VkDevice(pb.get(), device.getBase(), createInfo.get());
+            this.device = new VkDevice(pb.get(0), device.getBase(), createInfo.get());
             extensionsBuffer.free();
             layersBuf.free();
-            pb.rewind();
-            suitabilityResults.queueFamilyInfos.forEach(element->{
-
+            for (QueueFamilyInfo element : suitabilityResults.queueFamilyInfos) {
                 vkGetDeviceQueue(this.device, element.index, 0, pb);
                 try {
-                    queues.add(new LogicalQueue(new VkQueue(pb.get(), this.device), this.device, element.supportPresentation, element.properties.queueFlags(), element.index));
+                    queues.add(new LogicalQueue(new VkQueue(pb.get(0), this.device), this.device, element.supportPresentation, element.properties.queueFlags(), element.index));
                 } catch (VkErrorException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
-                pb.rewind();
-            });
-            pb.free();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -176,6 +172,10 @@ public class LogicalDevice extends DestroyableObject {
 
     public VkDevice getDevice() {
         return device;
+    }
+
+    public PhysicalDevice getBase() {
+        return base;
     }
 
     public int findSupportedFormat(List<Integer> candidates, int tiling, int features) {

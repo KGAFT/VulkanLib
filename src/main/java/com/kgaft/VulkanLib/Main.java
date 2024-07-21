@@ -4,6 +4,7 @@ import com.kgaft.VulkanLib.Device.DeviceBuilder;
 import com.kgaft.VulkanLib.Device.LogicalDevice.LogicalDevice;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.DeviceSuitability;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.DeviceSuitabilityResults;
+import com.kgaft.VulkanLib.Device.SwapChain;
 import com.kgaft.VulkanLib.Instance.Instance;
 import com.kgaft.VulkanLib.Instance.InstanceBuilder;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanFileLoggerCallback;
@@ -50,6 +51,7 @@ public class Main {
             System.out.println(element.getProperties().get().deviceNameString());
         });
         LogicalDevice device = new LogicalDevice(instance, PhysicalDevice.getPhysicalDevices(instance).get(0), builder, supportedDevices.get(PhysicalDevice.getPhysicalDevices(instance).get(0)));
+        SwapChain swapChain = new SwapChain(device, window.getSurface(instance.getInstance()), window.getWidth(), window.getHeight(), true);
         while(window.isWindowActive()){
             window.postEvents();
         }
