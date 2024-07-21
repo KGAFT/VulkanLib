@@ -47,7 +47,7 @@ public class SwapChain extends DestroyableObject {
     }
 
     private LogicalDevice device;
-    private long swapchainKhr;
+    private long swapchainKhr = 0;
     private long surface;
     private int presentMode;
     private LwjglObject<VkExtent2D> extent;
@@ -69,20 +69,19 @@ public class SwapChain extends DestroyableObject {
     }
 
     public void recreate(int width, int height) throws IllegalClassFormatException, VkErrorException {
-        destroy();
-        destroyed = false;
+
         this.width = width;
         this.height = height;
-
+        cleanUpImages();
         createSwapChain(width, height, enableFrameLock);
     }
 
     public void recreate(int width, int height, boolean refreshRateLock) throws IllegalClassFormatException, VkErrorException {
-        destroy();
-        destroyed = false;
+
         enableFrameLock = refreshRateLock;
         this.width = width;
         this.height = height;
+        cleanUpImages();
         createSwapChain(width, height, refreshRateLock);
     }
 
@@ -138,6 +137,7 @@ public class SwapChain extends DestroyableObject {
         createInfo.compositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR);
         createInfo.presentMode(presentMode);
         createInfo.clipped(true);
+        createInfo.oldSwapchain(swapchainKhr);
         long[] preSwap = new long[1];
         VkErrorException.checkVkStatus("Failed to create swapchain", vkCreateSwapchainKHR(device.getDevice(), createInfo, null, preSwap));
         this.swapchainKhr = preSwap[0];
@@ -251,12 +251,15 @@ public class SwapChain extends DestroyableObject {
         }
     }
 
-    @Override
-    public void destroy() {
-        destroyed = true;
+    private void cleanUpImages(){
         swapchainImageViews.forEach(ImageView::destroy);
         swapchainImageViews.clear();
         swapchainImages.clear();
+    }
+    @Override
+    public void destroy() {
+        destroyed = true;
+        cleanUpImages();
         vkDestroySwapchainKHR(device.getDevice(), swapchainKhr, null);
     }
 }
