@@ -7,7 +7,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
-
+/*
+Attention: before using this util, please ensure that object that this class stores is not used by lwjgl, example:
+    this.device = new VkDevice(pb.get(0), device.getBase(), createInfo.get()); (where createInfo is LwjglObject<VkDeviceCreateInfo>) - is prohibited can cause libjvm errors
+ */
 public class LwjglObject<T> {
     private final T baseObject;
     private Class<T> typeParameterClass;

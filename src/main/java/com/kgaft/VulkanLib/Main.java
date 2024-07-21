@@ -52,6 +52,7 @@ public class Main {
         });
         LogicalDevice device = new LogicalDevice(instance, PhysicalDevice.getPhysicalDevices(instance).get(0), builder, supportedDevices.get(PhysicalDevice.getPhysicalDevices(instance).get(0)));
         SwapChain swapChain = new SwapChain(device, window.getSurface(instance.getInstance()), window.getWidth(), window.getHeight(), true);
+        window.addResizeCallBack((swapChain::recreate));
         while(window.isWindowActive()){
             window.postEvents();
         }

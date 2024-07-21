@@ -1,5 +1,6 @@
 package com.kgaft.VulkanLib.Window;
 
+import com.kgaft.VulkanLib.Utils.VkErrorException;
 import org.lwjgl.vulkan.VkInstance;
 
 import java.util.ArrayList;
@@ -65,7 +66,12 @@ public class Window {
 
     private void checkResizeCallBacks(int newWidth, int newHeight) {
         resizeCallBackList.forEach(resizeCallBack -> {
-            resizeCallBack.resized(newWidth, newHeight);
+            try{
+                resizeCallBack.resized(newWidth, newHeight);
+            }catch (Exception | VkErrorException e){
+                e.printStackTrace();
+
+            }
         });
     }
 

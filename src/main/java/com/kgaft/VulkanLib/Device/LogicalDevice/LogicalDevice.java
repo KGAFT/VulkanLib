@@ -68,22 +68,22 @@ public class LogicalDevice extends DestroyableObject {
                 extensionsBuffer.put(extBuff.getDataBuffer());
                 extensionsBuffBase.add(extBuff);
             });
-            LwjglObject<VkDeviceCreateInfo> createInfo = new LwjglObject<>(VkDeviceCreateInfo.class);
-
+            VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.calloc();
+            createInfo.sType$Default();
             extensionsBuffer.rewind();
-            createInfo.get().pQueueCreateInfos(queueCreateInfos.get());
-            createInfo.get().ppEnabledExtensionNames(extensionsBuffer);
-            createInfo.get().ppEnabledLayerNames(layersBuf);
-            createInfo.get().pEnabledFeatures(features.get());
-            createInfo.get().pNext(dynamicRenderingFeatures.get());
+            createInfo.pQueueCreateInfos(queueCreateInfos.get());
+            createInfo.ppEnabledExtensionNames(extensionsBuffer);
+            createInfo.ppEnabledLayerNames(layersBuf);
+            createInfo.pEnabledFeatures(features.get());
+            createInfo.pNext(dynamicRenderingFeatures.get());
             PointerBuffer pb = MemoryStack.stackPush().pointers(VK_NULL_HANDLE);
-            int status = vkCreateDevice(device.getBase(), createInfo.get(), null, pb);
+            int status = vkCreateDevice(device.getBase(), createInfo, null, pb);
 
             if (status != VK_SUCCESS) {
                 throw new VkErrorException("Failed to create device", status);
             }
             this.base = device;
-            this.device = new VkDevice(pb.get(0), device.getBase(), createInfo.get());
+            this.device = new VkDevice(pb.get(0), device.getBase(), createInfo);
             extensionsBuffer.free();
             layersBuf.free();
             for (QueueFamilyInfo element : suitabilityResults.queueFamilyInfos) {

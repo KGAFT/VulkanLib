@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
+import com.kgaft.VulkanLib.Utils.SeriesObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
 import org.lwjgl.vulkan.*;
 
@@ -32,6 +33,14 @@ class SwapChainSupportDetails {
 public class SwapChain extends DestroyableObject {
     private static LwjglObject<VkSurfaceFormatKHR.Buffer> formatsBuffer;
     private static VkSurfaceFormatKHR format;
+    private static SeriesObject<VkSwapchainCreateInfoKHR> createInfos;
+    static {
+        try {
+            createInfos = new SeriesObject<>(VkSwapchainCreateInfoKHR.class);
+        } catch (IllegalClassFormatException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static VkSurfaceFormatKHR getFormat() {
         return format;
@@ -85,6 +94,10 @@ public class SwapChain extends DestroyableObject {
         return swapchainImageViews;
     }
 
+    public long getSwapchainKhr() {
+        return swapchainKhr;
+    }
+
     private void createSwapChain(int width, int height, boolean enableFrameLock) throws IllegalClassFormatException, VkErrorException {
         SwapChainSupportDetails support = new SwapChainSupportDetails();
 
@@ -98,14 +111,15 @@ public class SwapChain extends DestroyableObject {
                 imageCount > support.capabilities.get().maxImageCount()) {
             imageCount = support.capabilities.get().maxImageCount();
         }
-        LwjglObject<VkSwapchainCreateInfoKHR> createInfo = new LwjglObject<>(VkSwapchainCreateInfoKHR.class);
-        createInfo.get().surface(surface);
-        createInfo.get().minImageCount(imageCount);
-        createInfo.get().imageFormat(format.format());
-        createInfo.get().imageColorSpace(format.colorSpace());
-        createInfo.get().imageExtent(extent.get());
-        createInfo.get().imageArrayLayers(1);
-        createInfo.get().imageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+        VkSwapchainCreateInfoKHR createInfo = createInfos.acquireObject();
+        createInfo.sType$Default();
+        createInfo.surface(surface);
+        createInfo.minImageCount(imageCount);
+        createInfo.imageFormat(format.format());
+        createInfo.imageColorSpace(format.colorSpace());
+        createInfo.imageExtent(extent.get());
+        createInfo.imageArrayLayers(1);
+        createInfo.imageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
         HashSet<Integer> baseQIndices = new HashSet<Integer>();
         baseQIndices.add(device.getQueueByType(VK_QUEUE_GRAPHICS_BIT).getIndex());
         baseQIndices.add(device.getPresentQueue().getIndex());
@@ -115,23 +129,24 @@ public class SwapChain extends DestroyableObject {
         baseQIndices.forEach(queueIndices::put);
         queueIndices.rewind();
         if (queueIndices.capacity() > 1) {
-            createInfo.get().imageSharingMode(VK_SHARING_MODE_CONCURRENT);
-            createInfo.get().pQueueFamilyIndices(queueIndices);
+            createInfo.imageSharingMode(VK_SHARING_MODE_CONCURRENT);
+            createInfo.pQueueFamilyIndices(queueIndices);
         } else {
-            createInfo.get().imageSharingMode(VK_SHARING_MODE_EXCLUSIVE);
+            createInfo.imageSharingMode(VK_SHARING_MODE_EXCLUSIVE);
         }
-        createInfo.get().preTransform(support.capabilities.get().currentTransform());
-        createInfo.get().compositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR);
-        createInfo.get().presentMode(presentMode);
-        createInfo.get().clipped(true);
+        createInfo.preTransform(support.capabilities.get().currentTransform());
+        createInfo.compositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR);
+        createInfo.presentMode(presentMode);
+        createInfo.clipped(true);
         long[] preSwap = new long[1];
-        VkErrorException.checkVkStatus("Failed to create swapchain", vkCreateSwapchainKHR(device.getDevice(), createInfo.get(), null, preSwap));
+        VkErrorException.checkVkStatus("Failed to create swapchain", vkCreateSwapchainKHR(device.getDevice(), createInfo, null, preSwap));
         this.swapchainKhr = preSwap[0];
         int[] swapImagesC = new int[1];
+        createInfos.releaseObjectInstance(createInfo);
         vkGetSwapchainImagesKHR(device.getDevice(), swapchainKhr, swapImagesC, null);
         baseImages = new long[swapImagesC[0]];
         vkGetSwapchainImagesKHR(device.getDevice(), swapchainKhr, swapImagesC, baseImages);
-
+        
         Arrays.stream(baseImages).forEach(element -> {
             try {
                 Image img = new Image(device, element);
@@ -240,6 +255,7 @@ public class SwapChain extends DestroyableObject {
     public void destroy() {
         destroyed = true;
         swapchainImageViews.forEach(ImageView::destroy);
+        swapchainImageViews.clear();
         swapchainImages.clear();
         vkDestroySwapchainKHR(device.getDevice(), swapchainKhr, null);
     }

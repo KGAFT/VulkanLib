@@ -2,7 +2,6 @@ package com.kgaft.VulkanLib.Instance;
 
 import com.kgaft.VulkanLib.Instance.InstanceLogger.InstanceLogger;
 import com.kgaft.VulkanLib.Utils.DestroyableObject;
-import com.kgaft.VulkanLib.Utils.VerboseUtil;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.vulkan.VkInstance;

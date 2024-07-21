@@ -1,6 +1,7 @@
 package com.kgaft.VulkanLib.Instance;
 
 import com.kgaft.VulkanLib.Instance.InstanceLogger.IVulkanLoggerCallback;
+import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.StringByteBuffer;
 import org.lwjgl.PointerBuffer;
@@ -16,9 +17,9 @@ import java.util.List;
 import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
 import static org.lwjgl.vulkan.VK13.*;
 
-public class InstanceBuilder {
-    private LwjglObject<VkApplicationInfo> applicationInfo = new LwjglObject<>(VkApplicationInfo.class);
-    private LwjglObject<VkInstanceCreateInfo> createInfo = new LwjglObject<>(VkInstanceCreateInfo.class);
+public class InstanceBuilder extends DestroyableObject {
+    VkApplicationInfo applicationInfo = VkApplicationInfo.calloc();
+    VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.calloc();
     private ArrayList<String> extensionNames = new ArrayList<>();
     protected ArrayList<String> layersNames = new ArrayList<>();
     private PointerBuffer layersNamePB = null;
@@ -28,27 +29,30 @@ public class InstanceBuilder {
     protected boolean presentEnabled = false;
 
 
-    public InstanceBuilder() throws IllegalClassFormatException {
-        applicationInfo.get().apiVersion(VK_API_VERSION_1_3);
-        createInfo.get().pApplicationInfo(applicationInfo.get());
+    private boolean createInfoUsed = false;
 
+    public InstanceBuilder() throws IllegalClassFormatException {
+        applicationInfo.sType$Default();
+        applicationInfo.apiVersion(VK_API_VERSION_1_3);
+        createInfo.pApplicationInfo(applicationInfo);
+        createInfo.sType$Default();
 
     }
 
     public void setApplicationVersion(int major, int minor, int patch) {
-        applicationInfo.get().applicationVersion(VK_MAKE_VERSION(major, minor, patch));
+        applicationInfo.applicationVersion(VK_MAKE_VERSION(major, minor, patch));
     }
 
     public void setApplicationName(String appName) {
-        applicationInfo.get().pApplicationName(new StringByteBuffer(appName).getDataBuffer());
+        applicationInfo.pApplicationName(new StringByteBuffer(appName).getDataBuffer());
     }
 
     public void setEngineName(String engineName) {
-        applicationInfo.get().pEngineName(new StringByteBuffer(engineName).getDataBuffer());
+        applicationInfo.pEngineName(new StringByteBuffer(engineName).getDataBuffer());
     }
 
     public void setEngineVersion(int major, int minor, int patch) {
-        applicationInfo.get().engineVersion(VK_MAKE_VERSION(major, minor, patch));
+        applicationInfo.engineVersion(VK_MAKE_VERSION(major, minor, patch));
     }
 
     public void addStartingVulkanLoggerCallback(IVulkanLoggerCallback callback){
@@ -92,9 +96,10 @@ public class InstanceBuilder {
         packLayersToPB();
         extensionsNamesPB.rewind();
         layersNamePB.rewind();
-        createInfo.get().ppEnabledExtensionNames(extensionsNamesPB);
-        createInfo.get().ppEnabledLayerNames(layersNamePB);
-        return createInfo.get();
+        createInfo.ppEnabledExtensionNames(extensionsNamesPB);
+        createInfo.ppEnabledLayerNames(layersNamePB);
+        createInfoUsed = true;
+        return createInfo;
     }
 
     private void packLayersToPB() {
@@ -129,6 +134,15 @@ public class InstanceBuilder {
                     extensionsNamesPB.put(glfwExtensions);
                 }
             }
+        }
+    }
+
+    @Override
+    public void destroy() {
+        destroyed = true;
+        if(!createInfoUsed){
+            createInfo.free();
+            applicationInfo.free();
         }
     }
 }
