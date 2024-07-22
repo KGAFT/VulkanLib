@@ -101,20 +101,6 @@ public:
         currentFrame = (currentFrame + 1) % maxFramesInFlight;
     }
 
-    void waitStop() {
-        for (auto &item: imagesInFlight) {
-            if (item != VK_NULL_HANDLE) {
-                vk::Result res;
-                res = device->getDevice().waitForFences(1,
-                                                       &item,
-                                                       VK_TRUE,
-                                                       UINT64_MAX);
-                if(res!=vk::Result::eSuccess){
-                    std::cerr<<"Failed to wait for fences"<<std::endl;
-                }
-            }
-        }
-    }
 
 private:
     void createSyncObjects() {

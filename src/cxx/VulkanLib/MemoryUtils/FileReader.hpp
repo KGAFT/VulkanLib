@@ -44,7 +44,7 @@ public:
             fileReader.close();
             return content;
         }
-        throw std::runtime_error("Failed to open file");
+        throw std::runtime_error(std::string("Failed to open file: ")+filePath);
     }
 
     static const char *readBinary(const char *filePath, size_t *sizeOutput) {

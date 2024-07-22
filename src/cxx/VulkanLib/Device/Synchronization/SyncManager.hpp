@@ -4,6 +4,7 @@
 #pragma once
 
 #include "ThreeFrameSynchronization.hpp"
+#include <malloc.h>
 
 class SyncManager : IDestroyableObject{
 public:
@@ -21,9 +22,18 @@ private:
     uint32_t currentCmd;
     vk::CommandBufferBeginInfo beginInfo{};
     bool stop = false;
+    uint32_t width, height = 0;
+    bool resized = false;
 public:
     vk::CommandBuffer beginRender(uint32_t& outCurrentCmd) {
         if(!stop){
+            if(resized){
+                setStop(true);
+                device->getDevice().waitIdle();
+                swapChain->recreate(width, height);
+                resized = false;
+                setStop(false);
+            }   
             currentCmd = sync.prepareForNextImage(swapChain);
             commandBuffers[currentCmd].begin(beginInfo);
             outCurrentCmd = currentCmd;
@@ -39,15 +49,17 @@ public:
         }
 
     }
+    void resize(uint32_t width, uint32_t height){
+        SyncManager::width = width;
+        SyncManager::height = height;
+        resized = true;
+    }
 
     bool isStop() const {
         return stop;
     }
 
     void setStop(bool stop) {
-        if(stop){
-            sync.waitStop();
-        }
         SyncManager::stop = stop;
     }
 

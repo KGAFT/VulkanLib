@@ -7,6 +7,7 @@
 #include <VulkanLib/MemoryUtils/SeriesObject.hpp>
 #include <cstring>
 #include <VulkanLib/MemoryUtils/FileReader.hpp>
+#include <stdexcept>
 class ShaderLoaderIncluder : public shaderc::CompileOptions::IncluderInterface{
 public:
     ShaderLoaderIncluder(std::string &workDirectory, const std::vector<std::string> &includeDirectories)
@@ -24,10 +25,20 @@ public:
         auto *result = (shaderc_include_result *) includes.getObjectInstance();
         size_t codeLength;
         std::vector<AdditionalLine> additionalLine;
-        const char* code = FileReader::readText((workDirectory+std::string(requested_source)).c_str(), &codeLength, additionalLine);
+        const char* code = nullptr; 
+        try{
+            code = FileReader::readText((workDirectory+std::string(requested_source)).c_str(), &codeLength, additionalLine);;
+        }catch(std::runtime_error& e){
+
+        }
+        
         if(!code){
             for (auto &item: includeDirectories){
+                try{
                 code = FileReader::readText((item+"/"+std::string(requested_source)).c_str(), &codeLength, additionalLine);
+                }catch(std::runtime_error& e){
+                    
+                }
                 if(code){
                     break;
                 }

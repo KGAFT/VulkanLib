@@ -89,7 +89,7 @@ public:
         std::string workDirectory(filePath);
         workDirectory = workDirectory.substr(0, workDirectory.size() - strlen(fileName));
         shaderc::CompileOptions compileOptions;
-        compileOptions.SetTargetSpirv(shaderc_spirv_version_1_5);
+        compileOptions.SetTargetSpirv(shaderc_spirv_version_1_6);
 
 
         compileOptions.SetIncluder(std::unique_ptr<shaderc::CompileOptions::IncluderInterface>{
@@ -100,6 +100,7 @@ public:
                                                                                 shaderKind, fileName, compileOptions);
         if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
             std::cerr<<"Shader code: "<<std::endl;
+            std::cerr<<result.GetCompilationStatus();
             uint32_t i = 0;
             uint32_t line = 0;
             while(shaderCode[i]!='\0') {
@@ -110,8 +111,9 @@ public:
                 }
                 i++;
             }
-            throw std::runtime_error("Failed to compile shader " + std::string(filePath) + " into SPIR-V:\n " +
-                                     result.GetErrorMessage());
+
+            std::cerr<<result.GetErrorMessage()<<std::endl;
+            throw std::runtime_error("Failed to compile shader " + std::string(filePath) + " into SPIR-V:\n ");
         }
         try {
             delete shaderCode;
