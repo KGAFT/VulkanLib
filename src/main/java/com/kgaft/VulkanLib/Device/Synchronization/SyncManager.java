@@ -12,6 +12,7 @@ import org.lwjgl.vulkan.VkCommandBufferAllocateInfo;
 import org.lwjgl.vulkan.VkCommandBufferBeginInfo;
 
 import java.lang.instrument.IllegalClassFormatException;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -56,11 +57,13 @@ public class SyncManager extends DestroyableObject {
         return null;
     }
 
-    public void endRender() {
+    public void endRender() throws VkErrorException {
         if(!stop){
             vkEndCommandBuffer(commandBuffers.get(currentCmd));
-            AtomicInteger curCmd = new AtomicInteger(currentCmd);
-            sync.submitCommandBuffers(commandBuffers.get(currentCmd), swapChain, curCmd);
+            IntBuffer curCmd = IntBuffer.allocate(1);
+            curCmd.put(currentCmd);
+            curCmd.rewind();
+            sync.submitCommandBuffer(commandBuffers.get(currentCmd), swapChain, curCmd);
             this.currentCmd = curCmd.get();
         }
 
