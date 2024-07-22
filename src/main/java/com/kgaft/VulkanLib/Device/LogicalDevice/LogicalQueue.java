@@ -88,6 +88,10 @@ public class LogicalQueue extends DestroyableObject {
         return index;
     }
 
+    public long getCommandPool() {
+        return commandPool;
+    }
+
     @Override
     public void destroy() {
         destroyed = true;
