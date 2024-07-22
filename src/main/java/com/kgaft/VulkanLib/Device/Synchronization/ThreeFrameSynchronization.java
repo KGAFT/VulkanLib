@@ -136,6 +136,7 @@ public class ThreeFrameSynchronization extends DestroyableObject {
         imageAvailableSemaphores.clear();
         renderFinishedSemaphores.clear();
         inFlightFences.clear();
+        cmdBuff.free();
         destroyed = true;
     }
 }
