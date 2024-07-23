@@ -62,4 +62,9 @@ public class DescriptorPool extends DestroyableObject {
         return res;
     }
 
+    @Override
+    public void destroy() {
+        destroyed = true;
+        vkDestroyDescriptorPool(logicalDevice.getDevice(), descriptorPool, null);
+    }
 }
