@@ -7,24 +7,24 @@ import org.lwjgl.vulkan.VkWriteDescriptorSetAccelerationStructureKHR;
 import java.lang.instrument.IllegalClassFormatException;
 
 public class DescriptorAccelerationStructureInfo {
-    private LwjglObject<VkWriteDescriptorSetAccelerationStructureKHR.Buffer> base;
+    private LwjglObject<VkWriteDescriptorSetAccelerationStructureKHR> base;
     private int binding;
     private int descriptorType;
 
-    public DescriptorAccelerationStructureInfo(int binding, int descriptorType, int descriptorCount) throws IllegalClassFormatException {
+    public DescriptorAccelerationStructureInfo(int binding, int descriptorType) throws IllegalClassFormatException {
         this.binding = binding;
         this.descriptorType = descriptorType;
-        this.base = new LwjglObject<>(VkWriteDescriptorSetAccelerationStructureKHR.class, VkWriteDescriptorSetAccelerationStructureKHR.Buffer.class, descriptorCount);
+        this.base = new LwjglObject<>(VkWriteDescriptorSetAccelerationStructureKHR.class);
     }
 
     public DescriptorAccelerationStructureInfo() {
     }
 
-    public LwjglObject<VkWriteDescriptorSetAccelerationStructureKHR.Buffer> getBase() {
+    public LwjglObject<VkWriteDescriptorSetAccelerationStructureKHR> getBase() {
         return base;
     }
 
-    public void setBase(LwjglObject<VkWriteDescriptorSetAccelerationStructureKHR.Buffer> base) {
+    public void setBase(LwjglObject<VkWriteDescriptorSetAccelerationStructureKHR> base) {
         this.base = base;
     }
 
