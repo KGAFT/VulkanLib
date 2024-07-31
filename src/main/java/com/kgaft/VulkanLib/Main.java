@@ -9,16 +9,24 @@ import com.kgaft.VulkanLib.Instance.Instance;
 import com.kgaft.VulkanLib.Instance.InstanceBuilder;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanFileLoggerCallback;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanLoggerCallback;
+import com.kgaft.VulkanLib.Shader.ShaderLoader;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.PhysicalDevice;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
 import com.kgaft.VulkanLib.Window.Window;
 
-import java.io.FileNotFoundException;
+import graphics.scenery.spirvcrossj.EShLanguage;
+import graphics.scenery.spirvcrossj.IntVec;
+import graphics.scenery.spirvcrossj.Loader;
+import graphics.scenery.spirvcrossj.libspirvcrossj;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.instrument.IllegalClassFormatException;
 import java.util.HashMap;
 
 public class Main {
-    public static void main(String[] args) throws IllegalClassFormatException, FileNotFoundException, VkErrorException {
+    public static void main(String[] args) throws IllegalClassFormatException, VkErrorException, IOException {
         Window.prepareWindow(1280, 720, "Vulan lib development", true);
         Window window = Window.getWindow();
         InstanceBuilder instanceBuilder = new InstanceBuilder();
@@ -53,6 +61,14 @@ public class Main {
         LogicalDevice device = new LogicalDevice(instance, PhysicalDevice.getPhysicalDevices(instance).get(0), builder, supportedDevices.get(PhysicalDevice.getPhysicalDevices(instance).get(0)));
         SwapChain swapChain = new SwapChain(device, window.getSurface(instance.getInstance()), window.getWidth(), window.getHeight(), true);
         window.addResizeCallBack((swapChain::recreate));
+        StringBuilder content = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new FileReader("content.vert"));
+        reader.lines().forEach(element->{
+            content.append(element);
+            content.append("\n");
+        });
+        ShaderLoader.init();
+        IntVec shaderContent = ShaderLoader.compileShader(content.toString(), EShLanguage.EShLangVertex);
         while(window.isWindowActive()){
             window.postEvents();
         }

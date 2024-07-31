@@ -143,6 +143,39 @@
                 <lwjgl.natives>natives-windows-arm64</lwjgl.natives>
             </properties>
         </profile>
+        <profile>
+            <id>spirvcrossj-natives-linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <properties>
+                <spirvcrossj.natives>natives-linux</spirvcrossj.natives>
+            </properties>
+        </profile>
+        <profile>
+            <id>spirvcrossj-natives-macos</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <spirvcrossj.natives>natives-macos</spirvcrossj.natives>
+            </properties>
+        </profile>
+        <profile>
+            <id>spirvcrossj-natives-windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <spirvcrossj.natives>natives-windows</spirvcrossj.natives>
+            </properties>
+        </profile>
     </profiles>
 
     <dependencyManagement>
@@ -170,10 +203,7 @@
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-glfw</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-shaderc</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-stb</artifactId>
@@ -211,6 +241,20 @@
             <groupId>org.joml</groupId>
             <artifactId>joml</artifactId>
             <version>${joml.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>graphics.scenery</groupId>
+            <artifactId>spirvcrossj</artifactId>
+            <version>0.8.0-1.1.106.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>graphics.scenery</groupId>
+            <artifactId>spirvcrossj</artifactId>
+            <version>0.8.0-1.1.106.0</version>
+            <classifier>${spirvcrossj.natives}</classifier>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 </project>
