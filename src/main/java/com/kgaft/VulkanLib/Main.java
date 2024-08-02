@@ -11,6 +11,7 @@ import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanFileLoggerCallba
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanLoggerCallback;
 import com.kgaft.VulkanLib.Shader.ShaderLoader;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.PhysicalDevice;
+import com.kgaft.VulkanLib.Utils.ThreadPool;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
 import com.kgaft.VulkanLib.Window.Window;
 
@@ -18,15 +19,19 @@ import graphics.scenery.spirvcrossj.EShLanguage;
 import graphics.scenery.spirvcrossj.IntVec;
 import graphics.scenery.spirvcrossj.Loader;
 import graphics.scenery.spirvcrossj.libspirvcrossj;
+import org.joml.Matrix4f;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.instrument.IllegalClassFormatException;
+import java.nio.FloatBuffer;
 import java.util.HashMap;
+import java.util.Random;
 
 public class Main {
-    public static void main(String[] args) throws IllegalClassFormatException, VkErrorException, IOException {
+    public static void main(String[] args) throws IllegalClassFormatException, VkErrorException, IOException, InterruptedException {
+        /*
         Window.prepareWindow(1280, 720, "Vulan lib development", true);
         Window window = Window.getWindow();
         InstanceBuilder instanceBuilder = new InstanceBuilder();
@@ -69,8 +74,26 @@ public class Main {
         });
         ShaderLoader.init();
         IntVec shaderContent = ShaderLoader.compileShader(content.toString(), EShLanguage.EShLangVertex);
+
+         */
+        ThreadPool threadPool = new ThreadPool(28);
+        for(int i = 0; i<128; i++){
+            threadPool.addTask(()->{
+                float[] values = new float[16];
+                for (int i1 = 0; i1 < values.length; i1++) {
+                    values[i1] = new Random().nextFloat();
+                }
+                Matrix4f matrix = new Matrix4f(FloatBuffer.wrap(values));
+                float determinant = matrix.determinant();
+            });
+        }
+        threadPool.executeTasks();
+        threadPool.waitForFinish();
+        /*
         while(window.isWindowActive()){
             window.postEvents();
         }
+
+         */
     }
 }
