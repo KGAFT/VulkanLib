@@ -9,29 +9,27 @@ import com.kgaft.VulkanLib.Instance.Instance;
 import com.kgaft.VulkanLib.Instance.InstanceBuilder;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanFileLoggerCallback;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanLoggerCallback;
+import com.kgaft.VulkanLib.Shader.Shader;
+import com.kgaft.VulkanLib.Shader.ShaderCreateInfo;
+import com.kgaft.VulkanLib.Shader.ShaderFileType;
 import com.kgaft.VulkanLib.Shader.ShaderLoader;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.PhysicalDevice;
-import com.kgaft.VulkanLib.Utils.ThreadPool;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
 import com.kgaft.VulkanLib.Window.Window;
 
-import graphics.scenery.spirvcrossj.EShLanguage;
-import graphics.scenery.spirvcrossj.IntVec;
-import graphics.scenery.spirvcrossj.Loader;
-import graphics.scenery.spirvcrossj.libspirvcrossj;
-import org.joml.Matrix4f;
+import org.lwjgl.vulkan.KHRRayTracingPipeline;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.instrument.IllegalClassFormatException;
-import java.nio.FloatBuffer;
+
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
+import java.util.List;
+
 
 public class Main {
     public static void main(String[] args) throws IllegalClassFormatException, VkErrorException, IOException, InterruptedException {
-        /*
+
         Window.prepareWindow(1280, 720, "Vulan lib development", true);
         Window window = Window.getWindow();
         InstanceBuilder instanceBuilder = new InstanceBuilder();
@@ -66,34 +64,15 @@ public class Main {
         LogicalDevice device = new LogicalDevice(instance, PhysicalDevice.getPhysicalDevices(instance).get(0), builder, supportedDevices.get(PhysicalDevice.getPhysicalDevices(instance).get(0)));
         SwapChain swapChain = new SwapChain(device, window.getSurface(instance.getInstance()), window.getWidth(), window.getHeight(), true);
         window.addResizeCallBack((swapChain::recreate));
-        StringBuilder content = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new FileReader("content.vert"));
-        reader.lines().forEach(element->{
-            content.append(element);
-            content.append("\n");
-        });
-        ShaderLoader.init();
-        IntVec shaderContent = ShaderLoader.compileShader(content.toString(), EShLanguage.EShLangVertex);
-
-         */
-        ThreadPool threadPool = new ThreadPool(28);
-        for(int i = 0; i<128; i++){
-            threadPool.addTask(()->{
-                float[] values = new float[16];
-                for (int i1 = 0; i1 < values.length; i1++) {
-                    values[i1] = new Random().nextFloat();
-                }
-                Matrix4f matrix = new Matrix4f(FloatBuffer.wrap(values));
-                float determinant = matrix.determinant();
-            });
-        }
-        threadPool.executeTasks();
-        threadPool.waitForFinish();
-        /*
+        List<ShaderCreateInfo> createInfoList = new ArrayList<>();
+        createInfoList.add(new ShaderCreateInfo("raygen.glsl", ShaderFileType.SRC_FILE, KHRRayTracingPipeline.VK_SHADER_STAGE_RAYGEN_BIT_KHR, new ArrayList<>()));
+        createInfoList.add(new ShaderCreateInfo("closehit.glsl", ShaderFileType.SRC_FILE, KHRRayTracingPipeline.VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, new ArrayList<>()));
+        createInfoList.add(new ShaderCreateInfo("miss.glsl", ShaderFileType.SRC_FILE, KHRRayTracingPipeline.VK_SHADER_STAGE_MISS_BIT_KHR, new ArrayList<>()));
+        Shader shader = ShaderLoader.createShader(device, createInfoList);
         while(window.isWindowActive()){
             window.postEvents();
         }
 
-         */
+
     }
 }

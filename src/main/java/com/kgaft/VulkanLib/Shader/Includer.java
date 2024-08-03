@@ -3,10 +3,10 @@ package com.kgaft.VulkanLib.Shader;
 import com.kgaft.VulkanLib.Utils.FileReader;
 import com.kgaft.VulkanLib.Utils.Range;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class Includer {
-    public static String processIncludes(String content, ArrayList<String> includeDirectories){
+    public static String processIncludes(String content, List<String> includeDirectories){
         int index = content.lastIndexOf("#include");
         while(index!=-1){
             Range range = new Range();
