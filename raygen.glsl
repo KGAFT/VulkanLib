@@ -8,8 +8,6 @@ struct hitPayload
 
 };
 
-
-
 layout (location = 0) rayPayloadEXT hitPayload prd;
 
 layout (push_constant) uniform PushConstantRay {

@@ -43,14 +43,20 @@ public class LogicalDevice extends DestroyableObject {
             newFeatures.get().uniformAndStorageBuffer8BitAccess(true);
             newFeatures.get().storageBuffer8BitAccess(true);
             newFeatures.get().shaderInt8(true);
+
             dynamicRenderingFeatures.get().pNext(newFeatures.get().address());
             LwjglObject<VkPhysicalDeviceRayTracingPipelineFeaturesKHR> rayTracingPipelineFeaturesKhr = new LwjglObject<>(VkPhysicalDeviceRayTracingPipelineFeaturesKHR.class);
             rayTracingPipelineFeaturesKhr.get().rayTracingPipeline(true);
+            if(builder.isRequireGraphicsSupport()){
+
+            }
             if (builder.isRayTracingSupport()) {
+                features.get().shaderInt64(true);
+                newFeatures.get().bufferDeviceAddress(true);
                 accelerationStructureFeatures.get().accelerationStructure(true);
                 newFeatures.get().pNext(accelerationStructureFeatures.get().address());
                 accelerationStructureFeatures.get().pNext(rayTracingPipelineFeaturesKhr.get().address());
-
+                newFeatures.get().runtimeDescriptorArray(true);
             }
 
             PointerBuffer layersBuf = PointerBuffer.allocateDirect(instance.getEnabledLayers().size());
@@ -75,7 +81,7 @@ public class LogicalDevice extends DestroyableObject {
             createInfo.ppEnabledExtensionNames(extensionsBuffer);
             createInfo.ppEnabledLayerNames(layersBuf);
             createInfo.pEnabledFeatures(features.get());
-            createInfo.pNext(dynamicRenderingFeatures.get());
+            createInfo.pNext(dynamicRenderingFeatures.get().address());
             PointerBuffer pb = MemoryStack.stackPush().pointers(VK_NULL_HANDLE);
             int status = vkCreateDevice(device.getBase(), createInfo, null, pb);
 

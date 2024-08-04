@@ -147,15 +147,12 @@ public class ShaderLoader {
             throw new RuntimeException("Failed to create shader compiler");
         }
         content = Includer.processIncludes(content, includeDirectories);
-        ByteBuffer source = new StringByteBuffer(content).getDataBuffer();
-        ByteBuffer filename = new StringByteBuffer(fileName).getDataBuffer();
-        ByteBuffer mainName = new StringByteBuffer("main").getDataBuffer();
         long options = shaderc_compile_options_initialize();
         shaderc_compile_options_set_target_spirv(options, shaderc_spirv_version_1_6);
-        long result = shaderc_compile_into_spv(compiler, source, shaderType, filename, mainName, options);;
+        long result = shaderc_compile_into_spv(compiler, content, shaderType, fileName, "main", options);;
 
         if(result == 0) {
-            throw new RuntimeException("Failed to compile shader " + filename + " into SPIR-V");
+            throw new RuntimeException("Failed to compile shader " + fileName + " into SPIR-V");
         }
 
         if(shaderc_result_get_compilation_status(result) != shaderc_compilation_status_success) {
@@ -172,7 +169,7 @@ public class ShaderLoader {
                 }
                 i++;
             }
-            throw new RuntimeException("Failed to compile shader " + filename + "into SPIR-V:\n " + shaderc_result_get_error_message(result));
+            throw new RuntimeException("Failed to compile shader " + fileName + "into SPIR-V:\n " + shaderc_result_get_error_message(result));
         }
 
         shaderc_compiler_release(compiler);

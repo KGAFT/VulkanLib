@@ -16,9 +16,12 @@ public class FileReader {
                 BufferedReader reader = new BufferedReader(new java.io.FileReader(path));
                 reader.lines().forEach(element->{
                     content.append(element);
+
                     content.append("\n");
+
+
                 });
-                return content.toString();
+                return content.substring(0, content.length()-1);
             }catch (Exception e){
                 e.printStackTrace();
                 return null;
