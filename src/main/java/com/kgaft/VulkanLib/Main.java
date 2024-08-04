@@ -64,11 +64,8 @@ public class Main {
         LogicalDevice device = new LogicalDevice(instance, PhysicalDevice.getPhysicalDevices(instance).get(0), builder, supportedDevices.get(PhysicalDevice.getPhysicalDevices(instance).get(0)));
         SwapChain swapChain = new SwapChain(device, window.getSurface(instance.getInstance()), window.getWidth(), window.getHeight(), true);
         window.addResizeCallBack((swapChain::recreate));
-        List<ShaderCreateInfo> createInfoList = new ArrayList<>();
-        createInfoList.add(new ShaderCreateInfo("raygen.glsl", ShaderFileType.SRC_FILE, KHRRayTracingPipeline.VK_SHADER_STAGE_RAYGEN_BIT_KHR, new ArrayList<>()));
-        createInfoList.add(new ShaderCreateInfo("closehit.glsl", ShaderFileType.SRC_FILE, KHRRayTracingPipeline.VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, new ArrayList<>()));
-        createInfoList.add(new ShaderCreateInfo("miss.glsl", ShaderFileType.SRC_FILE, KHRRayTracingPipeline.VK_SHADER_STAGE_MISS_BIT_KHR, new ArrayList<>()));
-        Shader shader = ShaderLoader.createShaderParallel(device, createInfoList, 3);
+
+
         while(window.isWindowActive()){
             window.postEvents();
         }
