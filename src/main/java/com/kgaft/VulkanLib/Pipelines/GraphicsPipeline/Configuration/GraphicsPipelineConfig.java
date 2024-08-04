@@ -1,16 +1,34 @@
 package com.kgaft.VulkanLib.Pipelines.GraphicsPipeline.Configuration;
 
+import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
+import com.kgaft.VulkanLib.Utils.SeriesObject;
 import org.lwjgl.vulkan.*;
 
 import java.lang.instrument.IllegalClassFormatException;
 import static org.lwjgl.vulkan.VK13.*;
-public class GraphicsPipelineConfig {
-    
+public class GraphicsPipelineConfig extends DestroyableObject {
+
+    private static SeriesObject<VkPipelineInputAssemblyStateCreateInfo> inputAssemblyInfos;
+    private static SeriesObject<VkPipelineRasterizationStateCreateInfo> rasterizationInfos;
+    private static SeriesObject<VkPipelineMultisampleStateCreateInfo> multisampleInfos;
+    private static SeriesObject<VkPipelineColorBlendStateCreateInfo> colorBlendInfos;
+    private static SeriesObject<VkPipelineDepthStencilStateCreateInfo> depthStencilInfos;
+    static {
+        try {
+            depthStencilInfos = new SeriesObject<>(VkPipelineDepthStencilStateCreateInfo.class);
+            colorBlendInfos = new SeriesObject<>(VkPipelineColorBlendStateCreateInfo.class);
+            multisampleInfos = new SeriesObject<>(VkPipelineMultisampleStateCreateInfo.class);
+            rasterizationInfos = new SeriesObject<>(VkPipelineRasterizationStateCreateInfo.class);
+            inputAssemblyInfos = new SeriesObject<>(VkPipelineInputAssemblyStateCreateInfo.class);
+        } catch (IllegalClassFormatException e) {
+            throw new RuntimeException(e);
+        }
+    }
     public static void createConfig(GraphicsPipelineConfig configInfo,  int attachmentCount, boolean alphaBlending,  int width,  int height) throws IllegalClassFormatException {
-        configInfo.inputAssemblyInfo.get().sType$Default();
-        configInfo.inputAssemblyInfo.get().topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-        configInfo.inputAssemblyInfo.get().primitiveRestartEnable(false);
+        configInfo.inputAssemblyInfo.sType$Default();
+        configInfo.inputAssemblyInfo.topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        configInfo.inputAssemblyInfo.primitiveRestartEnable(false);
     
         configInfo.viewport.get().width(width);
         configInfo.viewport.get().height(height);
@@ -20,21 +38,21 @@ public class GraphicsPipelineConfig {
         configInfo.scissor.get().offset().y(0);
         configInfo.scissor.get().extent().width(width);
         configInfo.scissor.get().extent().height(height);
-        configInfo.rasterizationInfo.get().sType$Default();
-        configInfo.rasterizationInfo.get().depthClampEnable(false);
-        configInfo.rasterizationInfo.get().rasterizerDiscardEnable(false);
-        configInfo.rasterizationInfo.get().polygonMode(VK_POLYGON_MODE_FILL);
-        configInfo.rasterizationInfo.get().lineWidth(1.0f);
-        configInfo.rasterizationInfo.get().cullMode(VK_CULL_MODE_NONE);
-        configInfo.rasterizationInfo.get().frontFace(VK_FRONT_FACE_CLOCKWISE);
-        configInfo.rasterizationInfo.get().depthBiasEnable(false);
+        configInfo.rasterizationInfo.sType$Default();
+        configInfo.rasterizationInfo.depthClampEnable(false);
+        configInfo.rasterizationInfo.rasterizerDiscardEnable(false);
+        configInfo.rasterizationInfo.polygonMode(VK_POLYGON_MODE_FILL);
+        configInfo.rasterizationInfo.lineWidth(1.0f);
+        configInfo.rasterizationInfo.cullMode(VK_CULL_MODE_NONE);
+        configInfo.rasterizationInfo.frontFace(VK_FRONT_FACE_CLOCKWISE);
+        configInfo.rasterizationInfo.depthBiasEnable(false);
       
-        configInfo.multisampleInfo.get().sType$Default();
-        configInfo.multisampleInfo.get().sampleShadingEnable(false);
-        configInfo.multisampleInfo.get().rasterizationSamples(VK_SAMPLE_COUNT_1_BIT);
-        configInfo.multisampleInfo.get().minSampleShading(1.0f);
-        configInfo.multisampleInfo.get().alphaToCoverageEnable(false);
-        configInfo.multisampleInfo.get().alphaToOneEnable(false);
+        configInfo.multisampleInfo.sType$Default();
+        configInfo.multisampleInfo.sampleShadingEnable(false);
+        configInfo.multisampleInfo.rasterizationSamples(VK_SAMPLE_COUNT_1_BIT);
+        configInfo.multisampleInfo.minSampleShading(1.0f);
+        configInfo.multisampleInfo.alphaToCoverageEnable(false);
+        configInfo.multisampleInfo.alphaToOneEnable(false);
      
         if(alphaBlending){
             configInfo.colorBlendAttachments = new LwjglObject<>(VkPipelineColorBlendAttachmentState.class, VkPipelineColorBlendAttachmentState.Buffer.class, attachmentCount);
@@ -63,38 +81,51 @@ public class GraphicsPipelineConfig {
         }
 
 
-        configInfo.colorBlendInfo.get().sType$Default();
-        configInfo.colorBlendInfo.get().logicOpEnable(false);
-        configInfo.colorBlendInfo.get().logicOp(VK_LOGIC_OP_COPY);
-        configInfo.colorBlendInfo.get().attachmentCount(attachmentCount);
-        configInfo.colorBlendInfo.get().pAttachments(configInfo.colorBlendAttachments.get());
-        configInfo.colorBlendInfo.get().blendConstants().put(0);
-        configInfo.colorBlendInfo.get().blendConstants().put(0);
-        configInfo.colorBlendInfo.get().blendConstants().put(0);
-        configInfo.colorBlendInfo.get().blendConstants().put(0);
-        configInfo.colorBlendInfo.get().blendConstants().rewind();
-        configInfo.depthStencilInfo.get().sType$Default();
-        configInfo.depthStencilInfo.get().depthTestEnable(true);
-        configInfo.depthStencilInfo.get().depthWriteEnable(true);
-        configInfo.depthStencilInfo.get().depthCompareOp(VK_COMPARE_OP_LESS);
-        configInfo.depthStencilInfo.get().depthBoundsTestEnable(false);
-        configInfo.depthStencilInfo.get().minDepthBounds(0.0f);
-        configInfo.depthStencilInfo.get().maxDepthBounds(1.0f);
-        configInfo.depthStencilInfo.get().stencilTestEnable(false);
+        configInfo.colorBlendInfo.sType$Default();
+        configInfo.colorBlendInfo.logicOpEnable(false);
+        configInfo.colorBlendInfo.logicOp(VK_LOGIC_OP_COPY);
+        configInfo.colorBlendInfo.attachmentCount(attachmentCount);
+        configInfo.colorBlendInfo.pAttachments(configInfo.colorBlendAttachments.get());
+        configInfo.colorBlendInfo.blendConstants().put(0);
+        configInfo.colorBlendInfo.blendConstants().put(0);
+        configInfo.colorBlendInfo.blendConstants().put(0);
+        configInfo.colorBlendInfo.blendConstants().put(0);
+        configInfo.colorBlendInfo.blendConstants().rewind();
+        configInfo.depthStencilInfo.sType$Default();
+        configInfo.depthStencilInfo.depthTestEnable(true);
+        configInfo.depthStencilInfo.depthWriteEnable(true);
+        configInfo.depthStencilInfo.depthCompareOp(VK_COMPARE_OP_LESS);
+        configInfo.depthStencilInfo.depthBoundsTestEnable(false);
+        configInfo.depthStencilInfo.minDepthBounds(0.0f);
+        configInfo.depthStencilInfo.maxDepthBounds(1.0f);
+        configInfo.depthStencilInfo.stencilTestEnable(false);
 
     }
-    
-    public LwjglObject<VkViewport> viewport = new LwjglObject<>(VkViewport.class);
-    public LwjglObject<VkRect2D> scissor = new LwjglObject<>(VkRect2D.class);
-    public LwjglObject<VkPipelineInputAssemblyStateCreateInfo> inputAssemblyInfo = new LwjglObject<>(VkPipelineInputAssemblyStateCreateInfo.class);
-    public LwjglObject<VkPipelineRasterizationStateCreateInfo> rasterizationInfo = new LwjglObject<>(VkPipelineRasterizationStateCreateInfo.class);
-    public LwjglObject<VkPipelineMultisampleStateCreateInfo> multisampleInfo = new LwjglObject<>(VkPipelineMultisampleStateCreateInfo.class);
+
+
+
+
+    public LwjglObject<VkViewport.Buffer> viewport = new LwjglObject<>(VkViewport.class, VkViewport.Buffer.class, 1);
+    public LwjglObject<VkRect2D.Buffer> scissor = new LwjglObject<>(VkRect2D.class, VkRect2D.Buffer.class, 1);
+    public VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo = inputAssemblyInfos.acquireObject();
+    public VkPipelineRasterizationStateCreateInfo rasterizationInfo = rasterizationInfos.acquireObject();
+    public VkPipelineMultisampleStateCreateInfo multisampleInfo = multisampleInfos.acquireObject();
     public LwjglObject<VkPipelineColorBlendAttachmentState.Buffer> colorBlendAttachments;
-    public LwjglObject<VkPipelineColorBlendStateCreateInfo> colorBlendInfo = new LwjglObject<>(VkPipelineColorBlendStateCreateInfo.class);
-    public LwjglObject<VkPipelineDepthStencilStateCreateInfo> depthStencilInfo = new LwjglObject<>(VkPipelineDepthStencilStateCreateInfo.class);
+    public VkPipelineColorBlendStateCreateInfo colorBlendInfo = colorBlendInfos.acquireObject();
+    public VkPipelineDepthStencilStateCreateInfo depthStencilInfo = depthStencilInfos.acquireObject();
 
     public int subpass = 0;
 
     public GraphicsPipelineConfig() throws IllegalClassFormatException {
+    }
+
+    @Override
+    public void destroy() {
+        destroyed = true;
+        inputAssemblyInfos.releaseObjectInstance(inputAssemblyInfo);
+        rasterizationInfos.releaseObjectInstance(rasterizationInfo);
+        multisampleInfos.releaseObjectInstance(multisampleInfo);
+        colorBlendInfos.releaseObjectInstance(colorBlendInfo);
+        depthStencilInfos.releaseObjectInstance(depthStencilInfo);
     }
 }

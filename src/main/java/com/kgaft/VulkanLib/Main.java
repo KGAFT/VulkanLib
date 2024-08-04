@@ -9,6 +9,11 @@ import com.kgaft.VulkanLib.Instance.Instance;
 import com.kgaft.VulkanLib.Instance.InstanceBuilder;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanFileLoggerCallback;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanLoggerCallback;
+import com.kgaft.VulkanLib.Pipelines.GraphicsPipeline.Configuration.GraphicsPipelineBuilder;
+import com.kgaft.VulkanLib.Pipelines.GraphicsPipeline.GraphicsPipeline;
+import com.kgaft.VulkanLib.Pipelines.PipelineConfiguration.PipelineBuilder.PushConstantInfo;
+import com.kgaft.VulkanLib.Pipelines.PipelineConfiguration.PipelineBuilder.SamplerInfo;
+import com.kgaft.VulkanLib.Pipelines.PipelineConfiguration.PipelineBuilder.VertexInput;
 import com.kgaft.VulkanLib.Shader.Shader;
 import com.kgaft.VulkanLib.Shader.ShaderCreateInfo;
 import com.kgaft.VulkanLib.Shader.ShaderFileType;
@@ -25,6 +30,8 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static org.lwjgl.vulkan.VK10.*;
 
 
 public class Main {
@@ -64,7 +71,18 @@ public class Main {
         LogicalDevice device = new LogicalDevice(instance, PhysicalDevice.getPhysicalDevices(instance).get(0), builder, supportedDevices.get(PhysicalDevice.getPhysicalDevices(instance).get(0)));
         SwapChain swapChain = new SwapChain(device, window.getSurface(instance.getInstance()), window.getWidth(), window.getHeight(), true);
         window.addResizeCallBack((swapChain::recreate));
-
+        List<ShaderCreateInfo> createInfos = new ArrayList<>();
+        createInfos.add(new ShaderCreateInfo("main.vert", ShaderFileType.SRC_FILE, VK_SHADER_STAGE_VERTEX_BIT, new ArrayList<>()));
+        createInfos.add(new ShaderCreateInfo("main.frag", ShaderFileType.SRC_FILE, VK_SHADER_STAGE_FRAGMENT_BIT, new ArrayList<>()));
+        Shader shader = ShaderLoader.createShaderParallel(device, createInfos, 2);
+        GraphicsPipelineBuilder gBuilder = new GraphicsPipelineBuilder();
+        gBuilder.addVertexInput(new VertexInput(0, 3, Float.SIZE, VK_FORMAT_R32G32B32_SFLOAT));
+        gBuilder.addVertexInput(new VertexInput(1, 2, Float.SIZE, VK_FORMAT_R32G32_SFLOAT));
+        gBuilder.addSamplerInfo(new SamplerInfo(0, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
+        gBuilder.addSamplerInfo(new SamplerInfo(1, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
+        gBuilder.addSamplerInfo(new SamplerInfo(2, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
+        gBuilder.addPushConstantInfo(new PushConstantInfo(VK_SHADER_STAGE_FRAGMENT_BIT, 4*Integer.SIZE));
+        GraphicsPipeline graphicsPipeline = new GraphicsPipeline(gBuilder, swapChain.getSwapchainImages().size(), device, shader, window.getWidth(), window.getHeight());
 
         while(window.isWindowActive()){
             window.postEvents();

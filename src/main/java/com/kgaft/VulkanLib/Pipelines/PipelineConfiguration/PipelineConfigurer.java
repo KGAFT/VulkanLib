@@ -21,7 +21,7 @@ public class PipelineConfigurer extends DestroyableObject {
     private long pipelineLayout;
     private long descriptorSetLayout;
     private LogicalDevice device;
-    private LwjglObject<VkVertexInputBindingDescription> inputBindDesc = new LwjglObject<>(VkVertexInputBindingDescription.class);
+    private LwjglObject<VkVertexInputBindingDescription.Buffer> inputBindDesc = new LwjglObject<>(VkVertexInputBindingDescription.class, VkVertexInputBindingDescription.Buffer.class, 1);
     private LwjglObject<VkVertexInputAttributeDescription.Buffer> inputAttribDescs;
 
 
@@ -45,7 +45,7 @@ public class PipelineConfigurer extends DestroyableObject {
         return device;
     }
 
-    public LwjglObject<VkVertexInputBindingDescription> getInputBindDesc() {
+    public LwjglObject<VkVertexInputBindingDescription.Buffer> getInputBindDesc() {
         return inputBindDesc;
     }
 

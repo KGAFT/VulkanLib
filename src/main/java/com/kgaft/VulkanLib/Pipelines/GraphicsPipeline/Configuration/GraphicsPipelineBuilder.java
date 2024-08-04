@@ -7,7 +7,7 @@ import java.util.List;
 
 public class GraphicsPipelineBuilder {
 
-    private PipelineBuilder pipelineBuilder;
+    private PipelineBuilder pipelineBuilder = new PipelineBuilder();
     private List<Integer> colorAttachmentInfo = new ArrayList<>();
     private int depthAttachmentInfo;
 
@@ -41,5 +41,16 @@ public class GraphicsPipelineBuilder {
     public void addStorageImageInfo(StorageImageInfo storageImageInfo){
         pipelineBuilder.addStorageImageInfo(storageImageInfo);
     }
-    
+
+    public PipelineBuilder getPipelineBuilder() {
+        return pipelineBuilder;
+    }
+
+    public int getDepthAttachmentInfo() {
+        return depthAttachmentInfo;
+    }
+
+    public List<Integer> getColorAttachmentInfo() {
+        return colorAttachmentInfo;
+    }
 }
