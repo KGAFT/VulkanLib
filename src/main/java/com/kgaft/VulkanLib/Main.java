@@ -46,6 +46,7 @@ public class Main {
         instanceBuilder.setApplicationVersion(1,0,0);
         instanceBuilder.setEngineVersion(1,0,0);
         instanceBuilder.presetForPresent();
+
         instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanLoggerCallback());
         instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanFileLoggerCallback());
         Instance instance = new Instance(instanceBuilder);
@@ -68,6 +69,7 @@ public class Main {
         supportedDevices.forEach((element, val)->{
             System.out.println(element.getProperties().get().deviceNameString());
         });
+
         LogicalDevice device = new LogicalDevice(instance, PhysicalDevice.getPhysicalDevices(instance).get(0), builder, supportedDevices.get(PhysicalDevice.getPhysicalDevices(instance).get(0)));
         SwapChain swapChain = new SwapChain(device, window.getSurface(instance.getInstance()), window.getWidth(), window.getHeight(), true);
         window.addResizeCallBack((swapChain::recreate));

@@ -129,6 +129,7 @@ public class GraphicsPipeline extends DestroyableObject{
 
         createStrip.pipelineInfo.get().pNext(renderingCreateInfo.get().address());
         long[] res = new long[1];
+
         VkErrorException.checkVkStatus("Failed to crate graphics pipeline: ", vkCreateGraphicsPipelines(device.getDevice(), 0, createStrip.pipelineInfo.get(), null, res));
         this.graphicsPipeline = res[0];
     }

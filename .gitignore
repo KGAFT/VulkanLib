@@ -8,6 +8,8 @@ target/
 *.iws
 *.iml
 *.ipr
+out/
+META-INF/
 
 ### Eclipse ###
 .apt_generated

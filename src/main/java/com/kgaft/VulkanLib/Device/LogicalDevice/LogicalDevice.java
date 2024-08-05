@@ -81,7 +81,9 @@ public class LogicalDevice extends DestroyableObject {
             createInfo.ppEnabledExtensionNames(extensionsBuffer);
             createInfo.ppEnabledLayerNames(layersBuf);
             createInfo.pEnabledFeatures(features.get());
+            features.get().samplerAnisotropy(true);
             createInfo.pNext(dynamicRenderingFeatures.get().address());
+
             PointerBuffer pb = MemoryStack.stackPush().pointers(VK_NULL_HANDLE);
             int status = vkCreateDevice(device.getBase(), createInfo, null, pb);
 

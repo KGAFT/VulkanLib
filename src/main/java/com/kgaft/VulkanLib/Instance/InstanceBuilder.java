@@ -94,8 +94,11 @@ public class InstanceBuilder extends DestroyableObject {
     protected VkInstanceCreateInfo getCreateInfo() {
         packExtensionsToPB();
         packLayersToPB();
-        extensionsNamesPB.rewind();
-        layersNamePB.rewind();
+        if(extensionsNamesPB!=null){
+            extensionsNamesPB.rewind();
+        }
+        if(layersNamePB!=null)
+            layersNamePB.rewind();
         createInfo.ppEnabledExtensionNames(extensionsNamesPB);
         createInfo.ppEnabledLayerNames(layersNamePB);
         createInfoUsed = true;

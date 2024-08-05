@@ -5,6 +5,7 @@ import com.kgaft.VulkanLib.Pipelines.PipelineConfiguration.PipelineBuilder.*;
 import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 
 import java.lang.instrument.IllegalClassFormatException;
@@ -102,7 +103,8 @@ public class PipelineConfigurer extends DestroyableObject {
             counter++;
         }
         LwjglObject<VkPipelineLayoutCreateInfo> pipelineLayoutInfo = new LwjglObject<>(VkPipelineLayoutCreateInfo.class);
-        LongBuffer layouts = LongBuffer.allocate(1);
+        pipelineLayoutInfo.get().sType$Default();
+        LongBuffer layouts = MemoryStack.stackPush().callocLong(1);
         if (descriptorSetLayout != 0) {
             layouts.put(descriptorSetLayout);
             layouts.rewind();
@@ -112,6 +114,7 @@ public class PipelineConfigurer extends DestroyableObject {
         pipelineLayoutInfo.get().pPushConstantRanges(pushConstantRanges.get());
         long[] layout = new long[1];
         VkErrorException.checkVkStatus("Failed to create pipeline layout: ", vkCreatePipelineLayout(device.getDevice(), pipelineLayoutInfo.get(), null, layout));
+        this.pipelineLayout = layout[0];
     }
 
     private void prepareBinding(List<VertexInput> inputs) {
