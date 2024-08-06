@@ -252,7 +252,6 @@ public class SwapChain extends DestroyableObject {
     }
 
     private void cleanUpImages(){
-        swapchainImageViews.forEach(ImageView::destroy);
         swapchainImageViews.clear();
         swapchainImages.clear();
     }
