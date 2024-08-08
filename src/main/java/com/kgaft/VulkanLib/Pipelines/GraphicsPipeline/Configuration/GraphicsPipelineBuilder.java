@@ -38,6 +38,7 @@ public class GraphicsPipelineBuilder {
     public void setDepthAttachmentInfo(int depthAttachmentInfo) {
         this.depthAttachmentInfo = depthAttachmentInfo;
     }
+
     public void addStorageImageInfo(StorageImageInfo storageImageInfo){
         pipelineBuilder.addStorageImageInfo(storageImageInfo);
     }

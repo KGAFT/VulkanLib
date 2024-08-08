@@ -14,15 +14,18 @@ import com.kgaft.VulkanLib.Pipelines.GraphicsPipeline.GraphicsPipeline;
 import com.kgaft.VulkanLib.Pipelines.PipelineConfiguration.PipelineBuilder.PushConstantInfo;
 import com.kgaft.VulkanLib.Pipelines.PipelineConfiguration.PipelineBuilder.SamplerInfo;
 import com.kgaft.VulkanLib.Pipelines.PipelineConfiguration.PipelineBuilder.VertexInput;
+import com.kgaft.VulkanLib.RenderPipeline.GraphicsRenderPipeline;
 import com.kgaft.VulkanLib.Shader.Shader;
 import com.kgaft.VulkanLib.Shader.ShaderCreateInfo;
 import com.kgaft.VulkanLib.Shader.ShaderFileType;
 import com.kgaft.VulkanLib.Shader.ShaderLoader;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.PhysicalDevice;
+import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
 import com.kgaft.VulkanLib.Window.Window;
 
 import org.lwjgl.vulkan.KHRRayTracingPipeline;
+import org.lwjgl.vulkan.VkExtent2D;
 
 import java.io.IOException;
 import java.lang.instrument.IllegalClassFormatException;
@@ -84,13 +87,13 @@ public class Main {
         gBuilder.addSamplerInfo(new SamplerInfo(1, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
         gBuilder.addSamplerInfo(new SamplerInfo(2, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
         gBuilder.addPushConstantInfo(new PushConstantInfo(VK_SHADER_STAGE_FRAGMENT_BIT, 4*Integer.SIZE));
-        GraphicsPipeline graphicsPipeline = new GraphicsPipeline(gBuilder, swapChain.getSwapchainImages().size(), device, shader, window.getWidth(), window.getHeight());
-
+        LwjglObject<VkExtent2D> renderArea = new LwjglObject<>(VkExtent2D.class);
+        renderArea.get().width(window.getWidth());
+        renderArea.get().height(window.getHeight());
+        GraphicsRenderPipeline renderPipeline = new GraphicsRenderPipeline(device, swapChain, gBuilder, shader, renderArea, swapChain.getSwapchainImages().size());
+        window.addResizeCallBack(renderPipeline::resize);
         while(window.isWindowActive()){
             window.postEvents();
         }
-
-
-
     }
 }

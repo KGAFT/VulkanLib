@@ -97,6 +97,8 @@ public class SwapChain extends DestroyableObject {
         return swapchainKhr;
     }
 
+
+
     private void createSwapChain(int width, int height, boolean enableFrameLock) throws IllegalClassFormatException, VkErrorException {
         SwapChainSupportDetails support = new SwapChainSupportDetails();
 

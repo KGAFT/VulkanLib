@@ -62,6 +62,7 @@ public class Image extends DestroyableObject {
                 throw new VkErrorException("Failed to allocate image memory", status);
             }
             this.imageMemory = res[0];
+            vkBindImageMemory(device.getDevice(), base,imageMemory, 0);
 
         } catch (IllegalClassFormatException e) {
             throw new RuntimeException(e);
@@ -93,6 +94,7 @@ public class Image extends DestroyableObject {
                                       int aspectFlags) {
         try {
             LwjglObject<VkImageMemoryBarrier.Buffer> barrier = new LwjglObject<>(VkImageMemoryBarrier.class, VkImageMemoryBarrier.Buffer.class, 1);
+            barrier.get().sType$Default();
             barrier.get().oldLayout(oldLayout);
             barrier.get().newLayout(newLayout);
             barrier.get().srcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
