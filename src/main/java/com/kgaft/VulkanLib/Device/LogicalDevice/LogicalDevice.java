@@ -116,10 +116,14 @@ public class LogicalDevice extends DestroyableObject {
 
 
     public LogicalQueue getQueueByType(int queueType){
-        Optional<LogicalQueue> queue = queues.stream().filter(element-> (element.getQueueType() &queueType)>0).findFirst();
-        if(queue.isPresent()){
-            return queue.get();
+        LogicalQueue queue = null;
+        //queue = queues.stream().filter(element-> (element.getQueueType() &queueType)>0).findFirst();
+        for (LogicalQueue element : queues) {
+            if((element.getQueueType() &queueType)>0){
+                return element;
+            }
         }
+
         throw new RuntimeException("Failed to find suitable queue");
     }
 

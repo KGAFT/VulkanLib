@@ -34,7 +34,7 @@ public class GraphicsRenderPipeline {
     private GraphicsPipeline graphicsPipeline;
 
     private LwjglObject<VkRenderingAttachmentInfoKHR.Buffer> colorInfos;
-    private LwjglObject<VkRenderingAttachmentInfoKHR> depthInfo;
+    private LwjglObject<VkRenderingAttachmentInfoKHR> depthInfo = new LwjglObject<>(VkRenderingAttachmentInfoKHR.class);
     private LwjglObject<VkClearValue> colorClear = new LwjglObject<>(VkClearValue.class);
     private LwjglObject<VkClearValue> depthClear = new LwjglObject<>(VkClearValue.class);
     private LwjglObject<VkRenderingInfoKHR> renderingInfoKhr = new LwjglObject<>(VkRenderingInfoKHR.class);
@@ -93,16 +93,19 @@ public class GraphicsRenderPipeline {
         this.swapChain = swapChain;
         this.imagePerStepAmount = 1;
         this.renderArea = renderArea;
+        System.out.println("Creating image pool");
         checkImagesPool(device);
 
         pBuilder.addColorAttachmentInfo(SwapChain.getFormat().format());
 
+        System.out.println("Acquiring images");
         for (int i = 0; i < maxFramesInFlight; ++i) {
             Image depthImage = imagesPool.acquireDepthImage(renderArea.get().width(), renderArea.get().height());
             pBuilder.setDepthAttachmentInfo(depthImage.getImageInfo().get().format());
             baseDepthImages.add(depthImage);
 
         }
+        System.out.println("Creating graphics pipeline");
         graphicsPipeline = new GraphicsPipeline(pBuilder, 1, device,
                 shader, renderArea.get().width(),
                 renderArea.get().height());
@@ -112,6 +115,7 @@ public class GraphicsRenderPipeline {
         this.colorClear.get().color().float32(1, 0);
         this.colorClear.get().color().float32(2, 0);
         this.colorClear.get().color().float32(3, 1);
+        System.out.println("Creating rendering ingo");
         createImagesAndRenderingInfos(1);
     }
 

@@ -74,7 +74,9 @@ public class Main {
         });
 
         LogicalDevice device = new LogicalDevice(instance, PhysicalDevice.getPhysicalDevices(instance).get(0), builder, supportedDevices.get(PhysicalDevice.getPhysicalDevices(instance).get(0)));
+        System.out.println("Creating swapchain");
         SwapChain swapChain = new SwapChain(device, window.getSurface(instance.getInstance()), window.getWidth(), window.getHeight(), true);
+        System.out.println("Created swapchain");
         window.addResizeCallBack((swapChain::recreate));
         List<ShaderCreateInfo> createInfos = new ArrayList<>();
         createInfos.add(new ShaderCreateInfo("main.vert", ShaderFileType.SRC_FILE, VK_SHADER_STAGE_VERTEX_BIT, new ArrayList<>()));
@@ -90,7 +92,9 @@ public class Main {
         LwjglObject<VkExtent2D> renderArea = new LwjglObject<>(VkExtent2D.class);
         renderArea.get().width(window.getWidth());
         renderArea.get().height(window.getHeight());
+        System.out.println("Creating graphics pipeline");
         GraphicsRenderPipeline renderPipeline = new GraphicsRenderPipeline(device, swapChain, gBuilder, shader, renderArea, swapChain.getSwapchainImages().size());
+        System.out.println("begin");
         window.addResizeCallBack(renderPipeline::resize);
         while(window.isWindowActive()){
             window.postEvents();

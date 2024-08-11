@@ -9,6 +9,7 @@ import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.SeriesObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkGraphicsPipelineCreateInfo;
 import org.lwjgl.vulkan.VkPipelineRenderingCreateInfo;
 import org.lwjgl.vulkan.VkPipelineVertexInputStateCreateInfo;
@@ -121,7 +122,7 @@ public class GraphicsPipeline extends DestroyableObject{
         createStrip.pipelineInfo.get().basePipelineHandle(0);
 
         LwjglObject<VkPipelineRenderingCreateInfo> renderingCreateInfo = new LwjglObject<>(VkPipelineRenderingCreateInfo.class);
-        IntBuffer colorInfo = IntBuffer.allocate(colorFormats.size());
+        IntBuffer colorInfo = MemoryStack.stackPush().callocInt(colorFormats.size());
         colorFormats.forEach(colorInfo::put);
         colorInfo.rewind();
         renderingCreateInfo.get().pColorAttachmentFormats(colorInfo);
