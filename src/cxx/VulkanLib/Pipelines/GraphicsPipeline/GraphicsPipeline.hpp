@@ -38,6 +38,8 @@ private:
     vk::Format depthFormat;
     PipelineConfigurer configurer;
     vk::Pipeline graphicsPipeline;
+    vk::Viewport viewPort;
+    vk::Rect2D scissor;
     LogicalDevice &device;
     Shader *shader;
     unsigned int attachmentPerStepAmount;
@@ -46,9 +48,19 @@ public:
         return graphicsPipeline;
     }
 
-    void recreate(unsigned int width, unsigned int height) {
-        device.getDevice().destroyPipeline(graphicsPipeline);
-        create(attachmentPerStepAmount, width, height, shader, attachmentsFormats, depthFormat);
+    void resize(unsigned int width, unsigned int height) {
+        this->viewPort.width = width;
+        this->viewPort.height = height;
+        this->scissor.extent.width = width;
+        this->scissor.extent.height = height;
+    }
+
+    const vk::Viewport *getViewPort() const {
+        return &viewPort;
+    }
+
+    const vk::Rect2D* getScissor() const {
+        return &scissor;
     }
 
     vk::DescriptorSetLayout getDescriptorLayout() {
@@ -71,25 +83,26 @@ private:
         createStrip->vertexInputInfo.vertexBindingDescriptionCount = 1;
         createStrip->vertexInputInfo.pVertexAttributeDescriptions = configurer.inputAttribDescs.data();
         createStrip->vertexInputInfo.pVertexBindingDescriptions = &configurer.inputBindDesc;
-
+        this->viewPort = config->viewport;
+        this->scissor = config->scissor;
         createStrip->viewportInfo.sType = vk::StructureType::ePipelineViewportStateCreateInfo;
         createStrip->viewportInfo.viewportCount = 1;
-        createStrip->viewportInfo.pViewports = &config->viewport;
+        createStrip->viewportInfo.pViewports = nullptr;
         createStrip->viewportInfo.scissorCount = 1;
-        createStrip->viewportInfo.pScissors = &config->scissor;
+        createStrip->viewportInfo.pScissors = nullptr;
 
         createStrip->pipelineInfo.sType = vk::StructureType::eGraphicsPipelineCreateInfo;
         createStrip->pipelineInfo.stageCount = shader->getCreateInfos().size();
         createStrip->pipelineInfo.pStages = shader->getCreateInfos().data();
         createStrip->pipelineInfo.pVertexInputState = &createStrip->vertexInputInfo;
         createStrip->pipelineInfo.pInputAssemblyState = &config->inputAssemblyInfo;
-        createStrip->pipelineInfo.pViewportState = &createStrip->viewportInfo;
         createStrip->pipelineInfo.pRasterizationState = &config->rasterizationInfo;
         createStrip->pipelineInfo.pMultisampleState = &config->multisampleInfo;
         createStrip->pipelineInfo.pColorBlendState = &config->colorBlendInfo;
         createStrip->pipelineInfo.pDepthStencilState = &config->depthStencilInfo;
         createStrip->pipelineInfo.pDynamicState = nullptr;
-
+        createStrip->pipelineInfo.pViewportState = &createStrip->viewportInfo;
+        createStrip->viewportInfo.pViewports = nullptr;
         createStrip->pipelineInfo.layout = configurer.pipelineLayout;
         createStrip->pipelineInfo.subpass = config->subpass;
 
@@ -101,8 +114,16 @@ private:
         renderingCreateInfo.pColorAttachmentFormats = colorFormats.data();
         renderingCreateInfo.depthAttachmentFormat = depthFormat;
 
-        createStrip->pipelineInfo.pNext = &renderingCreateInfo;
+        vk::Viewport viewport = {0.0, 0.0, 32.0, 32.0, 0.0, 1.0};
+        vk::DynamicState dynamicState[] = {vk::DynamicState::eViewport,  vk::DynamicState::eScissor};
 
+
+        vk::PipelineDynamicStateCreateInfo dynamicStateCreateInfo;
+        dynamicStateCreateInfo.dynamicStateCount = 2;
+        dynamicStateCreateInfo.pDynamicStates = dynamicState;
+
+        createStrip->pipelineInfo.pNext = &renderingCreateInfo;
+        createStrip->pipelineInfo.pDynamicState = &dynamicStateCreateInfo;
         graphicsPipeline = device.getDevice().createGraphicsPipeline(nullptr, createStrip->pipelineInfo).value;
         configInstancer.releaseObjectInstance(config);
         createInstance.releaseObjectInstance(createStrip);

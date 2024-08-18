@@ -6,7 +6,9 @@
 #include "ThreeFrameSynchronization.hpp"
 #include <malloc.h>
 
-class SyncManager : IDestroyableObject{
+#include "IResizeCallback.hpp"
+
+class SyncManager : IDestroyableObject, public IResizeCallback{
 public:
     SyncManager(std::shared_ptr<LogicalDevice> device, std::shared_ptr<SwapChain> swapChain, std::shared_ptr<LogicalQueue> queue, uint32_t maxFramesInFlight) : sync(device, queue, maxFramesInFlight), device(device),
                                                                                     swapChain(swapChain), queue(queue) {
@@ -21,17 +23,23 @@ private:
     std::shared_ptr<LogicalQueue> queue;
     uint32_t currentCmd;
     vk::CommandBufferBeginInfo beginInfo{};
+    std::vector<std::shared_ptr<IResizeCallback>> resizeCallbacks;
     bool stop = false;
     uint32_t width, height = 0;
-    bool resized = false;
+    bool isResized = false;
 public:
     vk::CommandBuffer beginRender(uint32_t& outCurrentCmd) {
         if(!stop){
-            if(resized){
+            if(isResized){
                 setStop(true);
                 device->getDevice().waitIdle();
                 swapChain->recreate(width, height);
-                resized = false;
+                device->getDevice().waitIdle();
+                for (auto callback : resizeCallbacks) {
+                    callback->resized(width, height);
+                    device->getDevice().waitIdle();
+                }
+                isResized = false;
                 setStop(false);
             }   
             currentCmd = sync.prepareForNextImage(swapChain);
@@ -49,10 +57,13 @@ public:
         }
 
     }
-    void resize(uint32_t width, uint32_t height){
+    void addResizeCallback(std::shared_ptr<IResizeCallback> resizeCallback) {
+        this->resizeCallbacks.push_back(resizeCallback);
+    }
+    void resized(uint32_t width, uint32_t height) override{
         SyncManager::width = width;
         SyncManager::height = height;
-        resized = true;
+        isResized = true;
     }
 
     bool isStop() const {

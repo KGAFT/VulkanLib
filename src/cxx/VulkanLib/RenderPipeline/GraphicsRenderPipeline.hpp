@@ -158,9 +158,6 @@ private:
     bool d = false;
 public:
 
-
-public:
-
     void begin(vk::CommandBuffer cmd, uint32_t currentImage) {
         prepareBarriersBeforeRendering(currentImage);
         bindBarriers(cmd);
@@ -174,6 +171,10 @@ public:
             }
         }
         cmd.beginRenderingKHR(renderingInfoKhr, instance.getDynamicLoader());
+        auto viewPort = graphicsPipeline->getViewPort();
+        auto scissor = graphicsPipeline->getScissor();
+        cmd.setViewport(0, 1, viewPort, instance.getDynamicLoader());
+        cmd.setScissor(0, 1, scissor, instance.getDynamicLoader());
         cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline->getGraphicsPipeline());
 
     }
@@ -191,9 +192,7 @@ public:
         renderArea.height = height;
         renderingInfoKhr.renderArea.extent.width = width;
         renderingInfoKhr.renderArea.extent.height = height;
-        if (forSwapChain) {
-            swapChain->recreate(width, height);
-        } else {
+        if (!forSwapChain)  {
             for (auto &item: baseRenderImages) {
                 item->resize(width, height);
             }
@@ -201,7 +200,7 @@ public:
         for (auto &item: baseDepthImages) {
             item->resize(width, height);
         }
-        graphicsPipeline->recreate(width, height);
+        graphicsPipeline->resize(width, height);
 
     }
 
