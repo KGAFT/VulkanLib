@@ -53,11 +53,15 @@ public:
 
   const vk::SwapchainKHR &getSwapchainKhr() const { return swapchainKhr; }
   void recreate(uint32_t width, uint32_t height) {
+    destroy();
+    destroyed = false;
     cleanUpImages();
     createSwapChain(width, height, enableFrameLock);
   }
 
   void recreate(uint32_t width, uint32_t height, bool refreshRateLock) {
+    destroy();
+    destroyed = false;
     cleanUpImages();
     enableFrameLock = refreshRateLock;
     createSwapChain(width, height, refreshRateLock);
@@ -100,7 +104,7 @@ private:
     createInfo.presentMode = presentMode;
     createInfo.clipped = VK_TRUE;
 
-    createInfo.oldSwapchain = swapchainKhr;
+    createInfo.oldSwapchain = nullptr;
     try {
       swapchainKhr = device->getDevice().createSwapchainKHR(createInfo);
       baseImages = device->getDevice().getSwapchainImagesKHR(swapchainKhr);
@@ -230,7 +234,6 @@ public:
   void destroy() override {
     cleanUpImages();
     device->getDevice().destroySwapchainKHR(swapchainKhr);
-    swapchainKhr = vk::SwapchainKHR{nullptr};
     destroyed = true;
   }
 };
