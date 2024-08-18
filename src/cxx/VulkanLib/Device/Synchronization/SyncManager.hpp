@@ -34,10 +34,8 @@ public:
                 setStop(true);
                 device->getDevice().waitIdle();
                 swapChain->recreate(width, height);
-                device->getDevice().waitIdle();
-                for (auto callback : resizeCallbacks) {
+                for (auto& callback : resizeCallbacks) {
                     callback->resized(width, height);
-                    device->getDevice().waitIdle();
                 }
                 isResized = false;
                 setStop(false);

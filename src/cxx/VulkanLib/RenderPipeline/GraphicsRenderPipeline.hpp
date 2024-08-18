@@ -104,6 +104,11 @@ public:
         depthClear.depthStencil.depth = 1.0f;
         depthClear.depthStencil.stencil = 0;
         colorClear.color = {0.0f, 0.0f, 0.0f, 1.0f};
+        viewport.maxDepth = 1.0f;
+        viewport.width = renderArea.width;
+        viewport.height = renderArea.height;
+        scissor.extent.width = renderArea.width;
+        scissor.extent.height = renderArea.height;
         createImagesAndRenderingInfos(pBuilder->attachmentsPerStepAmount);
 
     }
@@ -131,6 +136,10 @@ public:
         depthClear.depthStencil.depth = 1.0f;
         depthClear.depthStencil.stencil = 0;
         colorClear.color = {0.0f, 0.0f, 0.0f, 1.0f};
+        viewport.width = renderArea.width;
+        viewport.height = renderArea.height;
+        scissor.extent.width = renderArea.width;
+        scissor.extent.height = renderArea.height;
         createImagesAndRenderingInfos(1);
     }
 
@@ -150,7 +159,8 @@ private:
     uint32_t imagePerStepAmount;
 
     vk::Extent2D renderArea;
-
+    vk::Rect2D scissor;
+    vk::Viewport viewport;
     std::vector<vk::ImageMemoryBarrier> barriers;
 
     bool firstRender = true;
@@ -171,10 +181,8 @@ public:
             }
         }
         cmd.beginRenderingKHR(renderingInfoKhr, instance.getDynamicLoader());
-        auto viewPort = graphicsPipeline->getViewPort();
-        auto scissor = graphicsPipeline->getScissor();
-        cmd.setViewport(0, 1, viewPort, instance.getDynamicLoader());
-        cmd.setScissor(0, 1, scissor, instance.getDynamicLoader());
+        cmd.setViewport(0, 1, &viewport, instance.getDynamicLoader());
+        cmd.setScissor(0, 1, &scissor, instance.getDynamicLoader());
         cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline->getGraphicsPipeline());
 
     }
@@ -192,15 +200,18 @@ public:
         renderArea.height = height;
         renderingInfoKhr.renderArea.extent.width = width;
         renderingInfoKhr.renderArea.extent.height = height;
+        scissor.extent.width = width;
+        scissor.extent.height = height;
+        viewport.width = renderArea.width;
+        viewport.height = renderArea.height;
         if (!forSwapChain)  {
             for (auto &item: baseRenderImages) {
                 item->resize(width, height);
             }
         }
         for (auto &item: baseDepthImages) {
-            item->resize(width, height);
+           item->resize(width, height);
         }
-        graphicsPipeline->resize(width, height);
 
     }
 

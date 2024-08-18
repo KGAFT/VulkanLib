@@ -55,11 +55,11 @@ public:
         this->scissor.extent.height = height;
     }
 
-    const vk::Viewport *getViewPort() const {
+    vk::Viewport *getViewPort() {
         return &viewPort;
     }
 
-    const vk::Rect2D* getScissor() const {
+     vk::Rect2D* getScissor() {
         return &scissor;
     }
 
