@@ -74,6 +74,10 @@ public:
         renderImages->destroy();
         initializedRenderImagePool = false;
     }
+    static std::shared_ptr<RenderImagePool> getRenderImagePool(std::shared_ptr<LogicalDevice> device) {
+        checkPool(device);
+        return renderImages;
+    }
 
 public:
     GraphicsRenderPipeline(Instance &instance, std::shared_ptr<LogicalDevice> device, RenderPipelineBuilder *pBuilder,

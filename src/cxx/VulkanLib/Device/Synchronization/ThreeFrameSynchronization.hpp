@@ -132,9 +132,6 @@ public:
                 device->getDevice().destroyFence(inFlightFences[i]);
             }
         }
-        imageAvailableSemaphores.clear();
-        renderFinishedSemaphores.clear();
-        inFlightFences.clear();
         destroyed = true;
     }
 };

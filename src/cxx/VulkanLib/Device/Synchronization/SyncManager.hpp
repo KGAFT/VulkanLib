@@ -23,7 +23,7 @@ private:
     std::shared_ptr<LogicalQueue> queue;
     uint32_t currentCmd;
     vk::CommandBufferBeginInfo beginInfo{};
-    std::vector<std::shared_ptr<IResizeCallback>> resizeCallbacks;
+    std::vector<IResizeCallback*> resizeCallbacks;
     bool stop = false;
     uint32_t width, height = 0;
     bool isResized = false;
@@ -55,9 +55,21 @@ public:
         }
 
     }
-    void addResizeCallback(std::shared_ptr<IResizeCallback> resizeCallback) {
+    void addResizeCallback(IResizeCallback* resizeCallback) {
         this->resizeCallbacks.push_back(resizeCallback);
     }
+
+    void removeResizeCallback(IResizeCallback* resizeCallback) {
+        uint32_t index = 0;
+        for (auto item : resizeCallbacks) {
+            if(item==resizeCallback) {
+                break;
+            }
+            index++;
+        }
+        resizeCallbacks.erase(resizeCallbacks.begin()+index);
+    }
+
     void resized(uint32_t width, uint32_t height) override{
         SyncManager::width = width;
         SyncManager::height = height;
