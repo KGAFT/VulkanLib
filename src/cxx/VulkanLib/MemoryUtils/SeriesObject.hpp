@@ -7,6 +7,7 @@
 #include <vector>
 #include <VulkanLib/MemoryUtils/MemoryUtils.hpp>
 #include <cstdlib>
+#include <iostream>
 
 template <typename T> class SeriesObject{
 private:
@@ -46,7 +47,7 @@ private:
             try{
                 delete toClear[counter];
             }catch(std::exception& exception){
-
+                std::cerr<<exception.what()<<std::endl;
             }
             objectInstances.erase(toClear[counter]);
             counter++;
@@ -59,7 +60,7 @@ public:
             try{
                 delete item.first;
             }catch (std::exception& e){
-
+                std::cerr<<e.what()<<std::endl;
             }
         }
     }

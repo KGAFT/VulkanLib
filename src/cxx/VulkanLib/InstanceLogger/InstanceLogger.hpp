@@ -24,6 +24,7 @@ public:
         try {
           return item->debugCall(messageSeverity, messageType, pCallbackData);
         } catch (std::exception &exception) {
+          std::cerr<<exception.what()<<std::endl;
           break;
         }
       }

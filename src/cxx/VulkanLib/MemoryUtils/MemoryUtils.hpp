@@ -4,7 +4,6 @@
 #pragma once
 
 #include <cstddef>
-#include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace Integral {
@@ -34,6 +33,7 @@ public:
         }
     }
 
+#if defined(GLM)
     static VkTransformMatrixKHR glmMat4toTransformMatrixKHR(glm::mat4 matrix) {
         // VkTransformMatrixKHR uses a row-major memory layout, while glm::mat4
         // uses a column-major memory layout. We transpose the matrix so we can
@@ -43,4 +43,5 @@ public:
         memcpy(&out_matrix, &temp, sizeof(glm::mat3x4));
         return out_matrix;
     }
+#endif
 };

@@ -20,10 +20,13 @@ public:
     }
 
     void translatedMessage(const char *severity, const char *type, std::string& message) override{
-        auto currentTime = std::chrono::system_clock::now();
-        auto time = std::chrono::system_clock::to_time_t(currentTime);
-        std::string outputTime = std::string(ctime(&time));
-        outputTime[outputTime.size() - 1] = ' ';
+
+        auto t = std::time(nullptr);
+        auto tm = *std::localtime(&t);
+
+        std::ostringstream oss;
+        oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
+        auto outputTime = oss.str();
         std::string outputMessage = outputTime + "VULKAN" + " [" + severity + "] " + type + " " + message;
         std::string severityS = severity;
         if (!severityS.compare("ERROR"))

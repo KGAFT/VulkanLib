@@ -12,7 +12,7 @@ void DescriptorSet::updateDescriptors() {
             cItem.dstSet = item;
         }
         if (imageInfoPerInstanceAmount == 0 && bufferInfoPerInstanceAmount == 0) {
-            device->getDevice().updateDescriptorSets(writes.size(), writes.data(), 0, nullptr);
+            device->getDevice().updateDescriptorSets((uint32_t)writes.size(), writes.data(), 0, nullptr);
         } else {
             device->getDevice().updateDescriptorSets(imageInfoPerInstanceAmount + bufferInfoPerInstanceAmount,
                                                      &writes[counter], 0, nullptr);
@@ -47,7 +47,7 @@ void DescriptorSet::addBufferInfo(DescriptorBufferInfo &bufferInfo) {
     writes[writes.size() - 1].dstBinding = buffersInfo[buffersInfo.size() - 1]->binding;
     writes[writes.size() - 1].dstArrayElement = 0;
     writes[writes.size() - 1].descriptorType = buffersInfo[buffersInfo.size() - 1]->descriptorType;
-    writes[writes.size() - 1].descriptorCount = buffersInfo[buffersInfo.size() - 1]->base.size();
+    writes[writes.size() - 1].descriptorCount =(uint32_t) buffersInfo[buffersInfo.size() - 1]->base.size();
     writes[writes.size() - 1].pBufferInfo = buffersInfo[buffersInfo.size() - 1]->base.data();
 }
 
@@ -59,7 +59,7 @@ void DescriptorSet::addImageInfo(DescriptorImageInfo &imageInfo) {
     writes[writes.size() - 1].dstBinding = imagesInfo[imagesInfo.size() - 1]->binding;
     writes[writes.size() - 1].dstArrayElement = 0;
     writes[writes.size() - 1].descriptorType = imagesInfo[imagesInfo.size() - 1]->descriptorType;
-    writes[writes.size() - 1].descriptorCount = imagesInfo[imagesInfo.size() - 1]->imageInfos.size();
+    writes[writes.size() - 1].descriptorCount = (uint32_t)imagesInfo[imagesInfo.size() - 1]->imageInfos.size();
     writes[writes.size() - 1].pImageInfo = imagesInfo[imagesInfo.size() - 1]->imageInfos.data();
 }
 

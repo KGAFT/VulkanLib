@@ -8,7 +8,6 @@
 #include "ASTypes.hpp"
 #include "ASUtils.hpp"
 #include "BottomLevelAccelerationStructure.hpp"
-#include "glm/glm.hpp"
 
 namespace vkLibRt {
     class TopLevelAccelerationStructure : public IDestroyableObject {

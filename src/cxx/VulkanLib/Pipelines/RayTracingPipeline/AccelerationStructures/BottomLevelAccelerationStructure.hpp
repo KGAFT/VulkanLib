@@ -35,7 +35,7 @@ namespace vkLibRt {
                 newBlas();
             }
             uint32_t index = maxIndex==0?iBuffer->getIndexCount():maxIndex;
-            uint32_t vertex = maxVertex==0?vBuffer->getVerticesAmount()-1:maxVertex;
+            uint32_t vertex = maxVertex==0?(uint32_t)vBuffer->getVerticesAmount()-1:maxVertex;
             ASUtils::objectToVkGeometryKHR(vBuffer, iBuffer, transformBuffer, &objectsInfos[objectsInfos.size() - 1],
                                            instance.getDynamicLoader(), vertexOffset, indexOffset, transformOffset, index, vertex);
         }

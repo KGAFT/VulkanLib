@@ -5,7 +5,7 @@ PushConstant::PushConstant(size_t size, vk::PipelineLayout pipelineLayout) : siz
 }
 
 void PushConstant::bind(vk::CommandBuffer cmd, vk::ShaderStageFlags bindPoint) {
-    cmd.pushConstants(layout, bindPoint, 0, size, data);
+    cmd.pushConstants(layout, bindPoint, 0, (uint32_t)size, data);
 }
 
 void PushConstant::writeData(void *pData, size_t writeSize) {

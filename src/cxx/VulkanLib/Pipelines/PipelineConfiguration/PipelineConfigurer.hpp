@@ -55,7 +55,7 @@ private:
         }
         if (!bindings.empty()) {
             vk::DescriptorSetLayoutCreateInfo layoutInfo;
-            layoutInfo.bindingCount = bindings.size();
+            layoutInfo.bindingCount = (uint32_t) bindings.size();
             layoutInfo.pBindings = bindings.data();
 
             descriptorSetLayout = device.getDevice().createDescriptorSetLayout(layoutInfo);
@@ -99,7 +99,7 @@ private:
         }
 
         pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
-        pipelineLayoutInfo.pushConstantRangeCount = pushConstantRanges.size();
+        pipelineLayoutInfo.pushConstantRangeCount = (uint32_t)pushConstantRanges.size();
         pipelineLayout = device.getDevice().createPipelineLayout(pipelineLayoutInfo);
     }
 
@@ -109,7 +109,7 @@ private:
             size += element.typeSize * element.coordinatesAmount;
         }
         inputBindDesc.binding = 0;
-        inputBindDesc.stride = size;
+        inputBindDesc.stride = (uint32_t) size;
         inputBindDesc.inputRate = vk::VertexInputRate::eVertex;
     }
 
@@ -121,7 +121,7 @@ private:
 
             inputAttribDescs[counter].binding = 0;
             inputAttribDescs[counter].location = element.location;
-            inputAttribDescs[counter].offset = offsetCount;
+            inputAttribDescs[counter].offset = (uint32_t)offsetCount;
             inputAttribDescs[counter].format = element.format;
             offsetCount += element.typeSize * element.coordinatesAmount;
             counter++;
@@ -129,7 +129,7 @@ private:
     }
 
     static void infoToRange(PushConstantInfo &info, vk::PushConstantRange &range) {
-        range.size = info.size;
+        range.size = (uint32_t)info.size;
         range.offset = 0;
         range.stageFlags = info.shaderStages;
     }

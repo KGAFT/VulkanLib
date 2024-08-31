@@ -36,8 +36,8 @@ LogicalDevice::LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice>
     vk::DeviceCreateInfo deviceInfo = vk::DeviceCreateInfo(
             vk::DeviceCreateFlags(),
             usedQueueCreateInfos, queueCreateInfos.data(),
-            instance.getEnabledLayers().size(), instance.getEnabledLayers().data(),
-            builder.requestExtensions.size(), builder.requestExtensions.data(),
+            (uint32_t)instance.getEnabledLayers().size(), instance.getEnabledLayers().data(),
+            (uint32_t)builder.requestExtensions.size(), builder.requestExtensions.data(),
             &features
     );
     deviceInfo.pNext = &dynamicRenderingFeature;
@@ -126,7 +126,7 @@ vk::Format LogicalDevice::findSupportedFormat(const std::vector<vk::Format> &can
 }
 
 unsigned int LogicalDevice::getQueuesAmount() {
-    return queues.size();
+    return (unsigned int) queues.size();
 }
 
 void LogicalDevice::sanitizeQueueCreateInfos(DeviceSuitabilityResults *results) {

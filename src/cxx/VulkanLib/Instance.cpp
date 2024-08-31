@@ -23,8 +23,8 @@ Instance::Instance(InstanceBuilder &pBuilder) {
     vk::InstanceCreateInfo createInfo(
             vk::InstanceCreateFlags(),
             &appInfo,
-            pBuilder.layers.size(), pBuilder.layers.data(),
-            pBuilder.extensions.size(), pBuilder.extensions.data()
+            (uint32_t)pBuilder.layers.size(), pBuilder.layers.data(),
+            (uint32_t)pBuilder.extensions.size(), pBuilder.extensions.data()
     );
     try {
         instance = vk::createInstance(createInfo, nullptr);
