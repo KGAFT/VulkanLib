@@ -22,6 +22,7 @@ LogicalDevice::LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice>
     newFeatures.uniformAndStorageBuffer8BitAccess = true;
     newFeatures.storageBuffer8BitAccess = true;
     newFeatures.shaderInt8 = true;
+    features.fragmentStoresAndAtomics = true;
     dynamicRenderingFeature.pNext = &newFeatures;
     vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeaturesKhr{};
     rayTracingPipelineFeaturesKhr.sType = vk::StructureType::ePhysicalDeviceRayTracingPipelineFeaturesKHR;
