@@ -8,6 +8,7 @@
 #include <chrono>
 #include "IInstanceLoggerCallback.hpp"
 #include <fstream>
+#include <iomanip>
 
 class DefaultVulkanFileLoggerCallback : public IInstanceLoggerCallback
 {

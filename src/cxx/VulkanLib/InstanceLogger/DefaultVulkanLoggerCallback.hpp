@@ -6,6 +6,7 @@
 #include <chrono>
 #include "IInstanceLoggerCallback.hpp"
 #include <iostream>
+#include <iomanip>
 
 class DefaultVulkanLoggerCallback : public IInstanceLoggerCallback
 {
