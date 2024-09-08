@@ -39,7 +39,7 @@ void Buffer::initialize(vk::BufferCreateInfo *createInfo, vk::MemoryPropertyFlag
         destroyed = false;
 
     }
-    vk::Result res = device->getDevice().createBuffer(createInfo, nullptr, &buffer);
+    vk::Result res = device->getDevice().createBuffer(createInfo, VkLibAlloc::acquireAllocCb().get(), &buffer);
     if (res != vk::Result::eSuccess) {
         throw std::runtime_error("Failed to create buffer");
     }
@@ -56,7 +56,7 @@ void Buffer::initialize(vk::BufferCreateInfo *createInfo, vk::MemoryPropertyFlag
 
     info->pNext = allocFlags;
 
-    res = device->getDevice().allocateMemory(info, nullptr, &bufferMemory);
+    res = device->getDevice().allocateMemory(info, VkLibAlloc::acquireAllocCb().get(), &bufferMemory);
     if (res != vk::Result::eSuccess) {
         throw std::runtime_error("Failed to allocate buffer memory");
     }

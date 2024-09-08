@@ -3,6 +3,7 @@
 //
 
 #include "LogicalQueue.hpp"
+#include "VulkanLib/VulkanLibAllocationCallback.h"
 
 LogicalQueue::LogicalQueue(vk::Queue queue, vk::Device device, bool supportPresentation, vk::QueueFlags queueType,
                            unsigned int index) : queue(
@@ -16,7 +17,7 @@ LogicalQueue::LogicalQueue(vk::Queue queue, vk::Device device, bool supportPrese
     poolInfo.queueFamilyIndex = index;
     poolInfo.flags =
             vk::CommandPoolCreateFlagBits::eTransient | vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
-    commandPool = device.createCommandPool(poolInfo);
+    commandPool = device.createCommandPool(poolInfo, VkLibAlloc::acquireAllocCb().get());
 }
 
 vk::CommandBuffer LogicalQueue::beginSingleTimeCommands() {

@@ -77,15 +77,15 @@ private:
     void createSyncObjects()
     {
         vk::SemaphoreCreateInfo semaphoreInfo = {};
-        if(device->getDevice().createSemaphore(&semaphoreInfo, nullptr, &availableSemaphore)!=vk::Result::eSuccess) {
+        if(device->getDevice().createSemaphore(&semaphoreInfo, VkLibAlloc::acquireAllocCb().get(), &availableSemaphore)!=vk::Result::eSuccess) {
             throw std::runtime_error("Failed to create semaphore");
         }
-        if(device->getDevice().createSemaphore(&semaphoreInfo, nullptr,  &waitSemaphore)!=vk::Result::eSuccess) {
+        if(device->getDevice().createSemaphore(&semaphoreInfo, VkLibAlloc::acquireAllocCb().get(),  &waitSemaphore)!=vk::Result::eSuccess) {
             throw std::runtime_error("Failed to create semaphore");
         }
         vk::FenceCreateInfo fenceInfo = {};
         fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
-        if(device->getDevice().createFence( &fenceInfo, nullptr, &fence)!=vk::Result::eSuccess) {
+        if(device->getDevice().createFence( &fenceInfo, VkLibAlloc::acquireAllocCb().get(), &fence)!=vk::Result::eSuccess) {
             throw std::runtime_error("Failed to create fence");
         }
 

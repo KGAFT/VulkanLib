@@ -112,9 +112,9 @@ private:
         vk::FenceCreateInfo fenceInfo = {};
         fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
         for (size_t i = 0; i < maxFramesInFlight; i++) {
-            imageAvailableSemaphores[i] = device->getDevice().createSemaphore(semaphoreInfo);
-            renderFinishedSemaphores[i] = device->getDevice().createSemaphore(semaphoreInfo);
-            inFlightFences[i] = device->getDevice().createFence(fenceInfo);
+            imageAvailableSemaphores[i] = device->getDevice().createSemaphore(semaphoreInfo, VkLibAlloc::acquireAllocCb().get());
+            renderFinishedSemaphores[i] = device->getDevice().createSemaphore(semaphoreInfo, VkLibAlloc::acquireAllocCb().get());
+            inFlightFences[i] = device->getDevice().createFence(fenceInfo, VkLibAlloc::acquireAllocCb().get());
             imagesInFlight[i] = nullptr;
         }
     }

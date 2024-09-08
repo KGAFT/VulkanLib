@@ -26,7 +26,7 @@ DescriptorPool::DescriptorPool(std::shared_ptr<LogicalDevice> logicalDevice, boo
     poolInfo.maxSets = 1500;
     poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.poolSizeCount =(uint32_t) poolSizes.size();
-    descriptorPool = logicalDevice->getDevice().createDescriptorPool(poolInfo);
+    descriptorPool = logicalDevice->getDevice().createDescriptorPool(poolInfo, VkLibAlloc::acquireAllocCb().get());
 }
 
 std::shared_ptr<DescriptorSet>

@@ -58,7 +58,7 @@ private:
             layoutInfo.bindingCount = (uint32_t) bindings.size();
             layoutInfo.pBindings = bindings.data();
 
-            descriptorSetLayout = device.getDevice().createDescriptorSetLayout(layoutInfo);
+            descriptorSetLayout = device.getDevice().createDescriptorSetLayout(layoutInfo, VkLibAlloc::acquireAllocCb().get());
 
 
         }
@@ -100,7 +100,7 @@ private:
 
         pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
         pipelineLayoutInfo.pushConstantRangeCount = (uint32_t)pushConstantRanges.size();
-        pipelineLayout = device.getDevice().createPipelineLayout(pipelineLayoutInfo);
+        pipelineLayout = device.getDevice().createPipelineLayout(pipelineLayoutInfo, VkLibAlloc::acquireAllocCb().get());
     }
 
     void prepareBinding(std::vector<VertexInput> &inputs) {

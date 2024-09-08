@@ -254,7 +254,7 @@ namespace vkLibRt {
             accel_.buffer = resultAccel.buffer->getBuffer();
             // Create the acceleration structure
             assert(device->getDevice().createAccelerationStructureKHR(
-                    &accel_, nullptr, &resultAccel.accel, loader) ==
+                    &accel_, VkLibAlloc::acquireAllocCb().get(), &resultAccel.accel, loader) ==
                    vk::Result::eSuccess);
             return resultAccel;
         }

@@ -106,7 +106,7 @@ private:
 
     createInfo.oldSwapchain = nullptr;
     try {
-      swapchainKhr = device->getDevice().createSwapchainKHR(createInfo);
+      swapchainKhr = device->getDevice().createSwapchainKHR(createInfo, VkLibAlloc::acquireAllocCb().get());
       baseImages = device->getDevice().getSwapchainImagesKHR(swapchainKhr);
       swapchainImages.resize(baseImages.size());
       for (uint32_t i = 0; i < baseImages.size(); ++i) {

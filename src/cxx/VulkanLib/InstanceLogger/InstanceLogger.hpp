@@ -50,7 +50,7 @@ public:
                 vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding,
             debugCallback, this);
     loggers.push_back(this);
-    messenger = instance.createDebugUtilsMessengerEXT(createInfo, nullptr,
+    messenger = instance.createDebugUtilsMessengerEXT(createInfo, VkLibAlloc::acquireAllocCb().get(),
                                                       dynamicLoader);
   }
   InstanceLogger(vk::Instance &instance,

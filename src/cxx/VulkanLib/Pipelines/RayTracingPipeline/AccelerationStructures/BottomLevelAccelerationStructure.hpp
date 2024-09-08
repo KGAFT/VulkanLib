@@ -118,7 +118,7 @@ namespace vkLibRt {
                 vk::QueryPoolCreateInfo qpci{};
                 qpci.queryCount = nbBlas;
                 qpci.queryType = vk::QueryType::eAccelerationStructureCompactedSizeKHR;
-                queryPool = device->getDevice().createQueryPool(qpci);
+                queryPool = device->getDevice().createQueryPool(qpci, VkLibAlloc::acquireAllocCb().get());
             }
 
             // Batching creation/compaction of BLAS to allow staying in restricted amount of memory
@@ -146,7 +146,7 @@ namespace vkLibRt {
 
                         // Destroy the non-compacted version
                         for (const auto &item: buildAs) {
-                            device->getDevice().destroyAccelerationStructureKHR(item.cleanupAS.accel, nullptr,
+                            device->getDevice().destroyAccelerationStructureKHR(item.cleanupAS.accel, VkLibAlloc::acquireAllocCb().get(),
                                                                                 instance.getDynamicLoader());
                             item.cleanupAS.buffer->destroy();
                         }

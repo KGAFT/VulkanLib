@@ -124,7 +124,7 @@ private:
 
         createStrip->pipelineInfo.pNext = &renderingCreateInfo;
         createStrip->pipelineInfo.pDynamicState = &dynamicStateCreateInfo;
-        graphicsPipeline = device.getDevice().createGraphicsPipeline(nullptr, createStrip->pipelineInfo).value;
+        graphicsPipeline = device.getDevice().createGraphicsPipeline(nullptr, createStrip->pipelineInfo, VkLibAlloc::acquireAllocCb().get()).value;
         configInstancer.releaseObjectInstance(config);
         createInstance.releaseObjectInstance(createStrip);
     }

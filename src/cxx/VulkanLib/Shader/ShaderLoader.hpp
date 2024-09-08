@@ -69,7 +69,7 @@ public:
                                                                  : reinterpret_cast<const uint32_t *>(shaderBinaryBuffer);
         shaderCreateInfo.codeSize =
                 createInfo.fileType == SRC_FILE ? shaderBuffer.size() * sizeof(uint32_t) : binarySize;
-        vk::ShaderModule result = device.getDevice().createShaderModule(shaderCreateInfo);
+        vk::ShaderModule result = device.getDevice().createShaderModule(shaderCreateInfo, VkLibAlloc::acquireAllocCb().get());
         if (createInfo.fileType == BINARY_FILE) {
             try {
                 delete shaderBinaryBuffer;

@@ -35,7 +35,7 @@ namespace vkLibRt {
 
             rayPipelineInfo.maxPipelineRayRecursionDepth = pBuilder->maxRayRecursionDepth;  // Ray depth
             rayPipelineInfo.layout = configurer.getPipelineLayout();
-            auto res = device->getDevice().createRayTracingPipelineKHR({}, {}, rayPipelineInfo, nullptr, dynamicLoader);
+            auto res = device->getDevice().createRayTracingPipelineKHR({}, {}, rayPipelineInfo, VkLibAlloc::acquireAllocCb().get(), dynamicLoader);
             if (res.result != vk::Result::eSuccess) {
                 throw std::runtime_error("Failed to create ray tracing pipeline");
             }

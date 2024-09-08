@@ -11,7 +11,7 @@ ComputePipeline::ComputePipeline(Instance &instance, std::shared_ptr<LogicalDevi
     createInfo->sType = vk::StructureType::eComputePipelineCreateInfo;
     createInfo->layout = configurer->getPipelineLayout();
     createInfo->stage = shader->getCreateInfos()[0];
-    auto result = device->getDevice().createComputePipeline(VK_NULL_HANDLE, *createInfo, nullptr, instance.getDynamicLoader());
+    auto result = device->getDevice().createComputePipeline(VK_NULL_HANDLE, *createInfo, VkLibAlloc::acquireAllocCb().get(), instance.getDynamicLoader());
     if(result.result!=vk::Result::eSuccess) {
         throw std::runtime_error("Failed to create compute pipeline");
     }

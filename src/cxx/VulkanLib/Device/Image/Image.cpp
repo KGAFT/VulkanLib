@@ -16,7 +16,7 @@ Image::Image() {
 }
 
 std::shared_ptr<ImageView> Image::createImageView(vk::ImageViewCreateInfo &createInfo) {
-    vk::ImageView view = Image::device->getDevice().createImageView(createInfo);
+    vk::ImageView view = Image::device->getDevice().createImageView(createInfo, VkLibAlloc::acquireAllocCb().get());
     imageViews.push_back(std::make_shared<ImageView>(imageInfo,
                                                      Image::device, view, createInfo));
     return imageViews[imageViews.size() - 1];
@@ -31,7 +31,7 @@ void Image::initialize(std::shared_ptr<LogicalDevice> &device, vk::ImageCreateIn
     vk::Result res;
     Image::device = device;
     Image::imageInfo = createInfo;
-    base =  Image::device->getDevice().createImage(createInfo);
+    base =  Image::device->getDevice().createImage(createInfo, VkLibAlloc::acquireAllocCb().get());
 
     vk::MemoryRequirements requirements;
     Image::device->getDevice().getImageMemoryRequirements(base, &requirements);
@@ -41,7 +41,7 @@ void Image::initialize(std::shared_ptr<LogicalDevice> &device, vk::ImageCreateIn
     allocInfo.memoryTypeIndex =  Image::device->findMemoryType(requirements.memoryTypeBits,
                                                                vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-    res =  Image::device->getDevice().allocateMemory(&allocInfo, nullptr, &imageMemory);
+    res =  Image::device->getDevice().allocateMemory(&allocInfo, VkLibAlloc::acquireAllocCb().get(), &imageMemory);
     if(res!=vk::Result::eSuccess){
         throw std::runtime_error("Failed to allocate image memory");
     }
@@ -154,7 +154,7 @@ void Image::resize(uint32_t width, uint32_t height) {
         }
         for (auto &item: imageViews) {
             item->createInfo.image = base;
-            item->base = device->getDevice().createImageView(item->createInfo);
+            item->base = device->getDevice().createImageView(item->createInfo, VkLibAlloc::acquireAllocCb().get());
             item->parentInfo = imageInfo;
         }
     }

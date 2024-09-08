@@ -19,7 +19,7 @@ Sampler::Sampler(std::shared_ptr<LogicalDevice> device) : device(device) {
     samplerInfo->compareOp = vk::CompareOp::eAlways;
     samplerInfo->mipmapMode = vk::SamplerMipmapMode::eLinear;
 
-    vk::Result res = device->getDevice().createSampler(samplerInfo, nullptr, &sampler);
+    vk::Result res = device->getDevice().createSampler(samplerInfo, VkLibAlloc::acquireAllocCb().get(), &sampler);
     if(res!=vk::Result::eSuccess){
         throw std::runtime_error("Failed to create sampler");
     }
