@@ -2,7 +2,7 @@
 // Created by kgaft on 3/11/24.
 //
 #include "Instance.hpp"
-
+#include <VulkanLib/VulkanLibAllocationCallback.h>
 bool Instance::debugSupported() {
     for (auto &item: vk::enumerateInstanceLayerProperties()) {
         if (!strcmp(item.layerName, "VK_LAYER_KHRONOS_validation")) {
@@ -27,7 +27,7 @@ Instance::Instance(InstanceBuilder &pBuilder) {
             (uint32_t)pBuilder.extensions.size(), pBuilder.extensions.data()
     );
     try {
-        instance = vk::createInstance(createInfo, nullptr);
+        instance = vk::createInstance(createInfo, VkLibAlloc::acquireAllocCb().get());
         dynamicLoader = vk::DispatchLoaderDynamic(instance, vkGetInstanceProcAddr);
         if (pBuilder.debugEnabled) {
             logger = new InstanceLogger(instance, dynamicLoader, pBuilder.startLoggerCallbacks,

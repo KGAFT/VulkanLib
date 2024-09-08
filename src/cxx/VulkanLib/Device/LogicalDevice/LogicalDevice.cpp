@@ -43,7 +43,7 @@ LogicalDevice::LogicalDevice(Instance &instance, std::shared_ptr<PhysicalDevice>
     );
     deviceInfo.pNext = &dynamicRenderingFeature;
     try {
-        LogicalDevice::device = device->getBase().createDevice(deviceInfo, nullptr);
+        LogicalDevice::device = device->getBase().createDevice(deviceInfo, VkLibAlloc::acquireAllocCb().get());
         for (const auto &item: results->queuesInfo) {
             queues.push_back(
                     std::make_shared<LogicalQueue>(LogicalDevice::device.getQueue(item.index, 0), LogicalDevice::device, item.supportPresentation,

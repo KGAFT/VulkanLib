@@ -4,13 +4,15 @@
 
 #ifndef VULKANLIBALLOCATIONCALLBACK_H
 #define VULKANLIBALLOCATIONCALLBACK_H
+#include <memory>
+#include <vulkan/vulkan.hpp>
 
 
+namespace VkLibAlloc {
 
-class VulkanLibAllocationCallback {
 
-};
-
+    std::shared_ptr<vk::AllocationCallbacks> acquireAllocCb();
+}
 
 
 #endif //VULKANLIBALLOCATIONCALLBACK_H
