@@ -49,7 +49,7 @@ namespace vkLibRt {
         void destroy() override {
             destroyed = true;
             device->getDevice().destroyAccelerationStructureKHR(
-                    tlas.accel, nullptr, instance.getDynamicLoader());
+                    tlas.accel, VkLibAlloc::acquireAllocCb().get(), instance.getDynamicLoader());
             tlas.buffer->destroy();
         }
 

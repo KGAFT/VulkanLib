@@ -66,5 +66,5 @@ unsigned int LogicalQueue::getIndex() const {
 
 void LogicalQueue::destroy() {
     destroyed = true;
-    device.destroyCommandPool(commandPool);
+    device.destroyCommandPool(commandPool, VkLibAlloc::acquireAllocCb().get());
 }

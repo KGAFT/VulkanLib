@@ -133,7 +133,7 @@ private:
 public:
     void destroy() override {
         destroyed = true;
-        device.getDevice().destroyPipeline(graphicsPipeline);
+        device.getDevice().destroyPipeline(graphicsPipeline, VkLibAlloc::acquireAllocCb().get());
         configurer.destroy();
     }
 };

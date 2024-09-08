@@ -233,7 +233,7 @@ private:
 public:
   void destroy() override {
     cleanUpImages();
-    device->getDevice().destroySwapchainKHR(swapchainKhr);
+    device->getDevice().destroySwapchainKHR(swapchainKhr, VkLibAlloc::acquireAllocCb().get());
     destroyed = true;
   }
 };

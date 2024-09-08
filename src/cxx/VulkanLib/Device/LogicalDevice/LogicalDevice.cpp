@@ -153,6 +153,6 @@ void LogicalDevice::destroy() {
     for (auto &item: queues){
         item->destroy();
     }
-    device.destroy();
+    device.destroy(VkLibAlloc::acquireAllocCb().get());
     destroyed = true;
 }

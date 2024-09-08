@@ -173,8 +173,8 @@ void Image::destroy() {
         for (auto &item: imageViews) {
             item->destroy();
         }
-        device->getDevice().destroyImage(base);
-        device->getDevice().freeMemory(imageMemory);
+        device->getDevice().destroyImage(base, VkLibAlloc::acquireAllocCb().get());
+        device->getDevice().freeMemory(imageMemory, VkLibAlloc::acquireAllocCb().get());
     }
     destroyed = true;
 }

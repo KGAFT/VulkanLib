@@ -107,7 +107,7 @@ vk::Buffer &Buffer::getBuffer() {
 
 void Buffer::destroy() {
     destroyed = true;
-    device->getDevice().destroyBuffer(buffer);
-    device->getDevice().freeMemory(bufferMemory);
+    device->getDevice().destroyBuffer(buffer, VkLibAlloc::acquireAllocCb().get());
+    device->getDevice().freeMemory(bufferMemory, VkLibAlloc::acquireAllocCb().get());
     addressInfo = vk::BufferDeviceAddressInfo{};
 }

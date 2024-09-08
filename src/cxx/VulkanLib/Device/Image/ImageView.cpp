@@ -20,6 +20,6 @@ vk::ImageCreateInfo &ImageView::getParentInfo() const {
 }
 
 void ImageView::destroy() {
-    device->getDevice().destroyImageView(base);
+    device->getDevice().destroyImageView(base, VkLibAlloc::acquireAllocCb().get());
     destroyed = true;
 }

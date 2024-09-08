@@ -185,7 +185,7 @@ private:
 
 public:
   void destroy() override {
-    instance.destroyDebugUtilsMessengerEXT(messenger, nullptr, loaderDynamic);
+    instance.destroyDebugUtilsMessengerEXT(messenger, VkLibAlloc::acquireAllocCb().get(), loaderDynamic);
     destroyed = true;
   }
 

@@ -31,9 +31,9 @@ public:
     {
 
         device->getDevice().waitIdle();
-        device->getDevice().destroySemaphore(availableSemaphore);
-        device->getDevice().destroySemaphore(waitSemaphore);
-        device->getDevice().destroyFence(fence);
+        device->getDevice().destroySemaphore(availableSemaphore, VkLibAlloc::acquireAllocCb().get());
+        device->getDevice().destroySemaphore(waitSemaphore, VkLibAlloc::acquireAllocCb().get());
+        device->getDevice().destroyFence(fence, VkLibAlloc::acquireAllocCb().get());
         destroyed = true;
     }
     vk::CommandBuffer beginCommandBuffer()

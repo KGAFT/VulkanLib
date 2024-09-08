@@ -114,7 +114,7 @@ namespace vkLibRt {
     public:
         void destroy() override {
             destroyed = true;
-            device->getDevice().destroyPipeline(rayTracingPipelineKhr);
+            device->getDevice().destroyPipeline(rayTracingPipelineKhr, VkLibAlloc::acquireAllocCb().get());
             configurer.destroy();
             shaderGroups.clear();
         }

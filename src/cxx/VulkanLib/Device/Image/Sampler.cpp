@@ -36,7 +36,7 @@ Sampler::Sampler(std::shared_ptr<LogicalDevice> device, vk::SamplerCreateInfo &c
 
 void Sampler::destroy() {
     destroyed = true;
-    device->getDevice().destroySampler(sampler);
+    device->getDevice().destroySampler(sampler, VkLibAlloc::acquireAllocCb().get());
 }
 
 vk::Sampler &Sampler::getSampler() {

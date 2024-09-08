@@ -53,7 +53,7 @@ DescriptorPool::allocateDescriptorSet(uint32_t instanceCount, vk::DescriptorSetL
 
 void DescriptorPool::destroy() {
     destroyed = true;
-    logicalDevice->getDevice().destroyDescriptorPool(descriptorPool);
+    logicalDevice->getDevice().destroyDescriptorPool(descriptorPool, VkLibAlloc::acquireAllocCb().get());
 }
 
 

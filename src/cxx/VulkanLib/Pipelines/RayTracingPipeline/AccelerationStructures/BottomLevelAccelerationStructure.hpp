@@ -174,7 +174,7 @@ namespace vkLibRt {
             }
 
             scratchBuffer.destroy();
-            device->getDevice().destroyQueryPool(queryPool);
+            device->getDevice().destroyQueryPool(queryPool, VkLibAlloc::acquireAllocCb().get());
         }
 
 

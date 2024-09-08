@@ -72,7 +72,7 @@ public:
     void destroy() override {
         destroyed = true;
         for (auto &item: createInfos){
-            device.getDevice().destroyShaderModule(item.module);
+            device.getDevice().destroyShaderModule(item.module, VkLibAlloc::acquireAllocCb().get());
         }
     }
 

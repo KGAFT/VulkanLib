@@ -30,6 +30,6 @@ void ComputePipeline::dispatch(vk::CommandBuffer cmd, uint32_t groupCountX, uint
 
 void ComputePipeline::destroy() {
     destroyed = true;
-    device->getDevice().destroyPipeline(computePipeline);
+    device->getDevice().destroyPipeline(computePipeline, VkLibAlloc::acquireAllocCb().get());
     configurer->destroy();
 }

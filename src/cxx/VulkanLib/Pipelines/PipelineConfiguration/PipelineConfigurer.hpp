@@ -172,8 +172,8 @@ private:
 public:
     void destroy() override {
         destroyed = true;
-        device.getDevice().destroyPipelineLayout(pipelineLayout);
-        device.getDevice().destroyDescriptorSetLayout(descriptorSetLayout);
+        device.getDevice().destroyPipelineLayout(pipelineLayout, VkLibAlloc::acquireAllocCb().get());
+        device.getDevice().destroyDescriptorSetLayout(descriptorSetLayout, VkLibAlloc::acquireAllocCb().get());
     }
 
     virtual ~PipelineConfigurer() = default;

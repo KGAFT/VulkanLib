@@ -123,13 +123,13 @@ public:
         device->getDevice().waitIdle();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             if(imageAvailableSemaphores[i]){
-                device->getDevice().destroySemaphore(imageAvailableSemaphores[i]);
+                device->getDevice().destroySemaphore(imageAvailableSemaphores[i], VkLibAlloc::acquireAllocCb().get());
             }
             if(renderFinishedSemaphores[i]){
-                device->getDevice().destroySemaphore(renderFinishedSemaphores[i]);
+                device->getDevice().destroySemaphore(renderFinishedSemaphores[i], VkLibAlloc::acquireAllocCb().get());
             }
             if(inFlightFences[i]){
-                device->getDevice().destroyFence(inFlightFences[i]);
+                device->getDevice().destroyFence(inFlightFences[i], VkLibAlloc::acquireAllocCb().get());
             }
         }
         destroyed = true;

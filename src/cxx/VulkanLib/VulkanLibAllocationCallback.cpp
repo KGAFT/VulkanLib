@@ -11,15 +11,12 @@
 namespace VkLibAlloc {
     std::shared_ptr<vk::AllocationCallbacks> instance = nullptr;
     void *allocationFunction(void *pUserData, size_t size, size_t alignment, VkSystemAllocationScope allocationScope) {
-        auto result = GC_memalign(alignment, size);
-        memset(result, 0, size);
+        auto result = GC_malloc(size);
         return result;
     }
 
 
     void freeFunction(void *pUserData, void *pMemory) {
-        char* viewData = (char*) pMemory;
-        std::cout<<viewData<<std::endl;
         GC_free(pMemory);
     }
 
