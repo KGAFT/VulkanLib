@@ -41,6 +41,7 @@ public:
                 setStop(false);
             }   
             currentCmd = sync.prepareForNextImage(swapChain);
+
             commandBuffers[currentCmd].begin(beginInfo);
             outCurrentCmd = currentCmd;
             return commandBuffers[currentCmd];
