@@ -22,6 +22,7 @@ private:
     bool debugEnabled = false;
     const char *applicationName = nullptr;
     bool saveDefaultVulkanLoggerCallback = false;
+    bool gc = false;
 public:
     void addLayer(const char *layer);
 
@@ -37,6 +38,9 @@ public:
 
     void setSaveDefaultVulkanLoggerCallback(bool isSaveDefaultVulkanLoggerCallback);
 
+    void enableGarbageCollector(bool value){
+        gc = value;
+    }
 
     void setApplicationName(const char *pApplicationName);
 };

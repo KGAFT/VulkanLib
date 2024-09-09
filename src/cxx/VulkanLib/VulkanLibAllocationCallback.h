@@ -10,8 +10,8 @@
 
 namespace VkLibAlloc {
 
-
     std::shared_ptr<vk::AllocationCallbacks> acquireAllocCb();
+    void enableGC(bool value);
 }
 
 

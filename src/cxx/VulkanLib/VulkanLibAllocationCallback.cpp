@@ -9,6 +9,8 @@
 #include <malloc.h>
 
 namespace VkLibAlloc {
+    bool enableGarbageCollector = false;
+
     std::shared_ptr<vk::AllocationCallbacks> instance = nullptr;
     void *allocationFunction(void *pUserData, size_t size, size_t alignment, VkSystemAllocationScope allocationScope) {
         auto result = GC_malloc(size);
@@ -47,7 +49,10 @@ namespace VkLibAlloc {
             instance->pfnInternalAllocation = internalAllocationNotification;
             instance->pfnInternalFree = internalFreeNotification;
         }
+        return enableGarbageCollector?instance:nullptr;
+    }
 
-        return instance;
+    void enableGC(bool value){
+        enableGarbageCollector = value;
     }
 }
