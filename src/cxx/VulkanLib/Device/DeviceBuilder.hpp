@@ -39,19 +39,30 @@ public:
     }
 
     void requestRayTracingSupport() {
-        requestExtensions.push_back("VK_KHR_acceleration_structure");
-        requestExtensions.push_back("VK_KHR_ray_tracing_pipeline");
-        requestExtensions.push_back("VK_KHR_ray_query");
-        requestExtensions.push_back("VK_KHR_pipeline_library");
-        requestExtensions.push_back("VK_KHR_deferred_host_operations");
-        requestExtensions.push_back("VK_KHR_spirv_1_4");
-        requestExtensions.push_back("VK_EXT_descriptor_indexing");
-        requestExtensions.push_back("VK_KHR_buffer_device_address");
-        requestExtensions.push_back("VK_KHR_shader_float_controls");
-        requestExtensions.push_back("VK_KHR_maintenance3");
-        requestExtensions.push_back("VK_KHR_device_group");
-        rayTracingSupport = true;
+      requestExtensions.push_back("VK_KHR_acceleration_structure");
+      requestExtensions.push_back("VK_KHR_ray_tracing_pipeline");
+      requestExtensions.push_back("VK_KHR_ray_query");
+      requestExtensions.push_back("VK_KHR_pipeline_library");
+      requestExtensions.push_back("VK_KHR_deferred_host_operations");
+      requestExtensions.push_back("VK_KHR_spirv_1_4");
+      requestExtensions.push_back("VK_EXT_descriptor_indexing");
+      requestExtensions.push_back("VK_KHR_buffer_device_address");
+      requestExtensions.push_back("VK_KHR_shader_float_controls");
+      requestExtensions.push_back("VK_KHR_maintenance3");
+      requestExtensions.push_back("VK_KHR_device_group");
+      rayTracingSupport = true;
     }
+
+    [[nodiscard]] bool requirePresentSupport1() const {
+      return requirePresentSupport;
+    }
+    [[nodiscard]] bool requireGraphicsSupport1() const {
+      return requireGraphicsSupport;
+    }
+    [[nodiscard]] bool requireComputeSupport1() const {
+      return requireComputeSupport;
+    }
+    [[nodiscard]] bool rayTracingSupport1() const { return rayTracingSupport; }
 
     void requestComputeSupport() {
         requireComputeSupport = true;
