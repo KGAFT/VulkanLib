@@ -51,8 +51,12 @@ public:
 
     void endRender() {
         if(!stop){
-            commandBuffers[currentCmd].end();
-            sync.submitCommandBuffers(&commandBuffers[currentCmd], swapChain, &currentCmd);
+            try{
+                commandBuffers[currentCmd].end();
+                sync.submitCommandBuffers(&commandBuffers[currentCmd], swapChain, &currentCmd);
+            }catch(std::exception& e){
+                std::cerr<<e.what()<<std::endl;
+            }
         }
 
     }
