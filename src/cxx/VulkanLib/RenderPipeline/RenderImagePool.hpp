@@ -128,12 +128,34 @@ private:
                                                                 vk::ImageLayout::eUndefined, nullptr
 
     };
+
+    static inline vk::ImageCreateInfo defaultCubeColorCreateInfo = {vk::ImageCreateFlagBits::eCubeCompatible,
+                                                                vk::ImageType::e2D, vk::Format::eR32G32B32A32Sfloat,
+                                                                vk::Extent3D{800, 600, 1},
+                                                                1, 6, vk::SampleCountFlagBits::e1,
+                                                                vk::ImageTiling::eOptimal,
+                                                                vk::ImageUsageFlagBits::eColorAttachment |
+                                                                vk::ImageUsageFlagBits::eSampled |
+                                                                vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eStorage,
+                                                                vk::SharingMode::eExclusive,
+                                                                0, nullptr,
+                                                                vk::ImageLayout::eUndefined, nullptr
+
+    };
+
     static inline vk::ImageViewCreateInfo defaultColorViewCreateInfo = {vk::ImageViewCreateFlags(),
                                                                         nullptr, vk::ImageViewType::e2D,
                                                                         vk::Format::eR32G32B32A32Sfloat, {},
                                                                         vk::ImageSubresourceRange{
                                                                                 vk::ImageAspectFlagBits::eColor, 0, 1,
                                                                                 0, 1}};
+
+    static inline vk::ImageViewCreateInfo defaultCubeViewCreateInfo = {vk::ImageViewCreateFlags(),
+                                                                        nullptr, vk::ImageViewType::eCube,
+                                                                        vk::Format::eR32G32B32A32Sfloat, {},
+                                                                        vk::ImageSubresourceRange{
+                                                                            vk::ImageAspectFlagBits::eColor, 0, 1,
+                                                                            0, 6}};
 
     static inline vk::ImageCreateInfo defaultDepthCreateInfo = {vk::ImageCreateFlags(),
                                                                 vk::ImageType::e2D, vk::Format::eD32Sfloat,
