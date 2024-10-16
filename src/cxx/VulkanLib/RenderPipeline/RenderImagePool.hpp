@@ -22,6 +22,7 @@ public:
 private:
     std::map<std::shared_ptr<Image>, bool> createdColorImages;
     std::map<std::shared_ptr<Image>, bool> createdDepthImages;
+    std::map<std::shared_ptr<Image>, bool> createdCubeImages;
     std::shared_ptr<LogicalDevice> device;
 public:
     std::shared_ptr<Image> acquireDepthImage(uint32_t width, uint32_t height) {
@@ -59,6 +60,28 @@ public:
         auto result = createColorAttachment(device, width, height);
         createdColorImages.insert(std::pair(result, true));
         return result;
+    }
+
+    std::shared_ptr<Image> acquireCubeImage(uint32_t width, uint32_t height) {
+        for (auto& item : createdCubeImages) {
+            if (!item.second) {
+                item.first->resize(width, height);
+                item.second = true;
+                return item.first;
+            }
+        }
+        auto result = createCubeAttachment(device, width, height);
+        createdCubeImages.insert(std::pair(result, true));
+        return result;
+    }
+
+    void releaseCubeImage(uint32_t width, uint32_t height, std::shared_ptr<Image> image) {
+        for (auto &item: createdCubeImages) {
+            if (item.first == image) {
+                item.second = false;
+                break;
+            }
+        }
     }
 
     void releaseColorImage(std::shared_ptr<Image> image) {
@@ -114,6 +137,20 @@ private:
         return result;
     }
 
+
+    static std::shared_ptr<Image> createCubeAttachment(std::shared_ptr<LogicalDevice> device, uint32_t width, uint32_t height) {
+        defaultCubeColorCreateInfo.extent = vk::Extent3D{width, height, 1};
+        auto result = std::make_shared<Image>(device, defaultCubeColorCreateInfo);
+        defaultCubeViewCreateInfo.image = result->getBase();
+        result->createImageView(defaultCubeViewCreateInfo);
+        for(uint32_t i = 0; i < 6; i++) {
+            defaultColorViewCreateInfo.image = result->getBase();
+            defaultColorViewCreateInfo.subresourceRange.baseArrayLayer = i;
+            result->createImageView(defaultColorViewCreateInfo);
+        }
+        defaultColorViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        return result;
+    }
 private:
     static inline vk::ImageCreateInfo defaultColorCreateInfo = {vk::ImageCreateFlags(),
                                                                 vk::ImageType::e2D, vk::Format::eR32G32B32A32Sfloat,

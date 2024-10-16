@@ -11,7 +11,7 @@
 
 class RenderPipelineBuilder {
     friend class GraphicsRenderPipeline;
-
+    friend class OmniRenderingGraphicsPipeline;
 public:
     RenderPipelineBuilder();
 
