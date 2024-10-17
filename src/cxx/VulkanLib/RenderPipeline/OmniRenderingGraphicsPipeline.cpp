@@ -12,9 +12,8 @@ OmniRenderingGraphicsPipeline::OmniRenderingGraphicsPipeline(Instance &instance,
 
     cubeTarget = GraphicsRenderPipeline::getRenderImagePool(device)->acquireColorRenderImage(
         renderArea.width, renderArea.height);
-    for (uint32_t i = 1; i <= 6; i++) {
-        pBuilder->pGraphicsPipelineBuilder->addColorAttachmentInfo(cubeTarget->getImageInfo().format);
-    }
+    pBuilder->pGraphicsPipelineBuilder->addColorAttachmentInfo(cubeTarget->getImageInfo().format);
+    pBuilder->attachmentsPerStepAmount = 1;
 
 
     depthTarget = GraphicsRenderPipeline::getRenderImagePool(device)->acquireDepthImage(
