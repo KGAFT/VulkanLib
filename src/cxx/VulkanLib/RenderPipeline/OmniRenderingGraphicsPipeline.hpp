@@ -42,9 +42,6 @@ public:
 
     void resize(uint32_t width, uint32_t height);
 
-    const std::vector<std::shared_ptr<Image>> &getBaseRenderImages() const;
-
-    const std::vector<std::shared_ptr<Image>> &getBaseDepthImages() const;
 
     const std::shared_ptr<GraphicsPipeline> &getGraphicsPipeline() const;
 

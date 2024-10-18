@@ -10,7 +10,7 @@ OmniRenderingGraphicsPipeline::OmniRenderingGraphicsPipeline(Instance &instance,
     imagePerStepAmount(1), renderArea(renderArea) {
     bool populated = false;
 
-    cubeTarget = GraphicsRenderPipeline::getRenderImagePool(device)->acquireColorRenderImage(
+    cubeTarget = GraphicsRenderPipeline::getRenderImagePool(device)->acquireCubeImage(
         renderArea.width, renderArea.height);
     pBuilder->pGraphicsPipelineBuilder->addColorAttachmentInfo(cubeTarget->getImageInfo().format);
     pBuilder->attachmentsPerStepAmount = 1;
@@ -57,6 +57,10 @@ void OmniRenderingGraphicsPipeline::endRender(vk::CommandBuffer cmd, uint32_t cu
     cmd.endRenderingKHR(instance.getDynamicLoader());
     prepareBarriersAfterRendering(0);
     bindBarriers(cmd);
+}
+
+const std::shared_ptr<GraphicsPipeline> & OmniRenderingGraphicsPipeline::getGraphicsPipeline() const {
+    return graphicsPipeline;
 }
 
 void OmniRenderingGraphicsPipeline::bindBarriers(vk::CommandBuffer cmd) {
