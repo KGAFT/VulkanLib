@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VulkanLib")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f5c5d279d3a5f0b86de9af2309cad22936bef176")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e293437238462ec3b0b2499de4a8b453cbe6130c")]
 [assembly: System.Reflection.AssemblyProductAttribute("VulkanLib")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VulkanLib")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

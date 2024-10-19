@@ -21,3 +21,4 @@
 /home/kgaft/CSProjects/VulkanLib/VulkanLib/obj/Debug/net8.0/refint/VulkanLib.dll
 /home/kgaft/CSProjects/VulkanLib/VulkanLib/obj/Debug/net8.0/VulkanLib.pdb
 /home/kgaft/CSProjects/VulkanLib/VulkanLib/obj/Debug/net8.0/ref/VulkanLib.dll
+/home/kgaft/CSProjects/VulkanLib/VulkanLib/obj/Debug/net8.0/VulkanLib.csproj.AssemblyReference.cache
