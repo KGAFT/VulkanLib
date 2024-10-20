@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
+using Silk.NET.Vulkan.Extensions.KHR;
 using VulkanLib.InstanceLogger;
 using VulkanLib.ObjectManagement;
 
@@ -40,30 +41,46 @@ public class VulInstance : DestroyableObject
             {
                 logger.registerCallback(vulInstanceLoggerCallback);
             }
+
             logger.describeLogger(ref createInfoExt);
             createInfo.PNext = &createInfoExt;
         }
 
-        VulResultException.checkResult("Failed to create instance: ", vk.CreateInstance(createInfo, null, out instance));
+        VulResultException.checkResult("Failed to create instance: ",
+            vk.CreateInstance(createInfo, null, out instance));
         enabledLayers = builder.getLayers();
         if (builder.getDebugLogging())
         {
             ExtDebugUtils debugUtils;
-            if (!vk!.TryGetInstanceExtension(instance, out debugUtils)) throw new Exception("Failed to create debug utils!");
-          
+            if (!vk!.TryGetInstanceExtension(instance, out debugUtils))
+                throw new Exception("Failed to create debug utils!");
+
             logger.initialize(instance, debugUtils);
         }
-        
     }
+
     private Instance instance;
     private Vk? vk;
     private List<String> enabledLayers;
     private VulInstanceLogger logger = null;
-
+    private KhrSurface surfaceExtnsion = null;
     public Instance getBase() => instance;
-    
+
     public VulInstanceLogger getLogger() => logger;
-    
+
+    public KhrSurface getSwapchainExtension()
+    {
+        if (surfaceExtnsion == null)
+        {
+            if (!vk!.TryGetInstanceExtension<KhrSurface>(instance, out surfaceExtnsion))
+            {
+                throw new NotSupportedException("KHR_surface extension not found.");
+            }
+        }
+
+        return surfaceExtnsion;
+    }
+
     public override unsafe void destroy()
     {
         base.destroy();
