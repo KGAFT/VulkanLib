@@ -6,7 +6,9 @@ using VulkanLib;
 using Silk.NET.Windowing;
 using Silk.NET.Maths;
 using Silk.NET.Core.Native;
+using Silk.NET.Vulkan;
 using VulkanLib.InstanceLogger;
+using VulkanLib.ObjectManagement;
 
 IWindow window = initWindow();
 VulInstanceBuilder builder = new VulInstanceBuilder();

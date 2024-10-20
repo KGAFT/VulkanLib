@@ -43,10 +43,8 @@ public class VulInstance : DestroyableObject
             logger.describeLogger(ref createInfoExt);
             createInfo.PNext = &createInfoExt;
         }
-        if (vk.CreateInstance(createInfo, null, out instance) != Result.Success)
-        {
-            throw new Exception("failed to create instance!");
-        }
+
+        VulResultException.checkResult("Failed to create instance: ", vk.CreateInstance(createInfo, null, out instance));
         enabledLayers = builder.getLayers();
         if (builder.getDebugLogging())
         {

@@ -34,10 +34,9 @@ public unsafe class VulInstanceLogger :  DestroyableObject
         this.instance = instance;
         DebugUtilsMessengerCreateInfoEXT createInfo = new DebugUtilsMessengerCreateInfoEXT();
         describeLogger(ref createInfo);
-        if(debugUtils.CreateDebugUtilsMessenger(instance, &createInfo, null, out messenger) != Result.Success)
-        {
-            throw new Exception("Failed to create debug messenger instance!");
-        }
+        VulResultException.checkResult("Failed to create debug messenger: ", 
+            debugUtils.CreateDebugUtilsMessenger(instance, &createInfo, null, out messenger));
+
     }
     private uint debugCallback(DebugUtilsMessageSeverityFlagsEXT messageSeverity, DebugUtilsMessageTypeFlagsEXT messageType, DebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
     {
