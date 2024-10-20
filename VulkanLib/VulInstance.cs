@@ -80,7 +80,7 @@ public class VulInstance : DestroyableObject
 
         return surfaceExtnsion;
     }
-
+    public List<String> getEnabledLayers() => enabledLayers;
     public override unsafe void destroy()
     {
         base.destroy();

@@ -6,9 +6,9 @@ namespace VulkanLib.Device.PhysicalDevice;
 
 public struct QueueFamilyInfo(uint index, QueueFamilyProperties properties, bool supportPresentation)
 {
-    uint index;
-    QueueFamilyProperties properties;
-    bool supportPresentation;
+    public uint index;
+    public QueueFamilyProperties properties;
+    public bool supportPresentation;
 };
 
 public struct DeviceSuitabilityResults {
