@@ -6,7 +6,7 @@ namespace VulkanLib.Device.LogicalDevice;
 
 using Silk.NET.Vulkan;
 
-public class VulLogicalDevice
+public class VulLogicalDevice : DestroyableObject
 {
     public unsafe VulLogicalDevice(VulInstance instance, VulPhysicalDevice device, VulDeviceBuilder builder,
         DeviceSuitabilityResults results)
@@ -17,10 +17,12 @@ public class VulLogicalDevice
         features.ShaderInt64 = true;
         PhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature = new();
         PhysicalDeviceAccelerationStructureFeaturesKHR accelStructure = new();
-
+        dynamicRenderingFeature.SType = StructureType.PhysicalDeviceDynamicRenderingFeaturesKhr;
+        accelStructure.SType = StructureType.PhysicalDeviceAccelerationStructureFeaturesKhr;
         dynamicRenderingFeature.DynamicRendering = true;
 
         PhysicalDeviceVulkan12Features newFeatures = new();
+        newFeatures.SType = StructureType.PhysicalDeviceVulkan12Features;
         newFeatures.BufferDeviceAddress = true;
         newFeatures.DescriptorIndexing = true;
         newFeatures.RuntimeDescriptorArray = true;
@@ -53,24 +55,118 @@ public class VulLogicalDevice
             deviceInfo.PQueueCreateInfos = pQueuesInfo;
             deviceInfo.QueueCreateInfoCount = (uint)queuesInfo.Length;
             deviceInfo.PNext = &dynamicRenderingFeature;
-            
-            VulResultException.checkResult("Failed to create device: ", Vk.GetApi().CreateDevice(device.getBase(), in deviceInfo, null, out this.device));
-            
+
+            VulResultException.checkResult("Failed to create device: ",
+                Vk.GetApi().CreateDevice(device.getBase(), in deviceInfo, null, out this.device));
         }
+
         foreach (var deviceQueueCreateInfo in results.queuesInfo)
         {
             Queue queue;
             Vk.GetApi().GetDeviceQueue(this.device, deviceQueueCreateInfo.index, 0, out queue);
-            queues.Add(new (queue));
+            queues.Add(new(queue, this.device, deviceQueueCreateInfo.supportPresentation,
+                deviceQueueCreateInfo.properties.QueueFlags, deviceQueueCreateInfo.index));
         }
     }
 
     private Device device;
-    private List<VulLogicalQueue> queues;
+    private List<VulLogicalQueue> queues = new();
     private VulPhysicalDevice baseDevice;
     private PhysicalDeviceMemoryProperties memProperties;
     private bool memoryPropertiesPopulated = false;
     private List<DeviceQueueCreateInfo> queueCreateInfos = new();
+    private List<DestroyableObject> deviceObjects = new();
+
+    public Device getDevice()
+    {
+        return device;
+    }
+
+    public VulPhysicalDevice getBaseDevice()
+    {
+        return baseDevice;
+    }
+
+    public VulLogicalQueue getQueueByType(QueueFlags queueType)
+    {
+        foreach (var vulLogicalQueue in queues)
+        {
+            if ((vulLogicalQueue.getQueueType() & queueType) > 0)
+            {
+                return vulLogicalQueue;
+            }
+        }
+
+        throw new Exception("Failed to find suitable queue");
+    }
+
+    public VulLogicalQueue getPresentQueue()
+    {
+        foreach (var vulLogicalQueue in queues)
+        {
+            if (vulLogicalQueue.isSupportPresentation())
+                return vulLogicalQueue;
+        }
+
+        throw new Exception("Failed to find suitable queue");
+    }
+
+    public Format findDepthFormat()
+    {
+        return findSupportedFormat(
+            new() { Format.D32Sfloat, Format.D32SfloatS8Uint, Format.D24UnormS8Uint },
+            ImageTiling.Optimal,
+            FormatFeatureFlags.DepthStencilAttachmentBit);
+    }
+
+    public uint findMemoryType(uint typeFilter, MemoryPropertyFlags properties)
+    {
+        if (!memoryPropertiesPopulated)
+        {
+            Vk.GetApi().GetPhysicalDeviceMemoryProperties(baseDevice.getBase());
+            memoryPropertiesPopulated = true;
+        }
+
+        for (int i = 0; i < memProperties.MemoryTypeCount; i++)
+        {
+            if ((typeFilter & 1) == 1)
+            {
+                if ((memProperties.MemoryTypes[i].PropertyFlags & properties) == properties)
+                {
+                    return (uint)i;
+                }
+            }
+
+            typeFilter >>= 1;
+        }
+
+        throw new Exception("Failed to find suitable memory type!");
+    }
+
+
+    public Format findSupportedFormat(List<Format> candidates, ImageTiling tiling, FormatFeatureFlags features)
+    {
+        foreach (var candidate in candidates)
+        {
+            var properties = Vk.GetApi().GetPhysicalDeviceFormatProperties(baseDevice.getBase(), candidate);
+            if (tiling == ImageTiling.Linear && (properties.LinearTilingFeatures & features) == features)
+            {
+                return candidate;
+            }
+            else if (tiling == ImageTiling.Optimal && (properties.OptimalTilingFeatures & features) == features)
+            {
+                return candidate;
+            }
+        }
+
+        throw new Exception("Failed to find suitable format!");
+    }
+
+    public uint getQueuesAmount()
+    {
+        return (uint)queues.Count;
+    }
+
 
     private unsafe void sanitizeQueueCreateInfos(DeviceSuitabilityResults results, float* priority)
     {
@@ -84,5 +180,20 @@ public class VulLogicalDevice
 
             counter++;
         }
+    }
+
+    public unsafe override void destroy()
+    {
+        for (int i = (deviceObjects.Count - 1); i >= 0; i--)
+        {
+            deviceObjects[i].destroy();
+        }
+
+        foreach (var vulLogicalQueue in queues)
+        {
+            vulLogicalQueue.destroy();
+        }
+
+        Vk.GetApi().DestroyDevice(device, null);
     }
 }

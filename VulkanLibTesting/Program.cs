@@ -8,6 +8,7 @@ using Silk.NET.Maths;
 using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
 using VulkanLib.Device;
+using VulkanLib.Device.LogicalDevice;
 using VulkanLib.Device.PhysicalDevice;
 using VulkanLib.InstanceLogger;
 using VulkanLib.ObjectManagement;
@@ -32,6 +33,8 @@ unsafe
     devBuilder.requestComputeSupport();
     devBuilder.requestRayTracingSupport();
     devBuilder.requestPresentSupport(surface);
+    List<VulPhysicalDevice> suitableDevices = new();
+    List<DeviceSuitabilityResults> suitRes = new List<DeviceSuitabilityResults>();
     foreach (var vulPhysicalDevice in devices)
     {
         unsafe
@@ -41,9 +44,15 @@ unsafe
             if (DeviceSuitability.isDeviceSuitable(instance, devBuilder, vulPhysicalDevice, ref results))
             {
                 Console.WriteLine(Marshal.PtrToStringAnsi((nint)props.DeviceName));
+                suitableDevices.Add(vulPhysicalDevice);
+                suitRes.Add(results);
             }
         }
     }
+    
+    if(suitableDevices.Count == 0)
+        throw new Exception("No suitable devices found");
+    VulLogicalDevice device = new(instance, suitableDevices[0], devBuilder, suitRes[0]);
 
     window.Run();
 
