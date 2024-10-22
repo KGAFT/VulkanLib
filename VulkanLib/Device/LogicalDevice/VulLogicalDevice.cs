@@ -75,7 +75,6 @@ public class VulLogicalDevice : DestroyableObject
     private PhysicalDeviceMemoryProperties memProperties;
     private bool memoryPropertiesPopulated = false;
     private List<DeviceQueueCreateInfo> queueCreateInfos = new();
-    private List<DestroyableObject> deviceObjects = new();
 
     public Device getDevice()
     {
@@ -110,7 +109,8 @@ public class VulLogicalDevice : DestroyableObject
 
         throw new Exception("Failed to find suitable queue");
     }
-
+    
+    
     public Format findDepthFormat()
     {
         return findSupportedFormat(
@@ -184,11 +184,6 @@ public class VulLogicalDevice : DestroyableObject
 
     public unsafe override void destroy()
     {
-        for (int i = (deviceObjects.Count - 1); i >= 0; i--)
-        {
-            deviceObjects[i].destroy();
-        }
-
         foreach (var vulLogicalQueue in queues)
         {
             vulLogicalQueue.destroy();
