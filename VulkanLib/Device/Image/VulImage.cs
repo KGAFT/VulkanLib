@@ -142,4 +142,17 @@ public class VulImage : DestroyableObject
 
         Vk.GetApi().CmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, null, 0, null, 1, barrier);
     }
+
+    public override unsafe void destroy()
+    {
+        if (!castCreated) {
+            foreach (var item in imageViews)
+            {
+                item.destroy();
+            }
+            Vk.GetApi().DestroyImage(device.getDevice(), imageBase, null);
+            Vk.GetApi().FreeMemory(device.getDevice(), imageMemory, null);
+        }
+        destroyed = true;
+    }
 }

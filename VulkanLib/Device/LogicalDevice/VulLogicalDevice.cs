@@ -67,6 +67,7 @@ public class VulLogicalDevice : DestroyableObject
             queues.Add(new(queue, this.device, deviceQueueCreateInfo.supportPresentation,
                 deviceQueueCreateInfo.properties.QueueFlags, deviceQueueCreateInfo.index));
         }
+        this.instance = instance;
     }
 
     private Device device;
@@ -75,12 +76,14 @@ public class VulLogicalDevice : DestroyableObject
     private PhysicalDeviceMemoryProperties memProperties;
     private bool memoryPropertiesPopulated = false;
     private List<DeviceQueueCreateInfo> queueCreateInfos = new();
-
+    private VulInstance instance;
     public Device getDevice()
     {
         return device;
     }
 
+    public VulInstance getInstance() => instance;
+    
     public VulPhysicalDevice getBaseDevice()
     {
         return baseDevice;

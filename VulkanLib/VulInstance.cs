@@ -54,7 +54,6 @@ public class VulInstance : DestroyableObject
             ExtDebugUtils debugUtils;
             if (!vk!.TryGetInstanceExtension(instance, out debugUtils))
                 throw new Exception("Failed to create debug utils!");
-
             logger.initialize(instance, debugUtils);
         }
     }
@@ -64,6 +63,7 @@ public class VulInstance : DestroyableObject
     private List<String> enabledLayers;
     private VulInstanceLogger logger = null;
     private KhrSurface surfaceExtnsion = null;
+    private KhrSwapchain swapchainExtnsion = null;
     public Instance getBase() => instance;
 
     public VulInstanceLogger getLogger() => logger;
