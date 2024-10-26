@@ -30,19 +30,27 @@ public class DeviceSuitability
         bool presentFound = false;
         bool computeFound = false;
         uint queueCounter = 0;
-        QueueFamilyInfo info = new QueueFamilyInfo();
+        
+        pOutput.queuesInfo = new();
         foreach (var item in device.getQueueProperties())
         {
+            QueueFamilyInfo info = new QueueFamilyInfo();
             if (builder.getRequireGraphicsSupport()) {
                 if ((item.QueueFlags & QueueFlags.GraphicsBit) > 0) {
                     graphicsFound = true;
                     info = new( queueCounter, item, false);
+                    info.properties = item;
+                    info.index = queueCounter;
+                    info.supportPresentation = false;
                 }
             }
             if (builder.getRequireComputeSupport()) {
                 if ((item.QueueFlags & QueueFlags.ComputeBit) > 0) {
                     computeFound = true;
                     info = new( queueCounter, item, false);
+                    info.properties = item;
+                    info.index = queueCounter;
+                    info.supportPresentation = false;
                 }
             }
             if (builder.getRequirePresentSupport())
@@ -53,13 +61,15 @@ public class DeviceSuitability
                 {
                     presentFound = true;
                     info = new(queueCounter, item, true);
+                    info.properties = item;
+                    info.index = queueCounter;
+                    info.supportPresentation = true;
                 }
                
             }
-
-            pOutput.queuesInfo = new();
+            info.properties = item;
+            info.index = queueCounter;
             pOutput.queuesInfo.Add(info);
-            
             if (graphicsFound == builder.getRequireGraphicsSupport() && presentFound == builder.getRequirePresentSupport() &&
                 computeFound == builder.getRequireComputeSupport()) {
                 break;

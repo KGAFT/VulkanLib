@@ -8,7 +8,10 @@ public class VulImageView : DestroyableObject
 {
     public VulImageView(ImageCreateInfo parentCreateInfo, ImageView imageView, VulLogicalDevice device, ImageViewCreateInfo createInfo)
     {
-        
+        this.parentInfo = parentCreateInfo;
+        this.viewBase = imageView;
+        this.device = device;
+        this.createInfo = createInfo;
     }
     
     public ImageCreateInfo parentInfo;
@@ -18,6 +21,7 @@ public class VulImageView : DestroyableObject
 
     public override unsafe void destroy()
     {
+        this.destroyed = true;
         Vk.GetApi().DestroyImageView(device.getDevice(), viewBase, null);
     }
 }

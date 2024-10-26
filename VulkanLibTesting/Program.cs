@@ -54,6 +54,9 @@ unsafe
         throw new Exception("No suitable devices found");
     VulLogicalDevice device = new(instance, suitableDevices[0], devBuilder, suitRes[0]);
 
+    VulSwapChain swapChain = new VulSwapChain(instance, device, surface, (uint)window.GetFullSize().X,
+        (uint)window.GetFullSize().Y, true);
+    window.FramebufferResize += resizeEvent;
     window.Run();
 
     unsafe string[] getRequiredWindowExtensions(IWindow window)
@@ -63,6 +66,10 @@ unsafe
         return extensions;
     }
 
+    void resizeEvent(Vector2D<int> extent)
+    {
+        swapChain.recreate((uint)extent.X, (uint)extent.Y);
+    }
     unsafe IWindow initWindow()
     {
         var options = WindowOptions.DefaultVulkan with

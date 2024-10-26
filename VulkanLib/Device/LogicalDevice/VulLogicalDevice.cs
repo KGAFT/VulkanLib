@@ -11,6 +11,7 @@ public class VulLogicalDevice : DestroyableObject
     public unsafe VulLogicalDevice(VulInstance instance, VulPhysicalDevice device, VulDeviceBuilder builder,
         DeviceSuitabilityResults results)
     {
+        this.baseDevice = device;
         float priority = 1.0f;
         sanitizeQueueCreateInfos(results, &priority);
         PhysicalDeviceFeatures features = new();
