@@ -16,8 +16,9 @@ private:
     static inline bool initialized = false;
 public:
     static std::shared_ptr<DescriptorPool> getInstance(std::shared_ptr<LogicalDevice> device, bool supportAccelerationStructures);
-private:
+public:
     DescriptorPool( std::shared_ptr<LogicalDevice> logicalDevice, bool supportAccelerationStructures);
+private:
     DescriptorPool() = default;
 private:
     vk::DescriptorPool descriptorPool;

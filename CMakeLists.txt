@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 23)
 file(GLOB_RECURSE DEF_FILES src/cxx/*.hpp)
 file(GLOB_RECURSE SRC_FILES src/cxx/*.cpp)
 
-add_subdirectory(dependencies/bdwgc)
-
 add_library(VulkanLib STATIC ${DEF_FILES} ${SRC_FILES}
         src/cxx/VulkanLib/Device/PresentPassThrough/PresentPassThrough.h)
 
@@ -39,11 +37,11 @@ if(DEFINED VulkanSDKPath)
         target_link_directories(VulkanLib PUBLIC ${VulkanSDKPath}/bin ${VulkanSDKPath}/lib)
         set(VulkanLibList vulkan.1 shaderc_shared)
     endif()
-    target_link_libraries(VulkanLib PUBLIC ${VulkanLibList} gc)
+    target_link_libraries(VulkanLib PUBLIC ${VulkanLibList})
 else ()
     message("Auto detected vulkan")
     find_package(Vulkan REQUIRED shaderc_combined)
-    target_link_libraries(VulkanLib PUBLIC Vulkan::Vulkan Vulkan::shaderc_combined gc)
+    target_link_libraries(VulkanLib PUBLIC Vulkan::Vulkan Vulkan::shaderc_combined)
 endif ()
 
 target_include_directories(VulkanLib PUBLIC src/cxx)

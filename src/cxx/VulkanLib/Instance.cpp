@@ -27,7 +27,6 @@ Instance::Instance(InstanceBuilder &pBuilder) {
             (uint32_t)pBuilder.extensions.size(), pBuilder.extensions.data()
     );
     try {
-        VkLibAlloc::enableGC(pBuilder.gc);
         instance = vk::createInstance(createInfo, VkLibAlloc::acquireAllocCb().get());
         dynamicLoader = vk::DispatchLoaderDynamic(instance, vkGetInstanceProcAddr);
         if (pBuilder.debugEnabled) {

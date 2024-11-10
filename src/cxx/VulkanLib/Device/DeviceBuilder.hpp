@@ -41,7 +41,6 @@ public:
     void requestRayTracingSupport() {
       requestExtensions.push_back("VK_KHR_acceleration_structure");
       requestExtensions.push_back("VK_KHR_ray_tracing_pipeline");
-      requestExtensions.push_back("VK_KHR_ray_query");
       requestExtensions.push_back("VK_KHR_pipeline_library");
       requestExtensions.push_back("VK_KHR_deferred_host_operations");
       requestExtensions.push_back("VK_KHR_spirv_1_4");
