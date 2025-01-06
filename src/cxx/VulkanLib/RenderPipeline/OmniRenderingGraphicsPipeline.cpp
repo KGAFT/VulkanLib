@@ -31,8 +31,8 @@ OmniRenderingGraphicsPipeline::OmniRenderingGraphicsPipeline(Instance &instance,
     depthClear.depthStencil.stencil = 0;
     colorClear.color = {0.0f, 0.0f, 0.0f, 1.0f};
     viewport.maxDepth = 1.0f;
-    viewport.width = renderArea.width;
-    viewport.height = renderArea.height;
+    viewport.width = (float)renderArea.width;
+    viewport.height = (float)renderArea.height;
     scissor.extent.width = renderArea.width;
     scissor.extent.height = renderArea.height;
     createImagesAndRenderingInfos(pBuilder->attachmentsPerStepAmount);
@@ -90,7 +90,7 @@ void OmniRenderingGraphicsPipeline::createImagesAndRenderingInfos(uint32_t image
 
     renderingInfoKhr.renderArea = {0, 0, renderArea.width, renderArea.height};
     renderingInfoKhr.layerCount = 1;
-    renderingInfoKhr.colorAttachmentCount = colorInfos.size();
+    renderingInfoKhr.colorAttachmentCount = (uint32_t)colorInfos.size();
     renderingInfoKhr.pColorAttachments = colorInfos.data();
     renderingInfoKhr.pDepthAttachment = &depthInfo;
 

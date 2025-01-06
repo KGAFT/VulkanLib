@@ -49,8 +49,8 @@ public:
     }
 
     void resize(unsigned int width, unsigned int height) {
-        this->viewPort.width = width;
-        this->viewPort.height = height;
+        this->viewPort.width = (float)width;
+        this->viewPort.height = (float)height;
         this->scissor.extent.width = width;
         this->scissor.extent.height = height;
     }
@@ -79,7 +79,7 @@ private:
         GraphicsPipelineConfig::createConfig(config, attachmentPerStepAmount, true, width, height);
 
         createStrip->vertexInputInfo.sType = vk::StructureType::ePipelineVertexInputStateCreateInfo;
-        createStrip->vertexInputInfo.vertexAttributeDescriptionCount = configurer.inputAttribDescs.size();
+        createStrip->vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)configurer.inputAttribDescs.size();
         createStrip->vertexInputInfo.vertexBindingDescriptionCount = 1;
         createStrip->vertexInputInfo.pVertexAttributeDescriptions = configurer.inputAttribDescs.data();
         createStrip->vertexInputInfo.pVertexBindingDescriptions = &configurer.inputBindDesc;
@@ -92,7 +92,7 @@ private:
         createStrip->viewportInfo.pScissors = nullptr;
 
         createStrip->pipelineInfo.sType = vk::StructureType::eGraphicsPipelineCreateInfo;
-        createStrip->pipelineInfo.stageCount = shader->getCreateInfos().size();
+        createStrip->pipelineInfo.stageCount = (uint32_t)shader->getCreateInfos().size();
         createStrip->pipelineInfo.pStages = shader->getCreateInfos().data();
         createStrip->pipelineInfo.pVertexInputState = &createStrip->vertexInputInfo;
         createStrip->pipelineInfo.pInputAssemblyState = &config->inputAssemblyInfo;

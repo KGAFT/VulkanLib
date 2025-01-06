@@ -94,7 +94,7 @@ private:
     VectorUtils::removeRepeatingElements(queueIndices);
     if (queueIndices.size() > 1) {
       createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
-      createInfo.queueFamilyIndexCount = queueIndices.size();
+      createInfo.queueFamilyIndexCount = (uint32_t) queueIndices.size();
       createInfo.pQueueFamilyIndices = queueIndices.data();
     } else {
       createInfo.imageSharingMode = vk::SharingMode::eExclusive;

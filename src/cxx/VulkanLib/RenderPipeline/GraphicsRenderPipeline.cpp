@@ -84,8 +84,8 @@ GraphicsRenderPipeline::GraphicsRenderPipeline(Instance &instance, std::shared_p
     depthClear.depthStencil.stencil = 0;
     colorClear.color = {0.0f, 0.0f, 0.0f, 1.0f};
     viewport.maxDepth = 1.0f;
-    viewport.width = renderArea.width;
-    viewport.height = renderArea.height;
+    viewport.width = (float) renderArea.width;
+    viewport.height =(float) renderArea.height;
     scissor.extent.width = renderArea.width;
     scissor.extent.height = renderArea.height;
     createImagesAndRenderingInfos(pBuilder->attachmentsPerStepAmount);
@@ -112,8 +112,8 @@ GraphicsRenderPipeline::GraphicsRenderPipeline(Instance &instance, std::shared_p
     depthClear.depthStencil.depth = 1.0f;
     depthClear.depthStencil.stencil = 0;
     colorClear.color = {0.0f, 0.0f, 0.0f, 1.0f};
-    viewport.width = renderArea.width;
-    viewport.height = renderArea.height;
+    viewport.width =(float) renderArea.width;
+    viewport.height =(float) renderArea.height;
     scissor.extent.width = renderArea.width;
     scissor.extent.height = renderArea.height;
     createImagesAndRenderingInfos(1);
@@ -153,8 +153,8 @@ void GraphicsRenderPipeline::resize(uint32_t width, uint32_t height) {
     renderingInfoKhr.renderArea.extent.height = height;
     scissor.extent.width = width;
     scissor.extent.height = height;
-    viewport.width = renderArea.width;
-    viewport.height = renderArea.height;
+    viewport.width = (float) renderArea.width;
+    viewport.height =(float) renderArea.height;
     if (!forSwapChain)  {
         for (auto &item: baseRenderImages) {
             item->resize(width, height);
@@ -205,7 +205,7 @@ void GraphicsRenderPipeline::createImagesAndRenderingInfos(uint32_t imagePerStep
 
     renderingInfoKhr.renderArea = {0, 0, renderArea.width, renderArea.height};
     renderingInfoKhr.layerCount = 1;
-    renderingInfoKhr.colorAttachmentCount = colorInfos.size();
+    renderingInfoKhr.colorAttachmentCount = (uint32_t)colorInfos.size();
     renderingInfoKhr.pColorAttachments = colorInfos.data();
     renderingInfoKhr.pDepthAttachment = &depthInfo;
 

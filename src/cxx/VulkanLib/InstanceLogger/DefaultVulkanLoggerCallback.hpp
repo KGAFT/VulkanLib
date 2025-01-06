@@ -22,13 +22,15 @@ public:
 
     void translatedMessage(const char *severity, const char *type, std::string& message) override{
 
+        /*
         auto t = std::time(nullptr);
         auto tm = *std::localtime(&t);
 
         std::ostringstream oss;
         oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
         auto outputTime = oss.str();
-        std::string outputMessage = outputTime + "VULKAN" + " [" + severity + "] " + type + " " + message;
+        */
+        std::string outputMessage = std::string("VULKAN") + " [" + severity + "] " + type + " " + message;
         std::string severityS = severity;
         if (!severityS.compare("ERROR"))
         {
