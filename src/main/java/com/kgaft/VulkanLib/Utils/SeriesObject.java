@@ -96,6 +96,7 @@ public class SeriesObject<T> extends DestroyableObject {
 
     }
 
+    
     @Override
     public void destroy() {
         existingObjectInstances.forEach((element, val)->{
@@ -107,4 +108,6 @@ public class SeriesObject<T> extends DestroyableObject {
         });
         destroyed = true;
     }
+
+
 }

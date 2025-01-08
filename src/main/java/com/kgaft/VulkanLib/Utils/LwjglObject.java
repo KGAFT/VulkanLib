@@ -85,10 +85,11 @@ public class LwjglObject<T> {
         return baseObject;
     }
 
+
+
     @Override
     protected synchronized void finalize() throws Throwable {
         freeMethod.invoke(baseObject);
         super.finalize();
     }
-
 }

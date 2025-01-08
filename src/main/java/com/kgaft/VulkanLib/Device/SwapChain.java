@@ -22,11 +22,12 @@ import static org.lwjgl.vulkan.KHRSurface.*;
 import static org.lwjgl.vulkan.KHRSwapchain.*;
 
 class SwapChainSupportDetails {
-    public LwjglObject<VkSurfaceCapabilitiesKHR> capabilities = new LwjglObject<>(VkSurfaceCapabilitiesKHR.class);
+    public LwjglObject<VkSurfaceCapabilitiesKHR> capabilities;
     public LwjglObject<VkSurfaceFormatKHR.Buffer> formats;
     public int[] presentModes;
 
     SwapChainSupportDetails() throws IllegalClassFormatException {
+        capabilities = new LwjglObject<>(VkSurfaceCapabilitiesKHR.class);
     }
 }
 
@@ -34,6 +35,7 @@ public class SwapChain extends DestroyableObject {
     private static LwjglObject<VkSurfaceFormatKHR.Buffer> formatsBuffer;
     private static VkSurfaceFormatKHR format;
     private static SeriesObject<VkSwapchainCreateInfoKHR> createInfos;
+
     static {
         try {
             createInfos = new SeriesObject<>(VkSwapchainCreateInfoKHR.class);
@@ -98,7 +100,6 @@ public class SwapChain extends DestroyableObject {
     }
 
 
-
     private void createSwapChain(int width, int height, boolean enableFrameLock) throws IllegalClassFormatException, VkErrorException {
         SwapChainSupportDetails support = new SwapChainSupportDetails();
 
@@ -148,7 +149,7 @@ public class SwapChain extends DestroyableObject {
         vkGetSwapchainImagesKHR(device.getDevice(), swapchainKhr, swapImagesC, null);
         baseImages = new long[swapImagesC[0]];
         vkGetSwapchainImagesKHR(device.getDevice(), swapchainKhr, swapImagesC, baseImages);
-        
+
         Arrays.stream(baseImages).forEach(element -> {
             try {
                 Image img = new Image(device, element);
@@ -234,29 +235,25 @@ public class SwapChain extends DestroyableObject {
 
     private LwjglObject<VkExtent2D> chooseSwapchainExtent(int width, int height,
                                                           LwjglObject<VkSurfaceCapabilitiesKHR> capabilities) throws IllegalClassFormatException {
+        LwjglObject<VkExtent2D> res = new LwjglObject<>(VkExtent2D.class);
+        res.get().width(width);
+        res.get().height(height);
+        res.get().width(
+                Math.min(capabilities.get().maxImageExtent().width(),
+                        Math.max(capabilities.get().minImageExtent().width(), res.get().width())));
 
-        if (capabilities.get().currentExtent().width() != Integer.MAX_VALUE) {
-            return new LwjglObject<>(capabilities.get().currentExtent(), VkExtent2D.class);
-        } else {
-            LwjglObject<VkExtent2D> res = new LwjglObject<>(VkExtent2D.class);
-            res.get().width(width);
-            res.get().height(height);
-            extent.get().width(
-                    Math.min(capabilities.get().maxImageExtent().width(),
-                            Math.max(capabilities.get().minImageExtent().width(), extent.get().width())));
+        res.get().height(
+                Math.min(capabilities.get().maxImageExtent().height(),
+                        Math.max(capabilities.get().minImageExtent().height(), res.get().height())));
 
-            extent.get().height(
-                    Math.min(capabilities.get().maxImageExtent().height(),
-                            Math.max(capabilities.get().minImageExtent().height(), extent.get().height())));
-
-            return extent;
-        }
+        return res;
     }
 
-    private void cleanUpImages(){
+    private void cleanUpImages() {
         swapchainImageViews.clear();
         swapchainImages.clear();
     }
+
     @Override
     public void destroy() {
         destroyed = true;

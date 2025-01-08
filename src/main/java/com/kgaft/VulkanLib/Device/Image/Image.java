@@ -84,9 +84,7 @@ public class Image extends DestroyableObject {
     public void transitionImageLayout(LogicalDevice device, int oldLayout, int newLayout,
                                       int aspectFlags) {
         VkCommandBuffer commandBuffer = device.getQueueByType(VK_QUEUE_GRAPHICS_BIT).beginCommandBuffer();
-
         transitionImageLayout(commandBuffer, oldLayout, newLayout, aspectFlags);
-
         device.getQueueByType(VK_QUEUE_GRAPHICS_BIT).endSingleTimeCommands(commandBuffer);
     }
 

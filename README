@@ -1,0 +1,18 @@
+This project will not work under the default G1 jvm garbage collector.
+You need to use any another gc, that presented in jvm. Here is VM options, that starts different gc:
+
+-XX:+UseZGC !Best choice
+-XX:+UseParallelGC
+-XX:+UseSerialGC !!!VERY SLOW!!!
+-XX:+UseG1GC !!!BORKED!!!
+
+If any gc from above list(despite G1GC) will not work, try to pass:
+-XX:+UnlockExperimentalVMOptions.
+
+
+
+P.S:
+The error was somehow relate to how G1 garbage collector works, thanks graalvm for verbose core dump.
+The string intern method was called somewhere in libjvm, when string or its allocated memory were already collected
+by G1. There is no such on different from G1 garbage collectors presented in jvm.
+Java branch again alive and there is a lot of work to brought changes and the last content from origin.
