@@ -16,7 +16,7 @@ import static org.lwjgl.vulkan.VK13.vkCreateInstance;
 
 public class Instance extends DestroyableObject {
     private VkInstance instance;
-    private InstanceLogger logger;
+    private InstanceLogger logger = null;
     private List<String> enabledLayers = new ArrayList<>();
     public Instance(InstanceBuilder builder) throws VkErrorException {
         PointerBuffer pb = PointerBuffer.allocateDirect(1);
@@ -52,6 +52,9 @@ public class Instance extends DestroyableObject {
     @Override
     public void destroy() {
         this.destroyed = true;
+        if(logger!=null){
+            logger.destroy();
+        }
         vkDestroyInstance(instance, null);
     }
 }

@@ -44,6 +44,8 @@ public class LogicalDevice extends DestroyableObject {
             newFeatures.get().storageBuffer8BitAccess(true);
             newFeatures.get().shaderInt8(true);
 
+            features.get().fragmentStoresAndAtomics(true);
+
             dynamicRenderingFeatures.get().pNext(newFeatures.get().address());
             LwjglObject<VkPhysicalDeviceRayTracingPipelineFeaturesKHR> rayTracingPipelineFeaturesKhr = new LwjglObject<>(VkPhysicalDeviceRayTracingPipelineFeaturesKHR.class);
             rayTracingPipelineFeaturesKhr.get().rayTracingPipeline(true);

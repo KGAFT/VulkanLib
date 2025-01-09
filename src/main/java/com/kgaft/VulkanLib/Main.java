@@ -49,15 +49,15 @@ public class Main {
         Window.prepareWindow(1280, 720, "Vulan lib development", true);
         Window window = Window.getWindow();
         InstanceBuilder instanceBuilder = new InstanceBuilder();
-        instanceBuilder.presetForDebug();
+      //  instanceBuilder.presetForDebug();
         instanceBuilder.setApplicationName("VulkanLib testing app");
         instanceBuilder.setEngineName("VulkanLib testing engine");
         instanceBuilder.setApplicationVersion(1,0,0);
         instanceBuilder.setEngineVersion(1,0,0);
         instanceBuilder.presetForPresent();
 
-        instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanLoggerCallback());
-        instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanFileLoggerCallback());
+     //   instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanLoggerCallback());
+       // instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanFileLoggerCallback());
         Instance instance = new Instance(instanceBuilder);
         DeviceBuilder builder = new DeviceBuilder();
         builder.requestGraphicSupport();
@@ -100,10 +100,10 @@ public class Main {
 
 
         SyncManager syncManager = new SyncManager(device, swapChain, device.getPresentQueue(), swapChain.getSwapchainImages().size());
-
-
-        window.addResizeCallBack(renderPipeline::resize);
+        syncManager.addResizeCallback(renderPipeline::resize);
+        window.addResizeCallBack(syncManager);
         AtomicInteger cmdCount = new AtomicInteger();
+
         while(window.isWindowActive()){
             VkCommandBuffer cmd = syncManager.beginRender(cmdCount);
 
@@ -115,6 +115,9 @@ public class Main {
             syncManager.endRender();
             window.postEvents();
         }
+        renderPipeline.
+
+
 
 
     }

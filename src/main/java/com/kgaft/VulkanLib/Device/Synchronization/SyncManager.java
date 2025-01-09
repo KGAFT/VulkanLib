@@ -6,6 +6,7 @@ import com.kgaft.VulkanLib.Device.SwapChain;
 import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
+import com.kgaft.VulkanLib.Window.WindowResizeCallBack;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.vulkan.VkCommandBuffer;
 import org.lwjgl.vulkan.VkCommandBufferAllocateInfo;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import static org.lwjgl.vulkan.VK13.*;
 
-public class SyncManager extends DestroyableObject {
+public class SyncManager extends DestroyableObject implements WindowResizeCallBack{
 
 
     private List<VkCommandBuffer> commandBuffers = new ArrayList<>();
@@ -33,6 +34,7 @@ public class SyncManager extends DestroyableObject {
     private int width;
     private int height;
     private IntBuffer curCmd = IntBuffer.allocate(1);
+    private List<WindowResizeCallBack> resizeCallBacks = new ArrayList<>();
     public SyncManager(LogicalDevice device, SwapChain swapChain, LogicalQueue queue, int maxFramesInFlight) throws IllegalClassFormatException, VkErrorException {
         this.device = device;
         this.swapChain = swapChain;
@@ -46,6 +48,15 @@ public class SyncManager extends DestroyableObject {
                 setStop(true);
                 vkDeviceWaitIdle(device.getDevice());
                 swapChain.recreate(width, height);
+                resizeCallBacks.forEach(element -> {
+                    try {
+                        element.resized(width, height);
+                    } catch (IllegalClassFormatException e) {
+                        e.printStackTrace();
+                    } catch (VkErrorException e) {
+                        e.printStackTrace();
+                    }
+                });
                 resized = false;
                 setStop(false);
             }
@@ -56,6 +67,13 @@ public class SyncManager extends DestroyableObject {
             return commandBuffers.get(currentCmd);
         }
         return null;
+    }
+
+    public void addResizeCallback(WindowResizeCallBack resizeCallBack){
+        resizeCallBacks.add(resizeCallBack);
+    }
+    public void removeResizeCallback(WindowResizeCallBack resizeCallBack){
+        resizeCallBacks.remove(resizeCallBack);
     }
 
     public void endRender() throws VkErrorException {
@@ -70,7 +88,7 @@ public class SyncManager extends DestroyableObject {
         }
 
     }
-    public void resize(int width, int height){
+    public void resized(int width, int height) {
         this.width = width;
         this.height = height;
         resized = true;

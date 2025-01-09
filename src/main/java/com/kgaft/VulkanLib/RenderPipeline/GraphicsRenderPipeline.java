@@ -17,6 +17,10 @@ import java.util.List;
 import static org.lwjgl.vulkan.KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 import static org.lwjgl.vulkan.VK13.*;
 import static org.lwjgl.vulkan.KHRDynamicRendering.*;
+
+/**
+ * @TODO Need to make ready
+ */
 public class GraphicsRenderPipeline {
 
     private static RenderImagePool imagesPool = null;
@@ -130,6 +134,10 @@ public class GraphicsRenderPipeline {
         }
         vkCmdBeginRendering(cmd, renderingInfoKhr.get());
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.getGraphicsPipeline());
+    }
+
+    public static RenderImagePool getImagesPool() {
+        return imagesPool;
     }
 
     public void endRender(VkCommandBuffer cmd, int currentImage) {

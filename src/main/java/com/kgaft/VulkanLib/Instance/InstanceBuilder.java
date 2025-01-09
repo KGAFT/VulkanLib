@@ -11,6 +11,7 @@ import org.lwjgl.vulkan.VkInstanceCreateInfo;
 
 import java.lang.instrument.IllegalClassFormatException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,7 +21,7 @@ import static org.lwjgl.vulkan.VK13.*;
 public class InstanceBuilder extends DestroyableObject {
     VkApplicationInfo applicationInfo = VkApplicationInfo.calloc();
     VkInstanceCreateInfo createInfo = VkInstanceCreateInfo.calloc();
-    private ArrayList<String> extensionNames = new ArrayList<>();
+    private ArrayList<String> extensionNames = new ArrayList<>(Arrays.asList("VK_KHR_get_physical_device_properties2"));
     protected ArrayList<String> layersNames = new ArrayList<>();
     private PointerBuffer layersNamePB = null;
     private PointerBuffer extensionsNamesPB = null;
@@ -79,7 +80,6 @@ public class InstanceBuilder extends DestroyableObject {
     public void addExtensions(Collection<String> extensions) {
         extensionNames.addAll(extensions);
     }
-    //Call for glfw init firstly
     public void presetForPresent(){
         extensionNames.add("VK_EXT_swapchain_colorspace");
         presentEnabled = true;
