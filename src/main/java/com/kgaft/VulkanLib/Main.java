@@ -26,10 +26,7 @@ import com.kgaft.VulkanLib.Utils.VkErrorException;
 import com.kgaft.VulkanLib.Window.Window;
 
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.vulkan.KHRRayTracingPipeline;
-import org.lwjgl.vulkan.VkCommandBuffer;
-import org.lwjgl.vulkan.VkExtent2D;
-import org.lwjgl.vulkan.VkGraphicsPipelineCreateInfo;
+import org.lwjgl.vulkan.*;
 
 import java.io.IOException;
 import java.lang.instrument.IllegalClassFormatException;
@@ -49,15 +46,15 @@ public class Main {
         Window.prepareWindow(1280, 720, "Vulan lib development", true);
         Window window = Window.getWindow();
         InstanceBuilder instanceBuilder = new InstanceBuilder();
-      //  instanceBuilder.presetForDebug();
+        instanceBuilder.presetForDebug();
         instanceBuilder.setApplicationName("VulkanLib testing app");
         instanceBuilder.setEngineName("VulkanLib testing engine");
         instanceBuilder.setApplicationVersion(1,0,0);
         instanceBuilder.setEngineVersion(1,0,0);
         instanceBuilder.presetForPresent();
 
-     //   instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanLoggerCallback());
-       // instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanFileLoggerCallback());
+        instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanLoggerCallback());
+        instanceBuilder.addStartingVulkanLoggerCallback(new DefaultVulkanFileLoggerCallback());
         Instance instance = new Instance(instanceBuilder);
         DeviceBuilder builder = new DeviceBuilder();
         builder.requestGraphicSupport();
@@ -115,9 +112,17 @@ public class Main {
             syncManager.endRender();
             window.postEvents();
         }
-        renderPipeline.
 
 
+        syncManager.setStop(true);
+        renderPipeline.destroy();
+        GraphicsRenderPipeline.releaseRenderImagePool();
+        syncManager.destroy();
+        shader.destroy();
+        swapChain.destroy();
+        device.destroy();
+        KHRSurface.vkDestroySurfaceKHR(instance.getInstance(), window.getSurface(instance.getInstance()), null);
+        instance.destroy();
 
 
     }

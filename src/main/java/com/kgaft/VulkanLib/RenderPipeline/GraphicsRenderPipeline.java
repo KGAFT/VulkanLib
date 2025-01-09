@@ -6,6 +6,7 @@ import com.kgaft.VulkanLib.Device.SwapChain;
 import com.kgaft.VulkanLib.Pipelines.GraphicsPipeline.Configuration.GraphicsPipelineBuilder;
 import com.kgaft.VulkanLib.Pipelines.GraphicsPipeline.GraphicsPipeline;
 import com.kgaft.VulkanLib.Shader.Shader;
+import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
 import org.lwjgl.vulkan.*;
@@ -21,13 +22,19 @@ import static org.lwjgl.vulkan.KHRDynamicRendering.*;
 /**
  * @TODO Need to make ready
  */
-public class GraphicsRenderPipeline {
+public class GraphicsRenderPipeline extends DestroyableObject {
 
     private static RenderImagePool imagesPool = null;
 
     private static void checkImagesPool(LogicalDevice device){
         if(imagesPool==null){
             imagesPool = new RenderImagePool(device);
+        }
+    }
+
+    public static void releaseRenderImagePool(){
+        if(imagesPool!=null){
+            imagesPool.destroy();
         }
     }
 
@@ -243,5 +250,12 @@ public class GraphicsRenderPipeline {
 
         d = true;
     }
-
+    public void destroy(){
+        destroyed = true;
+        if(!forSwapChain){
+            baseRenderImages.forEach(imagesPool::releaseColorImage);
+        }
+        baseDepthImages.forEach(imagesPool::releaseDepthImage);
+        graphicsPipeline.destroy();
+    }
 }

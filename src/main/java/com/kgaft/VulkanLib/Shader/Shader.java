@@ -3,6 +3,7 @@ package com.kgaft.VulkanLib.Shader;
 import com.kgaft.VulkanLib.Device.LogicalDevice.LogicalDevice;
 import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
+import com.kgaft.VulkanLib.Utils.VkErrorException;
 import org.lwjgl.vulkan.VK13;
 import org.lwjgl.vulkan.VkPipelineShaderStageCreateInfo;
 
@@ -24,7 +25,7 @@ public class Shader extends DestroyableObject {
     public void destroy() {
         destroyed = true;
         stages.get().rewind();
-        stages.get().forEach(element->{
+        stages.get().forEach(element -> {
             VK13.vkDestroyShaderModule(device.getDevice(), element.module(), null);
         });
     }
