@@ -32,7 +32,7 @@ public class SyncManager extends DestroyableObject {
     private boolean resized = false;
     private int width;
     private int height;
-
+    private IntBuffer curCmd = IntBuffer.allocate(1);
     public SyncManager(LogicalDevice device, SwapChain swapChain, LogicalQueue queue, int maxFramesInFlight) throws IllegalClassFormatException, VkErrorException {
         this.device = device;
         this.swapChain = swapChain;
@@ -50,6 +50,7 @@ public class SyncManager extends DestroyableObject {
                 setStop(false);
             }
             currentCmd = sync.prepareForNextImage(swapChain);
+            beginInfo.sType$Default();
             vkBeginCommandBuffer(commandBuffers.get(currentCmd), beginInfo);
             outCurrentCmd.set(currentCmd);
             return commandBuffers.get(currentCmd);
@@ -60,11 +61,12 @@ public class SyncManager extends DestroyableObject {
     public void endRender() throws VkErrorException {
         if(!stop){
             vkEndCommandBuffer(commandBuffers.get(currentCmd));
-            IntBuffer curCmd = IntBuffer.allocate(1);
+            curCmd.clear();
             curCmd.put(currentCmd);
             curCmd.rewind();
             sync.submitCommandBuffer(commandBuffers.get(currentCmd), swapChain, curCmd);
             this.currentCmd = curCmd.get();
+
         }
 
     }

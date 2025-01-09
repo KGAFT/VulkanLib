@@ -8,24 +8,27 @@ import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.SeriesObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
 import org.lwjgl.PointerBuffer;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 
 import java.lang.instrument.IllegalClassFormatException;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.lwjgl.vulkan.VK13.*;
 import static org.lwjgl.vulkan.KHRSwapchain.*;
+
 public class ThreeFrameSynchronization extends DestroyableObject {
 
-    
+
     private int maxFramesInFlight;
-    private List<Long> imageAvailableSemaphores;
-    private List<Long> renderFinishedSemaphores;
-    private List<Long> inFlightFences;
-    private List<Long> imagesInFlight;
+    private List<Long> imageAvailableSemaphores = new ArrayList<>();
+    private List<Long> renderFinishedSemaphores = new ArrayList<>();
+    private List<Long> inFlightFences = new ArrayList<>();
+    private List<Long> imagesInFlight = new ArrayList<>();
     private LogicalDevice device;
     private LogicalQueue presentQueue;
     private int currentFrame = 0;
@@ -36,77 +39,83 @@ public class ThreeFrameSynchronization extends DestroyableObject {
     private LongBuffer swapchainBuff = LongBuffer.allocate(1);
     private IntBuffer waitStages = IntBuffer.allocate(1);
     private PointerBuffer cmdBuff = PointerBuffer.allocateDirect(1);
+    private MemoryStack presentStack;
+
     public ThreeFrameSynchronization(LogicalDevice device, LogicalQueue graphicsQueue,
                                      int maxFramesInFlight) throws IllegalClassFormatException {
         this.device = device;
         this.presentQueue = graphicsQueue;
         this.maxFramesInFlight = maxFramesInFlight;
+        this.presentStack = MemoryStack.create();
         createSyncObjects();
     }
 
     public int prepareForNextImage(SwapChain swapChain) throws VkErrorException {
         int res = 0;
         res = vkWaitForFences(device.getDevice(), inFlightFences.get(currentFrame), true, Long.MAX_VALUE);
-        VkErrorException.checkVkStatus("Failed to wait for fences", res);
+        VkErrorException.printVkError("Failed to wait for fences", res);
         int[] buff = new int[1];
         res = vkAcquireNextImageKHR(device.getDevice(), swapChain.getSwapchainKhr(), Long.MAX_VALUE, imageAvailableSemaphores.get(currentFrame), 0, buff);
-        VkErrorException.checkVkStatus("Failed to acquire next image", res);
+        VkErrorException.printVkError("Failed to acquire next image", res);
         return buff[0];
     }
 
     public void submitCommandBuffer(VkCommandBuffer cmd, SwapChain swapChain, IntBuffer currentImage) throws VkErrorException {
         int res;
-        if (imagesInFlight.get(currentImage.get(0)) != VK_NULL_HANDLE) {
+        int stackPointer = presentStack.getPointer();
+        if (imagesInFlight.get(currentImage.get(0)) != 0) {
             res = vkWaitForFences(device.getDevice(), imagesInFlight.get(currentImage.get(0)), true, Long.MAX_VALUE);
 
-            VkErrorException.checkVkStatus("Failed to wait submit fence", res);
+            VkErrorException.printVkError("Failed to wait submit fence", res);
         }
         imagesInFlight.set(currentImage.get(0), inFlightFences.get(currentFrame));
 
         VkSubmitInfo submitInfo = submitInfos.acquireObject();
-        
-        waitStages.clear();
-        waitStages.put(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        waitStages.rewind();
-        waitSemaphore.clear();
-        waitSemaphore.put(imageAvailableSemaphores.get(currentFrame));
-        waitSemaphore.rewind();
-        cmdBuff.clear();
-        cmdBuff.put(cmd.address());
-        cmdBuff.rewind();
-        signalSemaphore.clear();
-        signalSemaphore.put(renderFinishedSemaphores.get(currentFrame));
-        signalSemaphore.rewind();
+
+        IntBuffer waitStages = presentStack.ints(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        LongBuffer waitSemaphore = presentStack.longs(imageAvailableSemaphores.get(currentFrame));
+
+        PointerBuffer cmdBuff = presentStack.pointers(cmd);
+
+        LongBuffer signalSemaphore = presentStack.longs(renderFinishedSemaphores.get(currentFrame));
+        submitInfo.sType$Default();
         submitInfo.pWaitSemaphores(waitSemaphore);
+        submitInfo.waitSemaphoreCount(1);
         submitInfo.pWaitDstStageMask(waitStages);
 
         submitInfo.pCommandBuffers(cmdBuff);
         submitInfo.pSignalSemaphores(signalSemaphore);
-        
-        res = vkResetFences(device.getDevice(), inFlightFences.get(currentFrame));
-        VkErrorException.checkVkStatus("Failed to reset fence", res);
-        res = vkQueueSubmit(presentQueue.getQueue(), submitInfo, inFlightFences.get(currentFrame));
-        VkErrorException.checkVkStatus("Failed to submit queue ", res);
-        VkPresentInfoKHR presentInfo = presentInfos.acquireObject();
-        swapchainBuff.clear();
-        swapchainBuff.put(swapChain.getSwapchainKhr());
-        swapchainBuff.rewind();
-        signalSemaphore.rewind();
-        presentInfo.pWaitSemaphores(signalSemaphore);
-        presentInfo.pSwapchains(swapchainBuff);
 
-        presentInfo.pImageIndices(currentImage);
+        res = vkResetFences(device.getDevice(), inFlightFences.get(currentFrame));
+        VkErrorException.printVkError("Failed to reset fence", res);
+        res = vkQueueSubmit(presentQueue.getQueue(), submitInfo, inFlightFences.get(currentFrame));
+        VkErrorException.printVkError("Failed to submit queue ", res);
+        VkPresentInfoKHR presentInfo = presentInfos.acquireObject();
+
+        LongBuffer swapchainBuff = presentStack.longs(swapChain.getSwapchainKhr());
+
+        signalSemaphore.rewind();
+        presentInfo.sType$Default();
+        presentInfo.pWaitSemaphores(signalSemaphore);
+        presentInfo.swapchainCount(1);
+        presentInfo.pSwapchains(swapchainBuff);
+        IntBuffer curImg = presentStack.ints(currentImage.get());
+        presentInfo.pImageIndices(curImg);
         res = vkQueuePresentKHR(presentQueue.getQueue(), presentInfo);
-        VkErrorException.checkVkStatus("Failed to present swapchain ", res);
+        VkErrorException.printVkError("Failed to present swapchain ", res);
+
+        currentImage.clear();
+        currentImage.put(curImg.get());
+        currentImage.rewind();
         currentFrame = (currentFrame + 1) % maxFramesInFlight;
         presentInfos.releaseObjectInstance(presentInfo);
         submitInfos.releaseObjectInstance(submitInfo);
+        presentStack.setPointer(stackPointer);
     }
 
 
     private void createSyncObjects() throws IllegalClassFormatException {
         LwjglObject<VkSemaphoreCreateInfo> semaphoreInfo = new LwjglObject<>(VkSemaphoreCreateInfo.class);
-
         LwjglObject<VkFenceCreateInfo> fenceInfo = new LwjglObject<>(VkFenceCreateInfo.class);
         fenceInfo.get().flags(VK_FENCE_CREATE_SIGNALED_BIT);
         long[] buff = new long[1];
@@ -124,19 +133,18 @@ public class ThreeFrameSynchronization extends DestroyableObject {
     @Override
     public void destroy() {
         vkDeviceWaitIdle(device.getDevice());
-        imageAvailableSemaphores.forEach(element->{
+        imageAvailableSemaphores.forEach(element -> {
             vkDestroySemaphore(device.getDevice(), element, null);
         });
-        renderFinishedSemaphores.forEach(element->{
+        renderFinishedSemaphores.forEach(element -> {
             vkDestroySemaphore(device.getDevice(), element, null);
         });
-        inFlightFences.forEach(element->{
+        inFlightFences.forEach(element -> {
             vkDestroyFence(device.getDevice(), element, null);
         });
         imageAvailableSemaphores.clear();
         renderFinishedSemaphores.clear();
         inFlightFences.clear();
-        cmdBuff.free();
         destroyed = true;
     }
 }

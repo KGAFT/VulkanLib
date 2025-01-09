@@ -92,4 +92,5 @@ public class LwjglObject<T> {
         freeMethod.invoke(baseObject);
         super.finalize();
     }
+
 }

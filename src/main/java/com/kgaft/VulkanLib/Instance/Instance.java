@@ -34,7 +34,7 @@ public class Instance extends DestroyableObject {
         this.enabledLayers = builder.layersNames;
         if(builder.debugEnabled)
             logger.init(instance);
-        pb.free();
+
     }
 
     public VkInstance getInstance() {

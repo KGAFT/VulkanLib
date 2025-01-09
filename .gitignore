@@ -33,6 +33,7 @@ target/
 *.ipr
 out/
 META-INF/
+log.txt
 
 ### Eclipse ###
 .apt_generated

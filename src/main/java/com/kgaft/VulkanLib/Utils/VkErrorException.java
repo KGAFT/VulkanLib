@@ -11,4 +11,10 @@ public class VkErrorException extends Throwable{
             throw new VkErrorException(errorTextIfNeeded, status);
         }
     }
+
+    public static void printVkError(String errorTextIfNeeded, int status) throws VkErrorException {
+        if(status!=VK_SUCCESS){
+            System.err.println(errorTextIfNeeded+VerboseUtil.vkErrorToString(status));
+        }
+    }
 }

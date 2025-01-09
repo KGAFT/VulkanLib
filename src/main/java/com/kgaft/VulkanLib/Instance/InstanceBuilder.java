@@ -111,7 +111,6 @@ public class InstanceBuilder extends DestroyableObject {
                 layersNamePB = PointerBuffer.allocateDirect(layersNames.size());
             }
             if (layersNamePB.capacity() != layersNames.size()) {
-                layersNamePB.free();
                 layersNamePB = PointerBuffer.allocateDirect(layersNames.size());
             }
             if (layersNamePB.hasRemaining()) {
@@ -127,7 +126,6 @@ public class InstanceBuilder extends DestroyableObject {
                 extensionsNamesPB = PointerBuffer.allocateDirect(extensionCount);
             }
             if (extensionsNamesPB.capacity() != extensionCount) {
-                extensionsNamesPB.free();
                 extensionsNamesPB = PointerBuffer.allocateDirect(extensionCount);
             }
             if (extensionsNamesPB.hasRemaining()) {

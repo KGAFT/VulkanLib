@@ -51,7 +51,6 @@ public class LogicalQueue extends DestroyableObject {
         vkAllocateCommandBuffers(device, allocInfo.get(), pb);
         beginInfo.get().flags(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
         VkCommandBuffer cmd = new VkCommandBuffer(pb.get(), device);
-        pb.free();
         vkBeginCommandBuffer(cmd, beginInfo.get());
         return cmd;
     }
@@ -65,7 +64,6 @@ public class LogicalQueue extends DestroyableObject {
         vkQueueSubmit(queue, submitInfo.get(), 0);
         vkQueueWaitIdle(queue);
         vkFreeCommandBuffers(device, commandPool, commandBuffer);
-        pb.free();
     }
 
     public VkQueue getQueue() {

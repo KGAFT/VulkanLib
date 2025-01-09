@@ -16,3 +16,8 @@ The error was somehow relate to how G1 garbage collector works, thanks graalvm f
 The string intern method was called somewhere in libjvm, when string or its allocated memory were already collected
 by G1. There is no such on different from G1 garbage collectors presented in jvm.
 Java branch again alive and there is a lot of work to brought changes and the last content from origin.
+
+
+UPDATE:
+THE double free errors was caused by executing free() method on PointerBuffer, despite that it was allocated directly.
+!!!NEVER!!! !!!NEVER!!! use free() method on PointerBuffer

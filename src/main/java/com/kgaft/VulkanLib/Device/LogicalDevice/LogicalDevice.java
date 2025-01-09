@@ -92,8 +92,7 @@ public class LogicalDevice extends DestroyableObject {
             }
             this.base = device;
             this.device = new VkDevice(pb.get(0), device.getBase(), createInfo);
-            extensionsBuffer.free();
-            layersBuf.free();
+
             for (QueueFamilyInfo element : suitabilityResults.queueFamilyInfos) {
                 vkGetDeviceQueue(this.device, element.index, 0, pb);
                 try {
