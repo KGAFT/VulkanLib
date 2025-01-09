@@ -1,5 +1,6 @@
 package com.kgaft.VulkanLib.Window;
 
+import com.kgaft.VulkanLib.Device.Synchronization.IResizeCallback;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
 import org.lwjgl.vulkan.VkInstance;
 
@@ -47,7 +48,7 @@ public class Window {
     }
     private long windowHandle;
     private boolean vulkan;
-    private List<WindowResizeCallBack> resizeCallBackList = new ArrayList<>();
+    private List<IResizeCallback> resizeCallBackList = new ArrayList<>();
     private int width;
     private int height;
     private int cursorMode = FIXED_HIDDEN_CURSOR_MODE;
@@ -98,7 +99,7 @@ public class Window {
         glfwPollEvents();
     }
 
-    public void addResizeCallBack(WindowResizeCallBack resizeCallBack) {
+    public void addResizeCallBack(IResizeCallback resizeCallBack) {
         resizeCallBackList.add(resizeCallBack);
     }
 

@@ -6,7 +6,6 @@ import com.kgaft.VulkanLib.Device.SwapChain;
 import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
-import com.kgaft.VulkanLib.Window.WindowResizeCallBack;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.vulkan.VkCommandBuffer;
 import org.lwjgl.vulkan.VkCommandBufferAllocateInfo;
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import static org.lwjgl.vulkan.VK13.*;
 
-public class SyncManager extends DestroyableObject implements WindowResizeCallBack{
+public class SyncManager extends DestroyableObject implements IResizeCallback {
 
 
     private List<VkCommandBuffer> commandBuffers = new ArrayList<>();
@@ -34,7 +33,7 @@ public class SyncManager extends DestroyableObject implements WindowResizeCallBa
     private int width;
     private int height;
     private IntBuffer curCmd = IntBuffer.allocate(1);
-    private List<WindowResizeCallBack> resizeCallBacks = new ArrayList<>();
+    private List<IResizeCallback> resizeCallBacks = new ArrayList<>();
     public SyncManager(LogicalDevice device, SwapChain swapChain, LogicalQueue queue, int maxFramesInFlight) throws IllegalClassFormatException, VkErrorException {
         this.device = device;
         this.swapChain = swapChain;
@@ -69,10 +68,10 @@ public class SyncManager extends DestroyableObject implements WindowResizeCallBa
         return null;
     }
 
-    public void addResizeCallback(WindowResizeCallBack resizeCallBack){
+    public void addResizeCallback(IResizeCallback resizeCallBack){
         resizeCallBacks.add(resizeCallBack);
     }
-    public void removeResizeCallback(WindowResizeCallBack resizeCallBack){
+    public void removeResizeCallback(IResizeCallback resizeCallBack){
         resizeCallBacks.remove(resizeCallBack);
     }
 
