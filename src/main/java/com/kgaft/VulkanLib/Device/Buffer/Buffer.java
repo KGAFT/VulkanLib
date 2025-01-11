@@ -13,10 +13,10 @@ import java.lang.instrument.IllegalClassFormatException;
 import static org.lwjgl.vulkan.VK13.*;
 
 public class Buffer extends DestroyableObject {
-    private static SeriesObject<VkMemoryRequirements> requirements;
-    private static SeriesObject<VkMemoryAllocateInfo> allocInfos;
-    private static SeriesObject<VkMemoryAllocateFlagsInfo> flagsInfos;
-    private static SeriesObject<VkBufferCreateInfo> bufferCreateInfos;
+    protected static SeriesObject<VkMemoryRequirements> requirements;
+    protected static SeriesObject<VkMemoryAllocateInfo> allocInfos;
+    protected static SeriesObject<VkMemoryAllocateFlagsInfo> flagsInfos;
+    protected static SeriesObject<VkBufferCreateInfo> bufferCreateInfos;
 
     static {
         try {
@@ -36,7 +36,7 @@ public class Buffer extends DestroyableObject {
     private long bufferSize;
     private LwjglObject<VkBufferDeviceAddressInfo> addressInfo = new LwjglObject<>(VkBufferDeviceAddressInfo.class);
     private LwjglObject<VkBufferCopy.Buffer> copyRegion = new LwjglObject<>(VkBufferCopy.class, VkBufferCopy.Buffer.class, 1);
-    public Buffer(LogicalDevice device, LwjglObject<VkBufferCreateInfo> createInfo,
+    public Buffer(LogicalDevice device, VkBufferCreateInfo createInfo,
                    int memoryFlags) throws IllegalClassFormatException, VkErrorException {
         this.device = device;
         initialize(createInfo, memoryFlags);
@@ -66,6 +66,10 @@ public class Buffer extends DestroyableObject {
         initialize(createInfo, memoryFlags);
 
         bufferCreateInfos.releaseObjectInstance(createInfo);
+    }
+
+    public long getBufferSize() {
+        return bufferSize;
     }
 
     public void initialize(LwjglObject<VkBufferCreateInfo> createInfo,

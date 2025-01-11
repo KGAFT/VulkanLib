@@ -94,7 +94,7 @@ public class LogicalDevice extends DestroyableObject {
             }
             this.base = device;
             this.device = new VkDevice(pb.get(0), device.getBase(), createInfo);
-
+            this.rtEnabled = builder.isRayTracingSupport();
             for (QueueFamilyInfo element : suitabilityResults.queueFamilyInfos) {
                 vkGetDeviceQueue(this.device, element.index, 0, pb);
                 try {
@@ -114,7 +114,7 @@ public class LogicalDevice extends DestroyableObject {
     private LwjglObject<VkDeviceQueueCreateInfo.Buffer> queueCreateInfos;
     private FloatBuffer queuePriority;
     private List<LogicalQueue> queues = new ArrayList<>();
-
+    private boolean rtEnabled = false;
 
     public LogicalQueue getQueueByType(int queueType){
         Optional<LogicalQueue> queue = queue = queues.stream().filter(element-> (element.getQueueType() &queueType)>0).findFirst();
@@ -130,6 +130,10 @@ public class LogicalDevice extends DestroyableObject {
             return queue.get();
         }
         throw new RuntimeException("Failed to find suitable queue");
+    }
+
+    public boolean isRtEnabled() {
+        return rtEnabled;
     }
 
     public int findDepthFormat(){
