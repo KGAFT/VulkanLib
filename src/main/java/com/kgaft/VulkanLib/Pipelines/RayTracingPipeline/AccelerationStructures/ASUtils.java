@@ -7,10 +7,7 @@ import com.kgaft.VulkanLib.Pipelines.RayTracingPipeline.AccelerationStructures.A
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.vulkan.VkAccelerationStructureBuildGeometryInfoKHR;
-import org.lwjgl.vulkan.VkAccelerationStructureCreateInfoKHR;
-import org.lwjgl.vulkan.VkCommandBuffer;
-import org.lwjgl.vulkan.VkMemoryBarrier;
+import org.lwjgl.vulkan.*;
 
 import java.lang.instrument.IllegalClassFormatException;
 import java.util.List;
@@ -62,6 +59,15 @@ public class ASUtils {
 
         });
     }
+
+    public static long getASAddress(LogicalDevice device, long accel) throws IllegalClassFormatException {
+        LwjglObject<VkAccelerationStructureDeviceAddressInfoKHR> info = new LwjglObject<>(VkAccelerationStructureDeviceAddressInfoKHR.class);
+        info.get().accelerationStructure(accel);
+        return vkGetAccelerationStructureDeviceAddressKHR(device.getDevice(), info.get());
+    }
+
+
+
     public static AccelKHR createAcceleration(LogicalDevice device, LwjglObject<VkAccelerationStructureCreateInfoKHR> accel) throws IllegalClassFormatException, VkErrorException {
         AccelKHR result = new AccelKHR();
         result.buffer = new Buffer(device, accel.get().size(),
