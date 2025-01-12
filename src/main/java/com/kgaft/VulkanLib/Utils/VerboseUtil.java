@@ -57,6 +57,15 @@ public class VerboseUtil {
                     }
                 }).findFirst();
             }
+            if(errorField.isEmpty()){
+                errorField = Arrays.stream(KHRAccelerationStructure.class.getFields()).filter(element -> {
+                    try {
+                        return element.getInt(null)==error;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }).findFirst();
+            }
 
             return errorField.map(Field::getName).orElse("cannot find exception");
         }

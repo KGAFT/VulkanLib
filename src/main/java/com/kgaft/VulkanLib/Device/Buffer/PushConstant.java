@@ -21,6 +21,10 @@ public class PushConstant {
         vkCmdPushConstants(cmd, pipelineLayout, bindPoint, 0, data);
     }
 
+    public ByteBuffer getData() {
+        return data;
+    }
+
     public void writeData(ByteBuffer bb){
         MemoryUtils.memcpy(data, bb, size);
         data = data.rewind();

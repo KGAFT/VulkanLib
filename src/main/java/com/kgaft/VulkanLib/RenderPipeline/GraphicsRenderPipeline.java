@@ -143,6 +143,10 @@ public class GraphicsRenderPipeline extends DestroyableObject {
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.getGraphicsPipeline());
     }
 
+    public GraphicsPipeline getGraphicsPipeline() {
+        return graphicsPipeline;
+    }
+
     public static RenderImagePool getImagesPool() {
         return imagesPool;
     }

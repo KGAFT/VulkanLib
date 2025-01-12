@@ -1,5 +1,11 @@
 package com.kgaft.VulkanLib;
 
+import com.kgaft.VulkanLib.Device.Buffer.PushConstant;
+import com.kgaft.VulkanLib.Device.Buffer.UniformBuffer;
+import com.kgaft.VulkanLib.Device.Descriptors.DescriptorBufferInfo;
+import com.kgaft.VulkanLib.Device.Descriptors.DescriptorImageInfo;
+import com.kgaft.VulkanLib.Device.Descriptors.DescriptorPool;
+import com.kgaft.VulkanLib.Device.Descriptors.DescriptorSet;
 import com.kgaft.VulkanLib.Device.DeviceBuilder;
 import com.kgaft.VulkanLib.Device.LogicalDevice.LogicalDevice;
 import com.kgaft.VulkanLib.Device.PhysicalDevice.DeviceSuitability;
@@ -11,9 +17,8 @@ import com.kgaft.VulkanLib.Instance.InstanceBuilder;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanFileLoggerCallback;
 import com.kgaft.VulkanLib.Instance.InstanceLogger.DefaultVulkanLoggerCallback;
 import com.kgaft.VulkanLib.Pipelines.GraphicsPipeline.Configuration.GraphicsPipelineBuilder;
-import com.kgaft.VulkanLib.Pipelines.GraphicsPipeline.GraphicsPipeline;
 import com.kgaft.VulkanLib.Pipelines.PipelineConfiguration.PipelineBuilder.PushConstantInfo;
-import com.kgaft.VulkanLib.Pipelines.PipelineConfiguration.PipelineBuilder.SamplerInfo;
+import com.kgaft.VulkanLib.Pipelines.PipelineConfiguration.PipelineBuilder.UniformBufferInfo;
 import com.kgaft.VulkanLib.Pipelines.PipelineConfiguration.PipelineBuilder.VertexInput;
 import com.kgaft.VulkanLib.RenderPipeline.GraphicsRenderPipeline;
 import com.kgaft.VulkanLib.Shader.Shader;
@@ -25,13 +30,12 @@ import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
 import com.kgaft.VulkanLib.Window.Window;
 
-import org.lwjgl.PointerBuffer;
+import org.joml.Vector3f;
 import org.lwjgl.vulkan.*;
 
 import java.io.IOException;
 import java.lang.instrument.IllegalClassFormatException;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,16 +88,16 @@ public class Main {
         createInfos.add(new ShaderCreateInfo("main.frag", ShaderFileType.SRC_FILE, VK_SHADER_STAGE_FRAGMENT_BIT, new ArrayList<>()));
         Shader shader = ShaderLoader.createShaderParallel(device, createInfos, 2);
         GraphicsPipelineBuilder gBuilder = new GraphicsPipelineBuilder();
-       // gBuilder.addVertexInput(new VertexInput(0, 3, Float.SIZE, VK_FORMAT_R32G32B32_SFLOAT));
-       // gBuilder.addVertexInput(new VertexInput(1, 2, Float.SIZE, VK_FORMAT_R32G32_SFLOAT));
-       // gBuilder.addSamplerInfo(new SamplerInfo(0, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
-        //gBuilder.addSamplerInfo(new SamplerInfo(1, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
-        //gBuilder.addSamplerInfo(new SamplerInfo(2, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
-       // gBuilder.addPushConstantInfo(new PushConstantInfo(VK_SHADER_STAGE_FRAGMENT_BIT, 4*Integer.SIZE));
+        gBuilder.addVertexInput(new VertexInput(0, 3, Float.SIZE, VK_FORMAT_R32G32B32_SFLOAT));
+        gBuilder.addVertexInput(new VertexInput(1, 2, Float.SIZE, VK_FORMAT_R32G32_SFLOAT));
+
+        gBuilder.addPushConstantInfo(new PushConstantInfo(VK_SHADER_STAGE_FRAGMENT_BIT, Float.BYTES*3+Integer.BYTES*1));
+        gBuilder.addUniformBuffer(new UniformBufferInfo(0, Float.BYTES*3, 1, VK_SHADER_STAGE_FRAGMENT_BIT));
         LwjglObject<VkExtent2D> renderArea = new LwjglObject<>(VkExtent2D.class);
         renderArea.get().width(window.getWidth());
         renderArea.get().height(window.getHeight());
         GraphicsRenderPipeline renderPipeline = new GraphicsRenderPipeline(device, swapChain, gBuilder, shader, renderArea, swapChain.getSwapchainImages().size());
+
 
 
         SyncManager syncManager = new SyncManager(device, swapChain, device.getPresentQueue(), swapChain.getSwapchainImages().size());
@@ -101,11 +105,30 @@ public class Main {
         window.addResizeCallBack(syncManager);
         AtomicInteger cmdCount = new AtomicInteger();
 
+        DescriptorPool pool = new DescriptorPool(device, false);
+        DescriptorSet set = pool.allocateDescriptorSet(swapChain.getSwapchainImages().size(), renderPipeline.getGraphicsPipeline().getConfigurer().getDescriptorSetLayout());
+
+        UniformBuffer ub = new UniformBuffer(device, Float.BYTES*3);
+        DescriptorBufferInfo unInfo = new DescriptorBufferInfo(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+        unInfo.getBase().get().get(0).buffer(ub.getBuffer());
+        unInfo.getBase().get().get(0).offset(0);
+        unInfo.getBase().get().get(0).range(Float.BYTES*3);
+        set.addBufferInfo(unInfo);
+        set.updateDescriptors();
+
+
+        PushConstant pcs = new PushConstant(Float.BYTES*3+Integer.BYTES*1, renderPipeline.getGraphicsPipeline().getConfigurer().getPipelineLayout());
+        Vector3f fColor = new Vector3f(1, 0, 0);
+        Vector3f sColor = new Vector3f(0, 0, 1);
+
+        fColor.get
+        pcs.getData().
+
         while(window.isWindowActive()){
             VkCommandBuffer cmd = syncManager.beginRender(cmdCount);
 
             renderPipeline.begin(cmd, cmdCount.get());
-
+            set.bindDescriptor(VK_PIPELINE_BIND_POINT_GRAPHICS, cmdCount.get(), cmd, renderPipeline.getGraphicsPipeline().getConfigurer().getPipelineLayout());
             vkCmdDraw(cmd, 3, 1, 0, 0);
 
             renderPipeline.endRender(cmd, cmdCount.get());
