@@ -121,9 +121,6 @@ public class Main {
         Vector3f fColor = new Vector3f(1, 0, 0);
         Vector3f sColor = new Vector3f(0, 0, 1);
 
-        fColor.get
-        pcs.getData().
-
         while(window.isWindowActive()){
             VkCommandBuffer cmd = syncManager.beginRender(cmdCount);
 
