@@ -28,7 +28,7 @@ Instance::Instance(InstanceBuilder &pBuilder) {
     );
     try {
         instance = vk::createInstance(createInfo, VkLibAlloc::acquireAllocCb().get());
-        dynamicLoader = vk::DispatchLoaderDynamic(instance, vkGetInstanceProcAddr);
+        dynamicLoader = vk::detail::DispatchLoaderDynamic(instance, vkGetInstanceProcAddr);
         if (pBuilder.debugEnabled) {
             logger = new InstanceLogger(instance, dynamicLoader, pBuilder.startLoggerCallbacks,
                                         pBuilder.saveDefaultVulkanLoggerCallback);
@@ -51,7 +51,7 @@ const std::vector<const char *> &Instance::getEnabledLayers() const {
     return enabledLayers;
 }
 
-vk::DispatchLoaderDynamic &Instance::getDynamicLoader() {
+vk::detail::DispatchLoaderDynamic &Instance::getDynamicLoader() {
     return dynamicLoader;
 }
 

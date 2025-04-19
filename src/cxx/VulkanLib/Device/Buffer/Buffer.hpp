@@ -44,7 +44,7 @@ public:
 
     void map(void **output, size_t offset, vk::MemoryMapFlags mapFlags);
 
-    vk::DeviceAddress getAddress(vk::DispatchLoaderDynamic &dispatchLoaderDynamic);
+    vk::DeviceAddress getAddress(vk::detail::DispatchLoaderDynamic &dispatchLoaderDynamic);
 
     void unMap();
 

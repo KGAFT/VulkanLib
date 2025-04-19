@@ -3,7 +3,7 @@
 //
 #ifndef VULKANLIB_INSTANCEBUILDER_HPP
 #define VULKANLIB_INSTANCEBUILDER_HPP
-
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.h>
 #include <vector>
 

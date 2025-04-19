@@ -31,7 +31,7 @@ public:
 
     size_t getVerticesAmount() const;
 
-    vk::DeviceAddress getBufferAddress(vk::DispatchLoaderDynamic &loaderDynamic);
+    vk::DeviceAddress getBufferAddress(vk::detail::DispatchLoaderDynamic &loaderDynamic);
 
     void destroy() override;
 };

@@ -4,7 +4,7 @@
 
 #ifndef VULKANRENDERENGINE_ASUTILS_HPP
 #define VULKANRENDERENGINE_ASUTILS_HPP
-
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include "ASTypes.hpp"
 #include "VulkanLib/Device/Buffer/IndexBuffer.hpp"
 #include "VulkanLib/Device/Buffer/VertexBuffer.hpp"
@@ -70,7 +70,7 @@ namespace vkLibRt {
         static vk::DeviceAddress
         getASAddress(std::shared_ptr<LogicalDevice> device,
                      vk::AccelerationStructureKHR accel,
-                     vk::DispatchLoaderDynamic &loaderDynamic) {
+                     vk::detail::DispatchLoaderDynamic &loaderDynamic) {
             vk::AccelerationStructureDeviceAddressInfoKHR addressInfo{};
             addressInfo.accelerationStructure = accel;
             return device->getDevice().getAccelerationStructureAddressKHR(
@@ -150,7 +150,7 @@ namespace vkLibRt {
                                           std::shared_ptr<IndexBuffer> indexBuffer,
                                           std::shared_ptr<Buffer> transformBuffer,
                                           BlasInput *pOutObjectGeomtry,
-                                          vk::DispatchLoaderDynamic &loaderDynamic, size_t vertexOffset,
+                                          vk::detail::DispatchLoaderDynamic &loaderDynamic, size_t vertexOffset,
                                           size_t indexOffset, size_t transformOffset, uint32_t maxIndex, uint32_t maxVertex) {
             vk::DeviceAddress vertexAddress = vBuffer->getBufferAddress(loaderDynamic);
             vk::DeviceAddress indexAddress =
@@ -205,7 +205,7 @@ namespace vkLibRt {
                                    std::vector<uint32_t> indices,
                                    std::vector<BuildAccelerationStructure> &buildAs,
                                    VkQueryPool queryPool,
-                                   vk::DispatchLoaderDynamic &loader) {
+                                   vk::detail::DispatchLoaderDynamic &loader) {
             uint32_t queryCtn{0};
 
             // Get the compacted size result back
@@ -241,7 +241,7 @@ namespace vkLibRt {
         static AccelKHR
         createAcceleration(std::shared_ptr<LogicalDevice> device,
                            vk::AccelerationStructureCreateInfoKHR &accel_,
-                           vk::DispatchLoaderDynamic &loader) {
+                           vk::detail::DispatchLoaderDynamic &loader) {
             AccelKHR resultAccel{};
             // Allocating the buffer to hold the acceleration structure
             resultAccel.buffer = std::make_shared<Buffer>(

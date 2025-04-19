@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 23)
 file(GLOB_RECURSE DEF_FILES src/cxx/*.hpp)
 file(GLOB_RECURSE SRC_FILES src/cxx/*.cpp)
 
-add_library(VulkanLib STATIC ${DEF_FILES} ${SRC_FILES}
+add_library(VulkanLib SHARED ${DEF_FILES} ${SRC_FILES}
         src/cxx/VulkanLib/Device/PresentPassThrough/PresentPassThrough.h)
 
 set_property(TARGET VulkanLib PROPERTY COMPILE_WARNING_AS_ERROR ON)

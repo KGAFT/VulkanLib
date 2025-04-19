@@ -3,7 +3,7 @@
 //
 #ifndef VULKANLIB_INSTANCE_HPP
 #define VULKANLIB_INSTANCE_HPP
-
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 #include "InstanceBuilder.hpp"
 #include "VulkanLib/InstanceLogger/InstanceLogger.hpp"
@@ -20,7 +20,7 @@ public:
 
 private:
     vk::Instance instance{nullptr};
-    vk::DispatchLoaderDynamic dynamicLoader;
+    vk::detail::DispatchLoaderDynamic dynamicLoader;
     std::vector<const char *> enabledLayers;
     InstanceLogger *logger = nullptr;
 public:
@@ -30,7 +30,7 @@ public:
 
     [[nodiscard]] const std::vector<const char *> &getEnabledLayers() const;
 
-    vk::DispatchLoaderDynamic &getDynamicLoader();
+    vk::detail::DispatchLoaderDynamic &getDynamicLoader();
 
 public:
     void destroy() override;

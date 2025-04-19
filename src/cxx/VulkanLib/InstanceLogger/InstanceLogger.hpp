@@ -8,6 +8,7 @@
 #include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
 #include <VulkanLib/VulkanLibAllocationCallback.h>
 #include <cstddef>
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 
 class InstanceLogger : public IDestroyableObject {
@@ -35,7 +36,7 @@ public:
 
 public:
   InstanceLogger(vk::Instance &instance,
-                 vk::DispatchLoaderDynamic &dynamicLoader)
+                 vk::detail::DispatchLoaderDynamic &dynamicLoader)
       : instance(instance), loaderDynamic(dynamicLoader) {
     vk::DebugUtilsMessengerCreateInfoEXT createInfo =
         vk::DebugUtilsMessengerCreateInfoEXT(
@@ -54,7 +55,7 @@ public:
         createInfo, VkLibAlloc::acquireAllocCb().get(), dynamicLoader);
   }
   InstanceLogger(vk::Instance &instance,
-                 vk::DispatchLoaderDynamic &dynamicLoader,
+                 vk::detail::DispatchLoaderDynamic &dynamicLoader,
                  std::vector<IInstanceLoggerCallback *> &startCallbacks,
                  bool saveDefaultCallback)
       : instance(instance), loaderDynamic(dynamicLoader) {
@@ -85,7 +86,7 @@ private:
   DefaultVulkanLoggerCallback defaultCallback;
   vk::DebugUtilsMessengerEXT messenger;
   vk::Instance &instance;
-  vk::DispatchLoaderDynamic &loaderDynamic;
+  vk::detail::DispatchLoaderDynamic &loaderDynamic;
 
 public:
   void addCallback(IInstanceLoggerCallback *loggerCallback) {

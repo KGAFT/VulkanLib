@@ -27,7 +27,7 @@ public:
 
     vk::IndexType getIndexType() const;
 
-    vk::DeviceAddress getBufferAddress(vk::DispatchLoaderDynamic &loaderDynamic);
+    vk::DeviceAddress getBufferAddress(vk::detail::DispatchLoaderDynamic &loaderDynamic);
 
     uint32_t getIndexCount() const;
 

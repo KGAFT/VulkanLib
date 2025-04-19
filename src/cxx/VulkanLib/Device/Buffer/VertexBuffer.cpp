@@ -59,7 +59,7 @@ size_t VertexBuffer::getVerticesAmount() const {
     return verticesAmount;
 }
 
-vk::DeviceAddress VertexBuffer::getBufferAddress(vk::DispatchLoaderDynamic &loaderDynamic) {
+vk::DeviceAddress VertexBuffer::getBufferAddress(vk::detail::DispatchLoaderDynamic &loaderDynamic) {
     return buffer->getAddress(loaderDynamic);
 }
 

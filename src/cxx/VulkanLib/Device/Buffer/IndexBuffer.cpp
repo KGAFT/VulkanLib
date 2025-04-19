@@ -49,7 +49,7 @@ vk::IndexType IndexBuffer::getIndexType() const {
     return indexType;
 }
 
-vk::DeviceAddress IndexBuffer::getBufferAddress(vk::DispatchLoaderDynamic &loaderDynamic) {
+vk::DeviceAddress IndexBuffer::getBufferAddress(vk::detail::DispatchLoaderDynamic &loaderDynamic) {
     return buffer->getAddress(loaderDynamic);
 }
 

@@ -92,7 +92,7 @@ void Buffer::map(void **output, size_t offset, vk::MemoryMapFlags mapFlags) {
     }
 }
 
-vk::DeviceAddress Buffer::getAddress(vk::DispatchLoaderDynamic &dispatchLoaderDynamic) {
+vk::DeviceAddress Buffer::getAddress(vk::detail::DispatchLoaderDynamic &dispatchLoaderDynamic) {
     addressInfo.buffer = buffer;
     return device->getDevice().getBufferAddressKHR(addressInfo, dispatchLoaderDynamic);
 }

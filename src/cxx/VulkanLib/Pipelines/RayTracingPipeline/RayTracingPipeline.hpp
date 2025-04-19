@@ -25,7 +25,7 @@ namespace vkLibRt {
         PipelineConfigurer configurer;
         vk::Pipeline rayTracingPipelineKhr;
     private:
-        void initializePipeline(Shader *shader, std::shared_ptr<RayTracingPipelineBuilder> pBuilder, vk::DispatchLoaderDynamic& dynamicLoader) {
+        void initializePipeline(Shader *shader, std::shared_ptr<RayTracingPipelineBuilder> pBuilder, vk::detail::DispatchLoaderDynamic& dynamicLoader) {
             prepareShaderGroups(shader);
             vk::RayTracingPipelineCreateInfoKHR rayPipelineInfo{};
             rayPipelineInfo.stageCount = shader->getCreateInfos().size();  // Stages are shaders

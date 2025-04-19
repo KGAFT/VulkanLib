@@ -4,8 +4,9 @@
 
 #ifndef VULKANRENDERENGINE_ASTYPES_HPP
 #define VULKANRENDERENGINE_ASTYPES_HPP
-
-#include <vulkan/vulkan_core.h>
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include "VulkanLib/Device/Buffer/Buffer.hpp"
 
 namespace vkLibRt {
