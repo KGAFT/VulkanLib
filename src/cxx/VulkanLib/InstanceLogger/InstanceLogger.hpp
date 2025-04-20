@@ -8,7 +8,6 @@
 #include "VulkanLib/MemoryUtils/IDestroyableObject.hpp"
 #include <VulkanLib/VulkanLibAllocationCallback.h>
 #include <cstddef>
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 
 class InstanceLogger : public IDestroyableObject {

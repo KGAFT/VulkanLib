@@ -3,7 +3,6 @@
 //
 #ifndef VULKANLIB_INSTANCE_HPP
 #define VULKANLIB_INSTANCE_HPP
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 #include "InstanceBuilder.hpp"
 #include "VulkanLib/InstanceLogger/InstanceLogger.hpp"

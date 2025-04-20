@@ -1,7 +1,9 @@
 //
 // Created by kgaft on 3/11/24.
 //
+
 #include "Instance.hpp"
+
 #include <VulkanLib/VulkanLibAllocationCallback.h>
 bool Instance::debugSupported() {
     for (auto &item: vk::enumerateInstanceLayerProperties()) {
