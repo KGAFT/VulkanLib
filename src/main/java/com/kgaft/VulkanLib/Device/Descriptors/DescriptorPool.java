@@ -5,6 +5,7 @@ import com.kgaft.VulkanLib.Utils.DestroyableObject;
 import com.kgaft.VulkanLib.Utils.LwjglObject;
 import com.kgaft.VulkanLib.Utils.SeriesObject;
 import com.kgaft.VulkanLib.Utils.VkErrorException;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkDescriptorPoolCreateInfo;
 import org.lwjgl.vulkan.VkDescriptorPoolSize;
 import org.lwjgl.vulkan.VkDescriptorSetAllocateInfo;
@@ -23,6 +24,7 @@ public class DescriptorPool extends DestroyableObject {
     private boolean supportAccelerationStructures;
     private LongBuffer layoutsBuffer = null;
     public DescriptorPool(LogicalDevice logicalDevice, boolean supportAccelerationStructure) throws IllegalClassFormatException, VkErrorException {
+        this.allocInfos = new SeriesObject<VkDescriptorSetAllocateInfo>(VkDescriptorSetAllocateInfo.class);
         this.logicalDevice = logicalDevice;
         this.supportAccelerationStructures = supportAccelerationStructure;
         LwjglObject<VkDescriptorPoolSize.Buffer> poolSizes = new LwjglObject<>(VkDescriptorPoolSize.class, VkDescriptorPoolSize.Buffer.class, 11+(supportAccelerationStructures?1:0));
@@ -45,20 +47,29 @@ public class DescriptorPool extends DestroyableObject {
     }
 
     public DescriptorSet allocateDescriptorSet(int instanceCount, long layout) throws VkErrorException {
+        MemoryStack stack = MemoryStack.stackPush();
         DescriptorSet res = new DescriptorSet();
-        layoutsBuffer = LongBuffer.allocate(instanceCount);
+        layoutsBuffer = stack.callocLong(instanceCount);
         for (int i = 0; i < instanceCount; i++) {
             layoutsBuffer.put(layout);
         }
         layoutsBuffer.rewind();
         VkDescriptorSetAllocateInfo allocateInfo = allocInfos.acquireObject();
-
+        allocateInfo.sType$Default();
         allocateInfo.descriptorPool(descriptorPool);
         allocateInfo.pSetLayouts(layoutsBuffer);
 
-        res.descriptorSets = new long[instanceCount];
+        LongBuffer resultTmp = stack.callocLong(instanceCount);
+        //res.descriptorSets = new long[instanceCount];
         res.device = logicalDevice;
-        VkErrorException.checkVkStatus("Failed to allocate descriptors ", vkAllocateDescriptorSets(logicalDevice.getDevice(), allocateInfo, res.descriptorSets));
+        VkErrorException.checkVkStatus("Failed to allocate descriptors ", vkAllocateDescriptorSets(logicalDevice.getDevice(), allocateInfo, resultTmp));
+        //May cause bugs
+        res.descriptorSets = new long[instanceCount];
+        int counter = 0;
+        while(resultTmp.hasRemaining()){
+            res.descriptorSets[counter] = resultTmp.get();
+            counter++;
+        }
         return res;
     }
 

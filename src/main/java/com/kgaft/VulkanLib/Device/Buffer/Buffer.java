@@ -33,18 +33,20 @@ public class Buffer extends DestroyableObject {
     private long bufferMemory = 0;
     private LogicalDevice device;
 
-    private long bufferSize;
+    protected long bufferSize;
     private LwjglObject<VkBufferDeviceAddressInfo> addressInfo = new LwjglObject<>(VkBufferDeviceAddressInfo.class);
     private LwjglObject<VkBufferCopy.Buffer> copyRegion = new LwjglObject<>(VkBufferCopy.class, VkBufferCopy.Buffer.class, 1);
     public Buffer(LogicalDevice device, VkBufferCreateInfo createInfo,
                    int memoryFlags) throws IllegalClassFormatException, VkErrorException {
         this.device = device;
+        this.bufferSize = createInfo.size();
         initialize(createInfo, memoryFlags);
     }
 
     public Buffer(LogicalDevice device, long size, int usageFlags,
                   int memoryFlags) throws IllegalClassFormatException, VkErrorException {
         this.device = device;
+        this.bufferSize = size;
         initialize(size, usageFlags, memoryFlags);
     }
 
@@ -78,15 +80,19 @@ public class Buffer extends DestroyableObject {
     }
     private void initialize(VkBufferCreateInfo createInfo,
                             int memoryFlags) throws VkErrorException {
+        this.bufferSize = createInfo.size();
         long[] buffRes = new long[1];
         VkErrorException.checkVkStatus("Failed to create buffer ", vkCreateBuffer(device.getDevice(), createInfo, null, buffRes));
         this.buffer = buffRes[0];
         VkMemoryRequirements memReqs = requirements.acquireObject();
         vkGetBufferMemoryRequirements(device.getDevice(), buffer, memReqs);
         VkMemoryAllocateInfo allocateInfo = allocInfos.acquireObject();
+        allocateInfo.sType$Default();
         allocateInfo.allocationSize(bufferSize);
         allocateInfo.memoryTypeIndex(device.findMemoryType(memReqs.memoryTypeBits(), memoryFlags));
+
         VkMemoryAllocateFlagsInfo flags = flagsInfos.acquireObject();
+        flags.sType$Default();
         flags.flags(VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT);
         allocateInfo.pNext(flags);
         VkErrorException.checkVkStatus("Failed to allocate memory ", vkAllocateMemory(device.getDevice(), allocateInfo, null, buffRes));
