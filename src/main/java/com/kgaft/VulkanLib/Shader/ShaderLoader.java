@@ -12,6 +12,8 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.lwjgl.vulkan.VK13.*;
 import static org.lwjgl.vulkan.EXTMeshShader.VK_SHADER_STAGE_MESH_BIT_EXT;
@@ -36,15 +38,14 @@ public class ShaderLoader {
 
 
     public static Shader createShaderParallel(LogicalDevice device, List<ShaderCreateInfo> shaderInfos, int jobCount) throws IllegalClassFormatException, InterruptedException {
-        ThreadPool threadPool = new ThreadPool(jobCount);
+        ExecutorService threadPool = Executors.newFixedThreadPool(jobCount);
         shaderInfos = sortRayTracingShaders(shaderInfos);
         LwjglObject<VkPipelineShaderStageCreateInfo.Buffer> stages = new LwjglObject<>(VkPipelineShaderStageCreateInfo.class, VkPipelineShaderStageCreateInfo.Buffer.class, shaderInfos.size());
         long[] shaderModules = new long[shaderInfos.size()];
         for (int i = 0; i < shaderInfos.size(); i++) {
-            threadPool.addTask(new ShaderTask(device, shaderInfos.get(i), i, shaderModules));
+            threadPool.execute(new ShaderTask(device, shaderInfos.get(i), i, shaderModules));
         }
-        threadPool.executeTasks();
-        threadPool.waitForFinish();
+        threadPool.wait();
 
         for (int i = 0; i < shaderInfos.size(); i++) {
             stages.get().get(i).sType$Default();
