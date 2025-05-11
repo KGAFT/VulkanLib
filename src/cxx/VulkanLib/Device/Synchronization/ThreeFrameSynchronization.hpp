@@ -107,7 +107,7 @@ private:
         imageAvailableSemaphores.resize(maxFramesInFlight);
         renderFinishedSemaphores.resize(maxFramesInFlight);
         inFlightFences.resize(maxFramesInFlight);
-        imagesInFlight.resize(3);
+        imagesInFlight.resize(maxFramesInFlight);
         vk::SemaphoreCreateInfo semaphoreInfo = {};
         vk::FenceCreateInfo fenceInfo = {};
         fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
