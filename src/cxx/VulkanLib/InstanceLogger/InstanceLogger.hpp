@@ -10,7 +10,7 @@
 #include <cstddef>
 #include <vulkan/vulkan.hpp>
 
-class InstanceLogger : public IDestroyableObject {
+class InstanceLogger {
 public:
   static inline std::vector<InstanceLogger *> loggers =
       std::vector<InstanceLogger *>();
@@ -86,7 +86,7 @@ private:
   vk::DebugUtilsMessengerEXT messenger;
   vk::Instance &instance;
   vk::detail::DispatchLoaderDynamic &loaderDynamic;
-
+  bool destroyed = false;
 public:
   void addCallback(IInstanceLoggerCallback *loggerCallback) {
     loggerCallbacks.push_back(loggerCallback);
@@ -188,9 +188,9 @@ private:
   }
 
 public:
-  void destroy() override {
+  void destroy(vk::detail::DispatchLoaderDynamic dynamicLoader) {
     instance.destroyDebugUtilsMessengerEXT(
-        messenger, VkLibAlloc::acquireAllocCb().get(), loaderDynamic);
+        messenger, VkLibAlloc::acquireAllocCb().get(), dynamicLoader);
     destroyed = true;
   }
 

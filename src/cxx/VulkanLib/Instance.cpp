@@ -58,7 +58,10 @@ vk::detail::DispatchLoaderDynamic &Instance::getDynamicLoader() {
 }
 
 void Instance::destroy() {
-    logger->destroy();
+    if (logger)
+    {
+        logger->destroy(dynamicLoader);
+    }
     instance.destroy();
     destroyed = true;
 }
