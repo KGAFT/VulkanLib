@@ -73,10 +73,17 @@ public:
 
 private:
     void create(unsigned int attachmentPerStepAmount, unsigned int width, unsigned int height, Shader *shader,
-                std::vector<vk::Format> colorFormats, vk::Format depthFormat) {
+                std::vector<vk::Format> colorFormats, vk::Format depthFormat)
+    {
         GraphicsPipelineConfig *config = configInstancer.getObjectInstance();
-        GraphicsPipelineCreateStrip *createStrip = createInstance.getObjectInstance();
         GraphicsPipelineConfig::createConfig(config, attachmentPerStepAmount, true, width, height);
+        create(attachmentPerStepAmount, width, height, shader, colorFormats, depthFormat, config);
+        configInstancer.releaseObjectInstance(config);
+    }
+
+    void create(unsigned int attachmentPerStepAmount, unsigned int width, unsigned int height, Shader *shader,
+                std::vector<vk::Format> colorFormats, vk::Format depthFormat, GraphicsPipelineConfig* config) {
+        GraphicsPipelineCreateStrip *createStrip = createInstance.getObjectInstance();
 
         createStrip->vertexInputInfo.sType = vk::StructureType::ePipelineVertexInputStateCreateInfo;
         createStrip->vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)configurer.inputAttribDescs.size();
@@ -125,7 +132,6 @@ private:
         createStrip->pipelineInfo.pNext = &renderingCreateInfo;
         createStrip->pipelineInfo.pDynamicState = &dynamicStateCreateInfo;
         graphicsPipeline = device.getDevice().createGraphicsPipeline(nullptr, createStrip->pipelineInfo, VkLibAlloc::acquireAllocCb().get()).value;
-        configInstancer.releaseObjectInstance(config);
         createInstance.releaseObjectInstance(createStrip);
     }
 

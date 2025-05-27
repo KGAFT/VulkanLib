@@ -19,6 +19,7 @@ class GraphicsPipelineBuilder : public IDestroyableObject {
 
 private:
     static inline SeriesObject<GraphicsPipelineBuilder> builders = SeriesObject<GraphicsPipelineBuilder>();
+
 public:
 
     GraphicsPipelineBuilder() {

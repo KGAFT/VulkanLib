@@ -53,7 +53,7 @@ struct StorageBufferInfo{
 
 class PipelineBuilder {
     friend class PipelineConfigurer;
-
+    friend class GraphicsPipelineBuilder;
 private:
     std::vector<VertexInput> vertexInputs;
     std::vector<UniformBufferInfo> uniformBufferInfo;
