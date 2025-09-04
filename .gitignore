@@ -10,6 +10,7 @@
 /modules
 /.cache
 /buildDir
+/target
 
 # Prerequisites
 *.d

@@ -1,0 +1,12 @@
+[package]
+name = "vulkanlib"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "vulkanlib"
+path = "src/lib.rs"
+crate-type = ["rlib"]
+
+[dependencies]
+ash = {version = "0.38", features = ["default", "linked", "libloading", "loaded"]}
