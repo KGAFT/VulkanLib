@@ -1,7 +1,6 @@
-use std::borrow::Cow;
-use std::ffi::{c_char, CStr, CString};
+use crate::instance::debug_messenger::DebugCall;
+use std::ffi::{c_char, CString};
 use std::sync::{Arc, Mutex};
-use ash::vk;
 
 pub struct VlInstanceBuilder {
     enabled_layers: Vec<CString>,
@@ -9,21 +8,12 @@ pub struct VlInstanceBuilder {
     debug_enabled: bool,
     app_name: Option<CString>,
     engine_name: Option<CString>,
-    initial_callbacks: Vec<
-        Arc<
-            Mutex<
-                dyn FnMut(
-                    vk::DebugUtilsMessageSeverityFlagsEXT,
-                    vk::DebugUtilsMessageTypeFlagsEXT,
-                    Cow<str>,
-                    Cow<str>,
-                ),
-            >,
-        >,
-    >,
+    initial_callbacks: Vec<Arc<Mutex<DebugCall>>>,
+    present_enabled: bool,
 }
 
 impl VlInstanceBuilder {
+    #[allow(unused_mut)]
     pub fn new() -> Self {
         let mut res = Self {
             enabled_extensions: Vec::new(),
@@ -32,12 +22,15 @@ impl VlInstanceBuilder {
             app_name: None,
             engine_name: None,
             initial_callbacks: Vec::new(),
+            present_enabled: false,
         };
         #[cfg(any(target_os = "macos", target_os = "ios"))]
         {
-            res.enabled_extensions.push(ash::khr::portability_enumeration::NAME.as_ptr());
+            res.enabled_extensions
+                .push(ash::khr::portability_enumeration::NAME.as_ptr());
             // Enabling this extension is a requirement when using `VK_KHR_portability_subset`
-            res.enabled_extensions.push(ash::khr::get_physical_device_properties2::NAME.as_ptr());
+            res.enabled_extensions
+                .push(ash::khr::get_physical_device_properties2::NAME.as_ptr());
         }
         res
     }
@@ -56,18 +49,7 @@ impl VlInstanceBuilder {
         self.debug_enabled = true;
     }
 
-    pub fn initial_callbacks(&mut self) ->  Vec<
-        Arc<
-            Mutex<
-                dyn FnMut(
-                    vk::DebugUtilsMessageSeverityFlagsEXT,
-                    vk::DebugUtilsMessageTypeFlagsEXT,
-                    Cow<str>,
-                    Cow<str>,
-                ),
-            >,
-        >,
-    >{
+    pub fn initial_callbacks(&mut self) -> Vec<Arc<Mutex<DebugCall>>> {
         let mut res = Vec::new();
         while let Some(callback) = self.initial_callbacks.pop() {
             res.push(callback);
@@ -75,15 +57,12 @@ impl VlInstanceBuilder {
         res
     }
 
-    pub fn add_initial_debug_callback(&mut self,  callback: Arc<Mutex<dyn FnMut(
-        vk::DebugUtilsMessageSeverityFlagsEXT,
-        vk::DebugUtilsMessageTypeFlagsEXT,
-        Cow<str>,
-        Cow<str>,
-    )>>){
+    pub fn add_initial_debug_callback(&mut self, callback: Arc<Mutex<DebugCall>>) {
         self.initial_callbacks.push(callback);
     }
-
+    pub fn enable_present_supported(&mut self) {
+        self.present_enabled = true;
+    }
     pub fn set_app_name(&mut self, app_name: CString) {
         self.app_name = Some(app_name);
     }
@@ -116,5 +95,9 @@ impl VlInstanceBuilder {
 
     pub fn engine_name(&self) -> &Option<CString> {
         &self.engine_name
+    }
+
+    pub fn present_enabled(&self) -> bool {
+        self.present_enabled
     }
 }

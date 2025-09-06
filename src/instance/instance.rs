@@ -2,12 +2,13 @@ use crate::instance::debug_messenger::VlDebugMessenger;
 use crate::instance::instance_builder::VlInstanceBuilder;
 use ash::{vk, Entry};
 use std::ffi::CString;
-use std::sync::{Arc, Mutex};
+use ash::khr::surface;
 
 #[derive(Clone)]
 pub struct VlInstance {
     entry: Entry,
     instance: ash::Instance,
+    surface_loader: Option<surface::Instance>,
     enabled_layers: Vec<CString>,
     enabled_extensions: Vec<CString>,
     debug_messenger: Option<VlDebugMessenger>,
@@ -37,7 +38,16 @@ impl VlInstance {
         let instance = unsafe { entry.create_instance(&create_info, None) }
             .expect("failed to create vulkan instance");
         let debug_messenger = if builder.debug_enabled() {
-            Some(VlDebugMessenger::new(&entry, &instance, builder.initial_callbacks()))
+            Some(VlDebugMessenger::new(
+                &entry,
+                &instance,
+                builder.initial_callbacks(),
+            ))
+        } else {
+            None
+        };
+        let surface_loader = if builder.present_enabled() {
+            Some(surface::Instance::new(&entry, &instance))
         } else {
             None
         };
@@ -47,6 +57,7 @@ impl VlInstance {
             enabled_layers: builder.c_enabled_layers(),
             enabled_extensions: builder.c_enabled_extensions(),
             debug_messenger,
+            surface_loader,
         }
     }
 
@@ -62,8 +73,14 @@ impl VlInstance {
         &self.entry
     }
 
+
+
     pub fn get_entry(&self) -> Entry {
         self.entry.clone()
+    }
+
+    pub fn surface_loader(&self) -> Option<&surface::Instance> {
+        self.surface_loader.as_ref()
     }
 }
 
@@ -73,6 +90,10 @@ impl Drop for VlInstance {
             if self.debug_messenger.is_some() {
                 let msg = self.debug_messenger.take().unwrap();
                 std::mem::drop(msg);
+            }
+            if self.surface_loader.is_some() {
+                let surface_loader = self.surface_loader.take().unwrap();
+                std::mem::drop(surface_loader);
             }
             self.instance.destroy_instance(None);
         }

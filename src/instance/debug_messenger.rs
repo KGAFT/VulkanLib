@@ -3,48 +3,50 @@ use ash::vk::DebugUtilsMessengerEXT;
 use ash::{vk, Entry, Instance};
 use std::borrow::Cow;
 use std::ffi;
-use std::ffi::c_void;
 use std::ops::DerefMut;
 use std::sync::{Arc, Mutex};
 
+pub type DebugCall = dyn FnMut(
+    i32,
+    vk::DebugUtilsMessageSeverityFlagsEXT,
+    vk::DebugUtilsMessageTypeFlagsEXT,
+    Cow<str>,
+    Cow<str>,
+);
+#[repr(C)]
 #[derive(Clone)]
+struct CbContainer {
+    debug_callbacks: Vec<Arc<Mutex<DebugCall>>>,
+}
+
+#[derive(Clone)]
+#[repr(C)]
 pub struct VlDebugMessenger {
     active: bool,
     debug_utils_loader: debug_utils::Instance,
     debug_messenger: DebugUtilsMessengerEXT,
-    debug_callbacks: Vec<
-        Arc<
-            Mutex<
-                dyn FnMut(
-                    vk::DebugUtilsMessageSeverityFlagsEXT,
-                    vk::DebugUtilsMessageTypeFlagsEXT,
-                    Cow<str>,
-                    Cow<str>,
-                ),
-            >,
-        >,
-    >,
+    debug_callbacks: *mut CbContainer,
 }
 
 impl VlDebugMessenger {
-    pub fn new(entry: &Entry, instance: &Instance, initial_callbacks: Vec<
-        Arc<
-            Mutex<
-                dyn FnMut(
-                    vk::DebugUtilsMessageSeverityFlagsEXT,
-                    vk::DebugUtilsMessageTypeFlagsEXT,
-                    Cow<str>,
-                    Cow<str>,
-                ),
-            >,
-        >,
-    >) -> Self {
+    pub fn new(
+        entry: &Entry,
+        instance: &Instance,
+        mut initial_callbacks: Vec<Arc<Mutex<DebugCall>>>,
+    ) -> Self {
         let debug_utils_loader = debug_utils::Instance::new(entry, instance);
+        let mut cbs = Vec::with_capacity(initial_callbacks.len());
+        while let Some(callback) = initial_callbacks.pop() {
+            cbs.push(callback);
+        }
+
         let mut res = Self {
-            active: false,
-            debug_utils_loader: debug_utils_loader,
+            active: true,
+            debug_utils_loader,
             debug_messenger: DebugUtilsMessengerEXT::null(),
-            debug_callbacks: initial_callbacks,
+            debug_callbacks: Box::into_raw(Box::from(CbContainer {
+                debug_callbacks: cbs,
+            })),
         };
         let debug_info = vk::DebugUtilsMessengerCreateInfoEXT::default()
             .message_severity(
@@ -60,7 +62,7 @@ impl VlDebugMessenger {
                     | vk::DebugUtilsMessageTypeFlagsEXT::DEVICE_ADDRESS_BINDING,
             )
             .pfn_user_callback(Some(vulkan_debug_callback))
-            .user_data(&mut res as &mut _ as *mut _ as *mut c_void);
+            .user_data(res.debug_callbacks.clone() as *mut _);
 
         let debug_messenger = unsafe {
             res.debug_utils_loader
@@ -68,25 +70,7 @@ impl VlDebugMessenger {
         }
         .expect("Unable to create debug utils Messenger");
         res.debug_messenger = debug_messenger;
-        res.active = true;
         res
-    }
-
-    pub fn dispatch_message(
-        &mut self,
-        message_severity: vk::DebugUtilsMessageSeverityFlagsEXT,
-        message_type: vk::DebugUtilsMessageTypeFlagsEXT,
-        message: Cow<str>,
-        message_id: Cow<str>,
-    ) {
-        self.debug_callbacks.iter_mut().for_each(|f| {
-            f.lock().unwrap().deref_mut()(
-                message_severity,
-                message_type,
-                message.clone(),
-                message_id.clone(),
-            );
-        })
     }
 }
 
@@ -106,26 +90,32 @@ unsafe extern "system" fn vulkan_debug_callback(
     p_callback_data: *const vk::DebugUtilsMessengerCallbackDataEXT<'_>,
     _user_data: *mut std::os::raw::c_void,
 ) -> vk::Bool32 {
-    let self_ref = _user_data as *mut VlDebugMessenger;
+    let self_ref = _user_data as *mut Vec<Arc<Mutex<DebugCall>>>;
     let self_ref = self_ref.as_mut().unwrap();
-    if self_ref.active {
-        let callback_data = *p_callback_data;
-        let message_id_number = callback_data.message_id_number;
 
-        let message_id_name = if callback_data.p_message_id_name.is_null() {
-            Cow::from("")
-        } else {
-            ffi::CStr::from_ptr(callback_data.p_message_id_name).to_string_lossy()
-        };
+    let callback_data = *p_callback_data;
+     let message_id_number = callback_data.message_id_number;
 
-        let message = if callback_data.p_message.is_null() {
-            Cow::from("")
-        } else {
-            ffi::CStr::from_ptr(callback_data.p_message).to_string_lossy()
-        };
+    let message_id_name = if callback_data.p_message_id_name.is_null() {
+        Cow::from("")
+    } else {
+        ffi::CStr::from_ptr(callback_data.p_message_id_name).to_string_lossy()
+    };
 
-        self_ref.dispatch_message(message_severity, message_type, message, message_id_name);
-    }
+    let message = if callback_data.p_message.is_null() {
+        Cow::from("")
+    } else {
+        ffi::CStr::from_ptr(callback_data.p_message).to_string_lossy()
+    };
+    self_ref.iter_mut().for_each(|f| {
+        f.lock().unwrap().deref_mut()(
+            message_id_number,
+            message_severity,
+            message_type,
+            message.clone(),
+            message_id_name.clone(),
+        );
+    });
 
     vk::FALSE
 }
