@@ -19,13 +19,25 @@ struct CbContainer {
     debug_callbacks: Vec<Arc<Mutex<DebugCall>>>,
 }
 
-#[derive(Clone)]
 #[repr(C)]
 pub struct VlDebugMessenger {
     active: bool,
     debug_utils_loader: debug_utils::Instance,
     debug_messenger: DebugUtilsMessengerEXT,
     debug_callbacks: *mut CbContainer,
+    original: bool
+}
+
+impl Clone for VlDebugMessenger {
+    fn clone(&self) -> Self {
+        Self{
+            active: false,
+            debug_utils_loader: self.debug_utils_loader.clone(),
+            debug_messenger: self.debug_messenger.clone(),
+            debug_callbacks: self.debug_callbacks.clone(),
+            original: false,
+        }
+    }
 }
 
 impl VlDebugMessenger {
@@ -47,6 +59,7 @@ impl VlDebugMessenger {
             debug_callbacks: Box::into_raw(Box::from(CbContainer {
                 debug_callbacks: cbs,
             })),
+            original: true,
         };
         let debug_info = vk::DebugUtilsMessengerCreateInfoEXT::default()
             .message_severity(
@@ -76,10 +89,12 @@ impl VlDebugMessenger {
 
 impl Drop for VlDebugMessenger {
     fn drop(&mut self) {
-        self.active = false;
-        unsafe {
-            self.debug_utils_loader
-                .destroy_debug_utils_messenger(self.debug_messenger, None);
+        if self.original {
+            self.active = false;
+            unsafe {
+                self.debug_utils_loader
+                    .destroy_debug_utils_messenger(self.debug_messenger, None);
+            }
         }
     }
 }

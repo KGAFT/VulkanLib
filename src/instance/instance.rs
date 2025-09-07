@@ -4,7 +4,6 @@ use ash::{vk, Entry};
 use std::ffi::CString;
 use ash::khr::surface;
 
-#[derive(Clone)]
 pub struct VlInstance {
     entry: Entry,
     instance: ash::Instance,
@@ -12,6 +11,22 @@ pub struct VlInstance {
     enabled_layers: Vec<CString>,
     enabled_extensions: Vec<CString>,
     debug_messenger: Option<VlDebugMessenger>,
+    original: bool
+}
+
+impl Clone for VlInstance {
+    fn clone(&self) -> Self {
+        let res = Self{
+            entry: self.entry.clone(),
+            instance: self.instance.clone(),
+            surface_loader: self.surface_loader.clone(),
+            enabled_layers: vec![],
+            enabled_extensions: vec![],
+            debug_messenger: self.debug_messenger.clone(),
+            original: false,
+        };
+        res
+    }
 }
 
 impl VlInstance {
@@ -58,44 +73,45 @@ impl VlInstance {
             enabled_extensions: builder.c_enabled_extensions(),
             debug_messenger,
             surface_loader,
+            original: true,
         }
     }
 
     pub fn get_instance_r(&self) -> &ash::Instance {
         &self.instance
     }
-
     pub fn get_instance(&self) -> ash::Instance {
         self.instance.clone()
     }
-
     pub fn get_loader_r(&self) -> &Entry {
         &self.entry
     }
-
-
-
     pub fn get_entry(&self) -> Entry {
         self.entry.clone()
     }
-
     pub fn surface_loader(&self) -> Option<&surface::Instance> {
         self.surface_loader.as_ref()
+    }
+
+    pub fn enabled_layers(&self) -> &Vec<CString> {
+        &self.enabled_layers
     }
 }
 
 impl Drop for VlInstance {
     fn drop(&mut self) {
-        unsafe {
-            if self.debug_messenger.is_some() {
-                let msg = self.debug_messenger.take().unwrap();
-                std::mem::drop(msg);
+        if self.original {
+            unsafe {
+                if self.debug_messenger.is_some() {
+                    let msg = self.debug_messenger.take().unwrap();
+                    std::mem::drop(msg);
+                }
+                if self.surface_loader.is_some() {
+                    let surface_loader = self.surface_loader.take().unwrap();
+                    std::mem::drop(surface_loader);
+                }
+                self.instance.destroy_instance(None);
             }
-            if self.surface_loader.is_some() {
-                let surface_loader = self.surface_loader.take().unwrap();
-                std::mem::drop(surface_loader);
-            }
-            self.instance.destroy_instance(None);
         }
     }
 }

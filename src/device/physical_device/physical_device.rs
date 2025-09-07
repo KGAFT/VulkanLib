@@ -1,5 +1,6 @@
 use ash::{vk, Instance};
 
+#[derive(Clone)]
 pub struct VlPhysicalDevice {
     inner: vk::PhysicalDevice,
     properties: vk::PhysicalDeviceProperties,

@@ -6,9 +6,9 @@ use ash::vk::Handle;
 
 #[derive(Default)]
 pub struct VlQueueFamilyInfo {
-    index: u32,
-    properties: vk::QueueFamilyProperties,
-    support_present: bool,
+    pub index: u32,
+    pub properties: vk::QueueFamilyProperties,
+    pub support_present: bool,
 }
 
 pub struct VlDeviceSuitability {}

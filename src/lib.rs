@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 mod device;
 mod instance;
+pub mod util;
 
 #[cfg(test)]
 mod tests {
@@ -14,6 +15,9 @@ mod tests {
     use std::ffi::CString;
     use std::io::Write;
     use std::sync::{Arc, Mutex};
+    use std::thread::sleep;
+    use std::time::Duration;
+    use crate::device::logical_device::logical_device::VlLogicalDevice;
 
     #[test]
     fn it_works() {
@@ -35,7 +39,7 @@ mod tests {
         )));
         builder.preset_for_debug();
         let instance = VlInstance::new(builder);
-        let devices = VlPhysicalDevice::enumerate(instance.get_instance_r());
+        let mut devices = VlPhysicalDevice::enumerate(instance.get_instance_r());
         devices.iter().for_each(|device| {
             println!(
                 "{}",
@@ -51,14 +55,12 @@ mod tests {
         dev_builder.require_graphics();
         dev_builder.require_compute();
         dev_builder.require_raytracing();
-        devices.iter().for_each(|device| {
-            let suit = VlDeviceSuitability::is_device_suitable(&instance, &dev_builder, device);
-            if suit.0 {
-                println!("suitable")
-            }
-        });
-        loop {
 
+        let suit = VlDeviceSuitability::is_device_suitable(&instance, &dev_builder, &devices[0]);
+        if suit.0 {
+            let device = VlLogicalDevice::new(&instance, devices.pop().unwrap(), &dev_builder, suit);
+            println!("{:?}", device.find_depth_format());
         }
+        sleep(Duration::from_millis(5000));
     }
 }

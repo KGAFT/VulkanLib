@@ -1,6 +1,7 @@
 use crate::instance::debug_messenger::DebugCall;
 use std::ffi::{c_char, CString};
 use std::sync::{Arc, Mutex};
+use crate::util::c_string_vec_to_ptr;
 
 pub struct VlInstanceBuilder {
     enabled_layers: Vec<CString>,
@@ -72,11 +73,11 @@ impl VlInstanceBuilder {
     }
 
     pub fn enabled_layers(&self) -> Vec<*const c_char> {
-        self.enabled_layers.iter().map(|s| s.as_ptr()).collect()
+        c_string_vec_to_ptr(&self.enabled_layers)
     }
 
     pub fn enabled_extensions(&self) -> Vec<*const c_char> {
-        self.enabled_extensions.iter().map(|e| e.as_ptr()).collect()
+        c_string_vec_to_ptr(&self.enabled_extensions)
     }
 
     pub fn c_enabled_layers(&self) -> Vec<CString> {

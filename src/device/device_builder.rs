@@ -1,5 +1,6 @@
 use ash::vk;
 use std::ffi::{c_char, CString};
+use crate::util::c_string_vec_to_ptr;
 
 #[derive(Default)]
 pub struct VlDeviceBuilder {
@@ -62,7 +63,7 @@ impl VlDeviceBuilder {
     }
 
     pub fn get_extensions(&self) -> Vec<*const c_char> {
-        self.request_extension.iter().map(|e| e.as_ptr()).collect()
+        c_string_vec_to_ptr(&self.request_extension)
     }
 
     pub fn enable_compute(&mut self) {
