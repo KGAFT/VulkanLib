@@ -154,24 +154,40 @@ impl VlLogicalDevice {
     }
 
     pub fn find_depth_format(&self) -> Option<vk::Format> {
-        let candidates = vec![vk::Format::D32_SFLOAT, vk::Format::D32_SFLOAT_S8_UINT, vk::Format::D24_UNORM_S8_UINT];
-        self.find_supported_format(candidates.as_slice(), vk::ImageTiling::OPTIMAL, vk::FormatFeatureFlags::DEPTH_STENCIL_ATTACHMENT)
+        let candidates = vec![
+            vk::Format::D32_SFLOAT,
+            vk::Format::D32_SFLOAT_S8_UINT,
+            vk::Format::D24_UNORM_S8_UINT,
+        ];
+        self.find_supported_format(
+            candidates.as_slice(),
+            vk::ImageTiling::OPTIMAL,
+            vk::FormatFeatureFlags::DEPTH_STENCIL_ATTACHMENT,
+        )
     }
 
-    pub fn fnd_memory_type(&self, mut type_filter: u32, properties: vk::MemoryPropertyFlags) -> Option<u32>{
+    pub fn find_memory_type(
+        &self,
+        mut type_filter: u32,
+        properties: vk::MemoryPropertyFlags,
+    ) -> Option<u32> {
         let mut lock = self.mem_properties.lock().unwrap();
         if lock.is_none() {
-            unsafe { *lock = Some(self.instance.get_instance_r().get_physical_device_memory_properties(self.base_device.inner())); }
+            unsafe {
+                *lock = Some(
+                    self.instance
+                        .get_instance_r()
+                        .get_physical_device_memory_properties(self.base_device.inner()),
+                );
+            }
         }
         let mem_properties = lock.as_ref().unwrap();
-        for (i, memory_type) in mem_properties
-            .memory_types[..mem_properties.memory_type_count as usize]
+        for (i, memory_type) in mem_properties.memory_types
+            [..mem_properties.memory_type_count as usize]
             .iter()
             .enumerate()
         {
-            if (type_filter & (1 << i)) != 0
-                && memory_type.property_flags.contains(properties)
-            {
+            if (type_filter & (1 << i)) != 0 && memory_type.property_flags.contains(properties) {
                 return Some(i as u32);
             }
         }
@@ -216,7 +232,9 @@ impl VlLogicalDevice {
     ) -> Option<vk::Format> {
         for &format in candidates {
             let props = unsafe {
-                self.instance.get_instance_r().get_physical_device_format_properties(self.base_device.inner(), format)
+                self.instance
+                    .get_instance_r()
+                    .get_physical_device_format_properties(self.base_device.inner(), format)
             };
 
             let supported = match tiling {
@@ -232,7 +250,6 @@ impl VlLogicalDevice {
 
         None
     }
-
 }
 
 impl Drop for VlLogicalDevice {
