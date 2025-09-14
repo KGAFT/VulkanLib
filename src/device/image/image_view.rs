@@ -24,9 +24,7 @@ impl Clone for VlImageView {
 impl Drop for VlImageView {
     fn drop(&mut self) {
         if self.origin {
-            unsafe {
-                self.destroy();
-            }
+            self.destroy();
         }
     }
 }

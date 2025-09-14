@@ -119,6 +119,7 @@ impl VlImage {
         res
     }
 
+    #[allow(unused_assignments)]
     pub fn resize(&mut self, device: &VlLogicalDevice, width: u32, height: u32) {
         if self.origin {
             self.destroy();
@@ -324,7 +325,7 @@ impl VlImage {
                 ),
 
                 // General case: be conservative: ensure shader reads/writes are visible in fragment stage
-                (old, new) => {
+                (old, _) => {
                     // Conservative default: writer -> shader read
                     let src_access = if old == L::UNDEFINED {
                         A::empty()

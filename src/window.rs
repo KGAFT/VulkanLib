@@ -1,12 +1,12 @@
 use ash::khr::surface;
-use ash::{vk, Entry, Instance};
+use ash::{vk, Instance};
 use sdl3::sys::vulkan::{SDL_Vulkan_CreateSurface, SDL_Vulkan_GetInstanceExtensions};
 use sdl3::{
     video::{Window as SdlWindow, WindowBuilder},
     EventPump, Sdl, VideoSubsystem,
 };
 use std::error::Error;
-use std::ffi::{c_char, CStr, CString};
+use std::ffi::{CStr, CString};
 use std::ptr::null;
 use std::sync::{Arc, Mutex};
 use sdl3::sys::everything::SDL_GetError;

@@ -97,9 +97,9 @@ impl VlDeviceSuitability {
             info = VlQueueFamilyInfo {
                 ..Default::default()
             };
-            if (graphics_found == builder.require_graphics()
+            if graphics_found == builder.require_graphics()
                 && present_found == !builder.require_present().is_null()
-                && compute_found == builder.require_compute())
+                && compute_found == builder.require_compute()
             {
                 break;
             }

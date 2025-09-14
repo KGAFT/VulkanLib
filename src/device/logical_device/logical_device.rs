@@ -4,7 +4,7 @@ use crate::device::physical_device::device_suitability::VlQueueFamilyInfo;
 use crate::device::physical_device::physical_device::VlPhysicalDevice;
 use crate::instance::instance::VlInstance;
 use crate::util::c_string_vec_to_ptr;
-use ash::{vk, Instance};
+use ash::vk;
 use std::ffi::c_void;
 use std::sync::{Arc, Mutex};
 
@@ -76,13 +76,13 @@ impl VlLogicalDevice {
             accel_structure.p_next =
                 &mut ray_tracing_pipeline_features_khr as *mut _ as *mut c_void;
         }
-        let layers = c_string_vec_to_ptr(instance.enabled_layers());
+       // let layers = c_string_vec_to_ptr(instance.enabled_layers());
         let extensions = builder.get_extensions();
-        let mut dev_create_info = vk::DeviceCreateInfo {
+        let dev_create_info = vk::DeviceCreateInfo {
             ..Default::default()
         }
         .queue_create_infos(queue_infos.as_slice())
-        .enabled_layer_names(layers.as_slice())
+        //.enabled_layer_names(layers.as_slice())
         .enabled_extension_names(extensions.as_slice())
         .enabled_features(&features)
         .push_next(&mut dynamic_rendering_feature);
@@ -168,7 +168,7 @@ impl VlLogicalDevice {
 
     pub fn find_memory_type(
         &self,
-        mut type_filter: u32,
+        type_filter: u32,
         properties: vk::MemoryPropertyFlags,
     ) -> Option<u32> {
         let mut lock = self.mem_properties.lock().unwrap();

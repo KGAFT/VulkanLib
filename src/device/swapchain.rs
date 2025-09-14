@@ -2,7 +2,7 @@ use crate::device::image::image::VlImage;
 use crate::device::image::image_view::VlImageView;
 use crate::device::logical_device::logical_device::VlLogicalDevice;
 use crate::instance::instance::VlInstance;
-use ash::khr::{surface, swapchain};
+use ash::khr::swapchain;
 use ash::vk;
 use std::collections::HashSet;
 
@@ -12,7 +12,11 @@ struct SwapChainDetails {
     formats: Vec<vk::SurfaceFormatKHR>,
     present_modes: Vec<vk::PresentModeKHR>,
 }
-
+/**
+    VlSwapChain is not supported shairing, like other classes,
+    if you need to share it between threads, use Arc Mutex,
+    images from swapchain not shared as well, despite that other images are shared compatible via clone
+*/
 pub struct VlSwapChain {
     format: vk::SurfaceFormatKHR,
     present_mode: vk::PresentModeKHR,
@@ -41,8 +45,9 @@ impl VlSwapChain {
         height: u32,
         frame_lock: bool,
     ) -> Self {
-        let swap_chain_loader = swapchain::Device::new(instance.get_instance_r(), device.device_r());
-        let mut pre_res = Self{
+        let swap_chain_loader =
+            swapchain::Device::new(instance.get_instance_r(), device.device_r());
+        let mut pre_res = Self {
             format: Default::default(),
             device,
             instance,
@@ -71,8 +76,8 @@ impl VlSwapChain {
         self.present_mode = Self::choose_present_mode(support.present_modes.as_slice(), frame_lock);
         self.extent = Self::choose_swapchain_extent(width, height, &support.capabilities);
         let mut image_count = support.capabilities.min_image_count + 1;
-        if (support.capabilities.max_image_count > 0
-            && image_count > support.capabilities.max_image_count)
+        if support.capabilities.max_image_count > 0
+            && image_count > support.capabilities.max_image_count
         {
             image_count = support.capabilities.max_image_count;
         }
