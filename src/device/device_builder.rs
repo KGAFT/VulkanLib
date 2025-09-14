@@ -21,6 +21,7 @@ impl VlDeviceBuilder {
     }
 
     pub fn enable_presentation(&mut self, surface: vk::SurfaceKHR) {
+        self.request_extension.push(CString::new("VK_KHR_swapchain").unwrap());
         self.require_present = surface;
     }
 

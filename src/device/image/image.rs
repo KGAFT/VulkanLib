@@ -68,6 +68,10 @@ impl VlImage {
         }
     }
 
+    pub fn image(&self) -> vk::Image {
+        unsafe { (*self.base).clone() }
+    }
+
     fn initialize(&mut self, device: &VlLogicalDevice) {
         let temp_info = self.image_info.to_base();
         let image =

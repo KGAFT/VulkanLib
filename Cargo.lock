@@ -12,10 +12,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitflags"
+version = "2.9.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2261d10cca569e4643e526d8dc2e62e433cc8aba21ab764233731f8d369bf394"
+
+[[package]]
 name = "cfg-if"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2fd1289c04a9ea8cb22300a459a72a385d7c73d3259e2ed7dcb2af674838cfa9"
+
+[[package]]
+name = "lazy_static"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+
+[[package]]
+name = "libc"
+version = "0.2.175"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a82ae493e598baaea5209805c49bbf2ea7de956d50d7da0da1164f9c6d28543"
 
 [[package]]
 name = "libloading"
@@ -28,10 +46,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "sdl3"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27ecee228c5aaa187c8952d5708aaa8dbd2517ea69349eac4b3ed0ec37e09cdb"
+dependencies = [
+ "bitflags",
+ "lazy_static",
+ "libc",
+ "sdl3-sys",
+]
+
+[[package]]
+name = "sdl3-sys"
+version = "0.5.5+SDL3-3.2.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "488b4c68d9c0a450087a8b7c9dc6921483354127b0e60033d2d9b8f6a281331b"
+dependencies = [
+ "ash",
+]
+
+[[package]]
 name = "vulkanlib"
 version = "0.1.0"
 dependencies = [
  "ash",
+ "sdl3",
 ]
 
 [[package]]
