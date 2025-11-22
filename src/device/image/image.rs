@@ -17,10 +17,10 @@ pub struct VlImage {
 impl Clone for VlImage {
     fn clone(&self) -> Self {
         Self {
-            base: self.base.clone(),
+            base: self.base,
             image_info: self.image_info.clone(),
             image_views: self.image_views.clone(),
-            image_memory: self.image_memory.clone(),
+            image_memory: self.image_memory,
             device: self.device.clone(),
             origin: false,
         }
@@ -66,6 +66,14 @@ impl VlImage {
             device,
             origin: false,
         }
+    }
+
+    pub fn get_image_views(&self) -> &Vec<VlImageView> {
+        &self.image_views
+    }
+
+    pub fn get_image_views_clone(&self) -> Vec<VlImageView> {
+        self.image_views.clone()
     }
 
     pub fn image(&self) -> vk::Image {

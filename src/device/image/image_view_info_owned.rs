@@ -27,7 +27,7 @@ impl ImageViewCreateInfoOwned{
         }
     }
 
-    pub fn to_base(&self) -> vk::ImageViewCreateInfo{
+    pub fn to_base(&self) -> vk::ImageViewCreateInfo<'_>{
         vk::ImageViewCreateInfo{
             s_type: self.s_type.clone(),
             p_next: self.p_next.clone(),

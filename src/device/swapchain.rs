@@ -28,12 +28,21 @@ pub struct VlSwapChain {
     instance: VlInstance,
     swap_chain: vk::SwapchainKHR,
     surface: vk::SurfaceKHR,
+    frame_lock: bool
 }
 
 impl Drop for VlSwapChain {
     fn drop(&mut self) {
         self.destroy();
     }
+}
+
+unsafe impl Send for VlSwapChain {
+
+}
+
+unsafe impl Sync for VlSwapChain {
+
 }
 
 impl VlSwapChain {
@@ -58,6 +67,7 @@ impl VlSwapChain {
             images: vec![],
             image_views: vec![],
             swap_chain: Default::default(),
+            frame_lock
         };
         pre_res.create_swap_chain(width, height, frame_lock, surface);
         pre_res
@@ -150,6 +160,17 @@ impl VlSwapChain {
             self.images.push(image);
             self.image_views.push(view);
         }
+    }
+
+    pub fn recreate_swap_chain(&mut self, width: u32, height: u32){
+        self.destroy();
+        self.create_swap_chain(width, height, self.frame_lock, self.surface);
+    }
+
+    pub fn recreate_swap_chain_framelock(&mut self, width: u32, height: u32, frame_lock: bool){
+        self.frame_lock = frame_lock;
+        self.destroy();
+        self.create_swap_chain(width, height, self.frame_lock, self.surface);
     }
 
     fn cleanup_images(&mut self) {

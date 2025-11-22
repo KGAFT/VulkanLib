@@ -3,6 +3,7 @@ mod device;
 mod instance;
 pub mod util;
 mod window;
+mod pipelines;
 
 #[cfg(test)]
 mod tests {
@@ -32,7 +33,7 @@ mod tests {
         while let Some(ext) = exts.pop() {
             builder.add_enabled_extension(ext);
         }
-
+        //builder.add_enabled_layer(CString::new("VK_LAYER_LUNARG_api_dump").unwrap());
         builder.enable_present_supported();
         builder.add_initial_debug_callback(Arc::new(Mutex::new(
             move |id: i32,
@@ -61,12 +62,13 @@ mod tests {
             );
         });
         let mut dev_builder = VlDeviceBuilder::new();
-        let surface = window
-            .surface(
+        let surface = unsafe {
+            window.create_surface(
                 instance.surface_loader().unwrap().clone(),
                 instance.get_instance_r(),
             )
-            .expect("Failed to create Vulkan surface");
+        }
+        .expect("Failed to create Vulkan surface");
         dev_builder.require_graphics();
         dev_builder.require_compute();
         dev_builder.require_raytracing();
@@ -77,13 +79,26 @@ mod tests {
             let device =
                 VlLogicalDevice::new(&instance, devices.pop().unwrap(), &dev_builder, suit);
             println!("{:?}", device.find_depth_format());
-            let swap_chain = VlSwapChain::new(device.clone(), instance.clone(), surface.clone(), 800, 600, true);
+            let swap_chain = Arc::new(Mutex::new(VlSwapChain::new(
+                device.clone(),
+                instance.clone(),
+                surface.clone(),
+                800,
+                600,
+                true,
+            )));
+            let swap_chain_clone = swap_chain.clone();
+            window.set_resize_callback(move |width, height| {
+                swap_chain_clone
+                    .lock()
+                    .unwrap()
+                    .recreate_swap_chain(width, height);
+            });
 
+            while !window.need_close() {
+                let _ = window.poll_events();
+            }
+            drop(window);
         }
-
-        while !window.need_close() {
-            window.poll_events();
-        }
-        drop(window);
     }
 }

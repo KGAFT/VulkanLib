@@ -10,4 +10,4 @@ crate-type = ["rlib"]
 
 [dependencies]
 ash = {version = "0.38", features = ["default", "linked", "libloading", "loaded"]}
-sdl3 = {version = "0.15", features = ["ash"]}
+glfw = {version = "0.60", features = ["x11", "wayland", "vulkan"]}
