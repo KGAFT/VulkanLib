@@ -1,2 +1,2 @@
-mod pipeline_builder;
-mod pipeline_configurer;
+pub mod pipeline_builder;
+pub mod pipeline_configurer;

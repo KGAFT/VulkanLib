@@ -2,7 +2,7 @@ use ash::vk;
 use ash::Device;
 use crate::pipelines::pipeline_config::pipeline_builder::*;
 
-pub struct PipelineConfigurer {
+pub struct VlPipelineConfigurer {
     device: Device,
     pipeline_layout: vk::PipelineLayout,
     descriptor_set_layout: Option<vk::DescriptorSetLayout>,
@@ -10,15 +10,15 @@ pub struct PipelineConfigurer {
     input_attrib_descs: Vec<vk::VertexInputAttributeDescription>,
 }
 
-impl Drop for PipelineConfigurer {
+impl Drop for VlPipelineConfigurer {
     fn drop(&mut self) {
         unsafe { self.destroy() }
     }
 }
 
-impl PipelineConfigurer {
-    pub fn new(device: Device, builder: &PipelineBuilder) -> Self {
-        let mut configurer = PipelineConfigurer {
+impl VlPipelineConfigurer {
+    pub fn new(device: Device, builder: &VlPipelineBuilder) -> Self {
+        let mut configurer = VlPipelineConfigurer {
             device,
             pipeline_layout: vk::PipelineLayout::null(),
             descriptor_set_layout: None,
@@ -36,7 +36,7 @@ impl PipelineConfigurer {
 
 
 
-    fn load_descriptor_set_layout(&mut self, builder: &PipelineBuilder) {
+    fn load_descriptor_set_layout(&mut self, builder: &VlPipelineBuilder) {
         let total_bindings = builder.uniform_buffer_info.len()
             + builder.samplers_info.len()
             + builder.storage_images_info.len()
@@ -81,7 +81,7 @@ impl PipelineConfigurer {
         }
     }
 
-    fn load_pipeline_layout(&mut self, builder: &PipelineBuilder) {
+    fn load_pipeline_layout(&mut self, builder: &VlPipelineBuilder) {
         let mut push_constant_ranges = vec![vk::PushConstantRange::default(); builder.push_constant_infos.len()];
         for (i, element) in builder.push_constant_infos.iter().enumerate() {
             Self::info_to_range(element, &mut push_constant_ranges[i]);
@@ -98,14 +98,14 @@ impl PipelineConfigurer {
         };
     }
 
-    fn prepare_binding(&mut self, inputs: &[VertexInput]) {
+    fn prepare_binding(&mut self, inputs: &[VlVertexInput]) {
         let stride: usize = inputs.iter().map(|i| i.type_size * i.coordinates_amount as usize).sum();
         self.input_bind_desc.binding = 0;
         self.input_bind_desc.stride = stride as u32;
         self.input_bind_desc.input_rate = vk::VertexInputRate::VERTEX;
     }
 
-    fn prepare_input_attribs(&mut self, inputs: &[VertexInput]) {
+    fn prepare_input_attribs(&mut self, inputs: &[VlVertexInput]) {
         self.input_attrib_descs.resize(inputs.len(), vk::VertexInputAttributeDescription::default());
         let mut offset_count = 0;
 
@@ -118,41 +118,41 @@ impl PipelineConfigurer {
         }
     }
 
-    fn info_to_range(info: &PushConstantInfo, range: &mut vk::PushConstantRange) {
+    fn info_to_range(info: &VlPushConstantInfo, range: &mut vk::PushConstantRange) {
         range.stage_flags = info.shader_stages;
         range.offset = 0;
         range.size = info.size as u32;
     }
 
-    fn ubo_to_bind(info: &UniformBufferInfo, binding: &mut vk::DescriptorSetLayoutBinding) {
+    fn ubo_to_bind(info: &VlUniformBufferInfo, binding: &mut vk::DescriptorSetLayoutBinding) {
         binding.binding = info.binding;
         binding.descriptor_type = vk::DescriptorType::UNIFORM_BUFFER;
         binding.descriptor_count = info.descriptor_count;
         binding.stage_flags = info.shader_stages;
     }
 
-    fn sbo_to_bind(info: &StorageBufferInfo, binding: &mut vk::DescriptorSetLayoutBinding) {
+    fn sbo_to_bind(info: &VlStorageBufferInfo, binding: &mut vk::DescriptorSetLayoutBinding) {
         binding.binding = info.binding;
         binding.descriptor_type = vk::DescriptorType::STORAGE_BUFFER;
         binding.descriptor_count = info.descriptor_count;
         binding.stage_flags = info.stage_flags;
     }
 
-    fn sampler_to_bind(info: &SamplerInfo, binding: &mut vk::DescriptorSetLayoutBinding) {
+    fn sampler_to_bind(info: &VlSamplerInfo, binding: &mut vk::DescriptorSetLayoutBinding) {
         binding.binding = info.binding;
         binding.descriptor_type = vk::DescriptorType::COMBINED_IMAGE_SAMPLER;
         binding.descriptor_count = info.descriptor_count;
         binding.stage_flags = info.shader_stages;
     }
 
-    fn as_to_bind(info: &AccelerationStructureInfo, binding: &mut vk::DescriptorSetLayoutBinding) {
+    fn as_to_bind(info: &VlAccelerationStructureInfo, binding: &mut vk::DescriptorSetLayoutBinding) {
         binding.binding = info.binding;
         binding.descriptor_type = vk::DescriptorType::ACCELERATION_STRUCTURE_KHR;
         binding.descriptor_count = info.descriptor_count;
         binding.stage_flags = info.shader_stages;
     }
 
-    fn storage_image_to_bind(info: &StorageImageInfo, binding: &mut vk::DescriptorSetLayoutBinding) {
+    fn storage_image_to_bind(info: &VlStorageImageInfo, binding: &mut vk::DescriptorSetLayoutBinding) {
         binding.binding = info.binding;
         binding.descriptor_type = vk::DescriptorType::STORAGE_IMAGE;
         binding.descriptor_count = info.descriptor_count;

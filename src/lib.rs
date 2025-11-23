@@ -4,6 +4,7 @@ mod instance;
 pub mod util;
 mod window;
 mod pipelines;
+mod shader;
 
 #[cfg(test)]
 mod tests {
@@ -19,11 +20,18 @@ mod tests {
     use std::ffi::CString;
     use std::io::Write;
     use std::sync::{Arc, Mutex};
-
+    use shaderc::{OptimizationLevel, ShaderKind};
     use crate::device::swapchain::VlSwapChain;
+    use crate::shader::ShaderLoader;
 
     #[test]
     fn it_works() {
+        let mut shader_loader = ShaderLoader::new();
+        ShaderLoader::add_include_directory("glsl".as_ref());
+        shader_loader.set_optimization_level(OptimizationLevel::Performance);
+        shader_loader.read_and_compile_shader("glsl/RayTracingPipeline/raygen.glsl".as_ref(), ShaderKind::RayGeneration, "main").unwrap();
+
+
         let mut window = Window::new(800, 600).unwrap();
 
         let mut builder = VlInstanceBuilder::new();

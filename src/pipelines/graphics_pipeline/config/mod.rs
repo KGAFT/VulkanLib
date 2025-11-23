@@ -1,9 +1,10 @@
 mod graph_structure_owned;
+mod graph_pipeline_builder;
 
 use ash::vk;
 use crate::pipelines::graphics_pipeline::config::graph_structure_owned::*;
 
-pub struct GraphicsPipelineConfig {
+pub struct VlGraphicsPipelineConfig {
     pub viewport: vk::Viewport,
     pub scissor: vk::Rect2D,
     pub input_assembly_info: PipelineInputAssemblyStateCreateInfoOwned,
@@ -15,7 +16,7 @@ pub struct GraphicsPipelineConfig {
     pub subpass: u32,
 }
 
-impl GraphicsPipelineConfig {
+impl VlGraphicsPipelineConfig {
     pub fn create_config(
         attachment_count: u32,
         alpha_blending: bool,
@@ -132,7 +133,7 @@ impl GraphicsPipelineConfig {
             ..Default::default()
         };
 
-        GraphicsPipelineConfig {
+        VlGraphicsPipelineConfig {
             viewport,
             scissor,
             input_assembly_info,

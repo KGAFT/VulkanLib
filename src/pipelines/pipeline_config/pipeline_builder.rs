@@ -1,7 +1,7 @@
 use ash::vk;
 
 #[derive(Clone, Copy, Debug)]
-pub struct VertexInput {
+pub struct VlVertexInput {
     pub location: u32,
     pub coordinates_amount: u32,
     pub type_size: usize,
@@ -9,13 +9,13 @@ pub struct VertexInput {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct PushConstantInfo {
+pub struct VlPushConstantInfo {
     pub shader_stages: vk::ShaderStageFlags,
     pub size: usize,
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct UniformBufferInfo {
+pub struct VlUniformBufferInfo {
     pub binding: u32,
     pub size: usize,
     pub descriptor_count: u32,
@@ -23,70 +23,70 @@ pub struct UniformBufferInfo {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct SamplerInfo {
+pub struct VlSamplerInfo {
     pub binding: u32,
     pub descriptor_count: u32,
     pub shader_stages: vk::ShaderStageFlags,
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct AccelerationStructureInfo {
+pub struct VlAccelerationStructureInfo {
     pub binding: u32,
     pub descriptor_count: u32,
     pub shader_stages: vk::ShaderStageFlags,
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct StorageImageInfo {
+pub struct VlStorageImageInfo {
     pub binding: u32,
     pub descriptor_count: u32,
     pub shader_stages: vk::ShaderStageFlags,
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct StorageBufferInfo {
+pub struct VlStorageBufferInfo {
     pub binding: u32,
     pub descriptor_count: u32,
     pub stage_flags: vk::ShaderStageFlags,
 }
 
 #[derive(Default)]
-pub struct PipelineBuilder {
-    pub vertex_inputs: Vec<VertexInput>,
-    pub uniform_buffer_info: Vec<UniformBufferInfo>,
-    pub push_constant_infos: Vec<PushConstantInfo>,
-    pub samplers_info: Vec<SamplerInfo>,
-    pub acceleration_structures_info: Vec<AccelerationStructureInfo>,
-    pub storage_images_info: Vec<StorageImageInfo>,
-    pub storage_buffer_infos: Vec<StorageBufferInfo>,
+pub struct VlPipelineBuilder {
+    pub vertex_inputs: Vec<VlVertexInput>,
+    pub uniform_buffer_info: Vec<VlUniformBufferInfo>,
+    pub push_constant_infos: Vec<VlPushConstantInfo>,
+    pub samplers_info: Vec<VlSamplerInfo>,
+    pub acceleration_structures_info: Vec<VlAccelerationStructureInfo>,
+    pub storage_images_info: Vec<VlStorageImageInfo>,
+    pub storage_buffer_infos: Vec<VlStorageBufferInfo>,
 }
 
-impl PipelineBuilder {
-    pub fn add_vertex_input(&mut self, input: VertexInput) {
+impl VlPipelineBuilder {
+    pub fn add_vertex_input(&mut self, input: VlVertexInput) {
         self.vertex_inputs.push(input);
     }
 
-    pub fn add_push_constant_info(&mut self, info: PushConstantInfo) {
+    pub fn add_push_constant_info(&mut self, info: VlPushConstantInfo) {
         self.push_constant_infos.push(info);
     }
 
-    pub fn add_uniform_buffer(&mut self, info: UniformBufferInfo) {
+    pub fn add_uniform_buffer(&mut self, info: VlUniformBufferInfo) {
         self.uniform_buffer_info.push(info);
     }
 
-    pub fn add_storage_buffer(&mut self, info: StorageBufferInfo) {
+    pub fn add_storage_buffer(&mut self, info: VlStorageBufferInfo) {
         self.storage_buffer_infos.push(info);
     }
 
-    pub fn add_sampler_info(&mut self, info: SamplerInfo) {
+    pub fn add_sampler_info(&mut self, info: VlSamplerInfo) {
         self.samplers_info.push(info);
     }
 
-    pub fn add_acceleration_structure_info(&mut self, info: AccelerationStructureInfo) {
+    pub fn add_acceleration_structure_info(&mut self, info: VlAccelerationStructureInfo) {
         self.acceleration_structures_info.push(info);
     }
 
-    pub fn add_storage_image_info(&mut self, info: StorageImageInfo) {
+    pub fn add_storage_image_info(&mut self, info: VlStorageImageInfo) {
         self.storage_images_info.push(info);
     }
 }
