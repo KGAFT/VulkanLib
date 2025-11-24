@@ -12,3 +12,4 @@ crate-type = ["rlib"]
 ash = {version = "0.38", features = ["default", "linked", "libloading", "loaded"]}
 glfw = {version = "0.60", features = ["x11", "wayland", "vulkan"]}
 shaderc = "0.10"
+threadpool = "1.8"
