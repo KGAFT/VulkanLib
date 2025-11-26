@@ -1,7 +1,8 @@
-use crate::pipelines::shader::Shader;
+use crate::pipelines::shader::VlShader;
 use crate::util::vl_semaphore::VlSemaphore;
 use ash::vk;
 use ash::vk::ShaderModule;
+use shaderc::Error::InternalError;
 use shaderc::{
     CompileOptions, Compiler, OptimizationLevel, ResolvedInclude, ShaderKind, SourceLanguage,
     SpirvVersion,
@@ -13,33 +14,32 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
-use shaderc::Error::InternalError;
 use threadpool::ThreadPool;
 
 #[derive(Default)]
-pub enum ShaderFileType {
+pub enum VlShaderFileType {
     SrcFile,
     #[default]
     BinFile,
 }
 
 #[derive(Default)]
-pub struct ShaderCreateInfo {
+pub struct VlShaderCreateInfo {
     pub path: PathBuf,
-    pub file_type: ShaderFileType,
+    pub file_type: VlShaderFileType,
     pub stage: vk::ShaderStageFlags,
     pub entry_point: String,
 }
 
 static mut INCLUDE_DIRECTORIES: Option<Vec<String>> = None;
 static mut INCLUDE_SEM: VlSemaphore = VlSemaphore::new(1);
-pub struct ShaderLoader {
+pub struct VlShaderLoader {
     compiler: Compiler,
     compile_options_stub: CompileOptionsStub,
     thread_pool: ThreadPool,
 }
 
-impl ShaderLoader {
+impl VlShaderLoader {
     pub fn add_include_directory(directory: &Path) {
         unsafe {
             if INCLUDE_DIRECTORIES.is_none() {
@@ -89,19 +89,11 @@ impl ShaderLoader {
         self.compile_options_stub.debug_info = debug;
     }
 
-    pub fn create_shaders_parallel(
-        &self,
-        device: &ash::Device,
-        create_infos: Vec<Vec<ShaderCreateInfo>>,
-    ) -> Vec<Option<Shader>> {
-        create_infos
-    }
-
     pub fn create_shader(
         &self,
         device: &ash::Device,
-        create_info: &Vec<ShaderCreateInfo>,
-    ) -> Option<Shader> {
+        create_info: &Vec<VlShaderCreateInfo>,
+    ) -> Option<VlShader> {
         let mut infos: Vec<vk::PipelineShaderStageCreateInfo> =
             Vec::with_capacity(create_info.len());
         let mut names: Vec<CString> = Vec::with_capacity(create_info.len());
@@ -133,22 +125,23 @@ impl ShaderLoader {
                     device.destroy_shader_module(x.module, None);
                 }
             }
+            return None;
         }
-        return Some(Shader::new(infos, device.clone()));
+        return Some(VlShader::new(infos, device.clone()));
     }
 
     pub fn create_vulkan_shader_module(
         &self,
         device: &ash::Device,
-        create_info: &ShaderCreateInfo,
+        create_info: &VlShaderCreateInfo,
     ) -> Option<vk::ShaderModule> {
         let binary = match create_info.file_type {
-            ShaderFileType::SrcFile => self.read_and_compile_shader(
+            VlShaderFileType::SrcFile => self.read_and_compile_shader(
                 create_info.path.as_path(),
                 vk_stage_to_shaderc_kind(create_info.stage).unwrap(),
                 create_info.entry_point.as_str(),
             ),
-            ShaderFileType::BinFile => Self::read_spv_shader(create_info.path.as_path()),
+            VlShaderFileType::BinFile => Self::read_spv_shader(create_info.path.as_path()),
         };
         if binary.is_none() {
             return None;
@@ -157,11 +150,15 @@ impl ShaderLoader {
         Self::create_vulkan_shader_module_int(device, create_info, binary)
     }
 
-    fn create_vulkan_shader_module_int(device: &ash::Device, create_info: &ShaderCreateInfo, binary: Vec<u32>) -> Option<vk::ShaderModule>{
+    fn create_vulkan_shader_module_int(
+        device: &ash::Device,
+        create_info: &VlShaderCreateInfo,
+        binary: Vec<u32>,
+    ) -> Option<vk::ShaderModule> {
         let shader_create_info = vk::ShaderModuleCreateInfo {
             ..Default::default()
         }
-            .code(binary.as_slice());
+        .code(binary.as_slice());
         let result = unsafe { device.create_shader_module(&shader_create_info, None) };
         if result.is_err() {
             eprintln!(
@@ -210,6 +207,7 @@ impl ShaderLoader {
     ) -> Option<Vec<u32>> {
         let content = Self::read_content_int(path);
         if content.is_none() {
+            eprintln!("Failed to read shader: {}", path.display());
             return None;
         }
         let content = content.unwrap();

@@ -1,5 +1,5 @@
 mod graph_structure_owned;
-mod graph_pipeline_builder;
+pub mod graph_pipeline_builder;
 
 use ash::vk;
 use crate::pipelines::graphics_pipeline::config::graph_structure_owned::*;

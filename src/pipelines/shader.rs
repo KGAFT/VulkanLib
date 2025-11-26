@@ -2,14 +2,14 @@ use ash::vk;
 use ash::Device;
 use crate::pipelines::shader_stage_create_info_owned::PipelineShaderStageCreateInfoOwned;
 
-pub struct Shader {
+pub struct VlShader {
     create_infos: Vec<PipelineShaderStageCreateInfoOwned>,
     device: ash::Device,
     rt_sorted: bool,
     destroyed: bool,
 }
 
-impl Shader {
+impl VlShader {
     pub fn new(
         mut shader_modules: Vec<vk::PipelineShaderStageCreateInfo>,
         device: ash::Device,
@@ -84,7 +84,7 @@ impl Shader {
     }
 }
 
-impl Drop for Shader {
+impl Drop for VlShader {
     fn drop(&mut self) {
         self.destroy();
     }

@@ -184,6 +184,7 @@ impl VlSwapChain {
     fn destroy(&mut self) {
         self.cleanup_images();
         unsafe {
+            self.device.device().device_wait_idle().unwrap();
             self.swap_chain_loader
                 .destroy_swapchain(self.swap_chain, None);
         }

@@ -6,8 +6,8 @@ pub struct VlPipelineConfigurer {
     device: Device,
     pipeline_layout: vk::PipelineLayout,
     descriptor_set_layout: Option<vk::DescriptorSetLayout>,
-    input_bind_desc: vk::VertexInputBindingDescription,
-    input_attrib_descs: Vec<vk::VertexInputAttributeDescription>,
+    pub(crate) input_bind_desc: vk::VertexInputBindingDescription,
+    pub(crate) input_attrib_descs: Vec<vk::VertexInputAttributeDescription>,
 }
 
 impl Drop for VlPipelineConfigurer {

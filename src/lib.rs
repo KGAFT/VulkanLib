@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 mod device;
 mod instance;
-pub mod util;
-mod window;
 mod pipelines;
 mod shader;
+pub mod util;
+mod window;
 
 #[cfg(test)]
 mod tests {
@@ -12,25 +12,30 @@ mod tests {
     use crate::device::logical_device::logical_device::VlLogicalDevice;
     use crate::device::physical_device::device_suitability::VlDeviceSuitability;
     use crate::device::physical_device::physical_device::VlPhysicalDevice;
+    use crate::device::swapchain::VlSwapChain;
     use crate::instance::instance::VlInstance;
     use crate::instance::instance_builder::VlInstanceBuilder;
+    use crate::pipelines::graphics_pipeline::config::graph_pipeline_builder::VlGraphicsPipelineBuilder;
+    use crate::pipelines::graphics_pipeline::VlGraphicsPipeline;
+    use crate::pipelines::pipeline_config::pipeline_builder::{
+        VlSamplerInfo, VlStorageBufferInfo, VlVertexInput,
+    };
+    use crate::shader::VlShaderFileType::SrcFile;
+    use crate::shader::{VlShaderCreateInfo, VlShaderLoader};
     use crate::window::Window;
     use ash::vk;
+    use shaderc::{OptimizationLevel, ShaderKind};
     use std::borrow::Cow;
     use std::ffi::CString;
     use std::io::Write;
+    use std::path::PathBuf;
     use std::sync::{Arc, Mutex};
-    use shaderc::{OptimizationLevel, ShaderKind};
-    use crate::device::swapchain::VlSwapChain;
-    use crate::shader::ShaderLoader;
 
     #[test]
     fn it_works() {
-        let mut shader_loader = ShaderLoader::new();
-        ShaderLoader::add_include_directory("glsl".as_ref());
-        shader_loader.set_optimization_level(OptimizationLevel::Performance);
-        shader_loader.read_and_compile_shader("glsl/RayTracingPipeline/raygen.glsl".as_ref(), ShaderKind::RayGeneration, "main").unwrap();
-
+        let mut shader_loader = VlShaderLoader::new();
+        VlShaderLoader::add_include_directory("glsl".as_ref());
+       // shader_loader.set_optimization_level(OptimizationLevel::Performance);
 
         let mut window = Window::new(800, 600).unwrap();
 
@@ -102,6 +107,61 @@ mod tests {
                     .unwrap()
                     .recreate_swap_chain(width, height);
             });
+            let create_infos = vec![
+                VlShaderCreateInfo {
+                    path: PathBuf::from("glsl/OutputPipeline/main.vert"),
+                    file_type: SrcFile,
+                    stage: vk::ShaderStageFlags::VERTEX,
+                    entry_point: "main".to_string(),
+                },
+                VlShaderCreateInfo {
+                    path: PathBuf::from("glsl/OutputPipeline/main.frag"),
+                    file_type: SrcFile,
+                    stage: vk::ShaderStageFlags::FRAGMENT,
+                    entry_point: "main".to_string(),
+                },
+            ];
+            let shader = shader_loader
+                .create_shader(device.device_r(), &create_infos)
+                .unwrap();
+
+            let mut graph_builder = VlGraphicsPipelineBuilder::new(
+                1,
+                window.get_physical_size().0,
+                window.get_physical_size().1,
+                true,
+            );
+            graph_builder.add_color_attachment(vk::Format::R32G32B32A32_SFLOAT);
+            graph_builder.set_depth_attachment(vk::Format::D32_SFLOAT);
+            graph_builder.add_vertex_input(VlVertexInput {
+                location: 0,
+                coordinates_amount: 3,
+                type_size: size_of::<f32>(),
+                format: vk::Format::R32G32B32_SFLOAT,
+            });
+            graph_builder.add_vertex_input(VlVertexInput {
+                location: 1,
+                coordinates_amount: 2,
+                type_size: size_of::<f32>(),
+                format: vk::Format::R32G32_SFLOAT,
+            });
+            graph_builder.add_sample_info(VlSamplerInfo {
+                binding: 0,
+                descriptor_count: 1,
+                shader_stages: vk::ShaderStageFlags::FRAGMENT,
+            });
+            graph_builder.add_sample_info(VlSamplerInfo {
+                binding: 1,
+                descriptor_count: 1,
+                shader_stages: vk::ShaderStageFlags::FRAGMENT,
+            });
+            graph_builder.add_sample_info(VlSamplerInfo {
+                binding: 2,
+                descriptor_count: 1,
+                shader_stages: vk::ShaderStageFlags::FRAGMENT,
+            });
+
+            let graphics_pipeline = VlGraphicsPipeline::new(device.device(), shader, graph_builder);
 
             while !window.need_close() {
                 let _ = window.poll_events();
