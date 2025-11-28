@@ -4,4 +4,5 @@ pub mod logical_device;
 pub mod image;
 pub mod swapchain;
 pub mod buffer;
-mod synchronization;
+pub mod synchronization;
+pub mod descriptors;
