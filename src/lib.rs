@@ -18,13 +18,12 @@ mod tests {
     use crate::pipelines::graphics_pipeline::config::graph_pipeline_builder::VlGraphicsPipelineBuilder;
     use crate::pipelines::graphics_pipeline::VlGraphicsPipeline;
     use crate::pipelines::pipeline_config::pipeline_builder::{
-        VlSamplerInfo, VlStorageBufferInfo, VlVertexInput,
+        VlSamplerInfo,  VlVertexInput,
     };
     use crate::shader::VlShaderFileType::SrcFile;
     use crate::shader::{VlShaderCreateInfo, VlShaderLoader};
     use crate::window::Window;
     use ash::vk;
-    use shaderc::{OptimizationLevel, ShaderKind};
     use std::borrow::Cow;
     use std::ffi::CString;
     use std::io::Write;
@@ -33,7 +32,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut shader_loader = VlShaderLoader::new();
+        let shader_loader = VlShaderLoader::new();
         VlShaderLoader::add_include_directory("glsl".as_ref());
        // shader_loader.set_optimization_level(OptimizationLevel::Performance);
 

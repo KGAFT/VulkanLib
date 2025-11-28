@@ -79,7 +79,7 @@ impl VlGraphicsPipelineConfig {
         };
 
         // Color blend attachments
-        let mut color_blend_attachments = vec![
+        let color_blend_attachments = vec![
             vk::PipelineColorBlendAttachmentState {
                 color_write_mask: vk::ColorComponentFlags::R
                     | vk::ColorComponentFlags::G

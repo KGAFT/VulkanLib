@@ -56,6 +56,7 @@ impl VlLogicalQueue {
         }
     }
 
+    
     pub fn begin_single_time_command(&self) -> vk::CommandBuffer {
         let alloc_info = vk::CommandBufferAllocateInfo {
             level: vk::CommandBufferLevel::PRIMARY,
@@ -119,6 +120,10 @@ impl VlLogicalQueue {
 
     pub fn index(&self) -> u32 {
         self.index
+    }
+
+    pub fn command_pool(&self) -> vk::CommandPool {
+        self.command_pool
     }
 }
 

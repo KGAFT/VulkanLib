@@ -57,9 +57,9 @@ impl VlPhysicalDevice {
     }
 
     pub fn raytracing_pipeline_properties(
-        &self,
+        & self,
         instance: &Instance,
-    ) -> vk::PhysicalDeviceRayTracingPipelinePropertiesKHR {
+    ) -> vk::PhysicalDeviceRayTracingPipelinePropertiesKHR<'_> {
         let mut res = vk::PhysicalDeviceRayTracingPipelinePropertiesKHR::default();
         let mut prop2 = vk::PhysicalDeviceProperties2::default();
         prop2 = prop2.push_next(&mut res);

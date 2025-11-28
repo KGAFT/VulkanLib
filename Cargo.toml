@@ -8,6 +8,11 @@ name = "vulkanlib"
 path = "src/lib.rs"
 crate-type = ["rlib"]
 
+[[bin]]
+name = "vulkanlib-testing"
+path = "src/main.rs"
+
+
 [dependencies]
 ash = {version = "0.38", features = ["default", "linked", "libloading", "loaded"]}
 glfw = {version = "0.60", features = ["x11", "wayland", "vulkan"]}

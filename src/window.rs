@@ -2,7 +2,7 @@ use ash::vk;
 use ash::Instance;
 use ash::khr::surface;
 
-use glfw::{Action, Context, GlfwReceiver, Key, WindowEvent};
+use glfw::{Action, GlfwReceiver, Key, WindowEvent};
 use std::error::Error;
 use std::ffi::CString;
 use std::ptr::null;
@@ -29,7 +29,7 @@ pub struct Window {
 
 impl Window {
     pub fn get_required_instance_extensions() -> Result<Vec<CString>, Box<dyn Error>> {
-        let mut glfw = glfw::init_no_callbacks()?;
+        let glfw = glfw::init_no_callbacks()?;
 
         let ext_list = glfw.get_required_instance_extensions()
             .ok_or("GLFW could not provide Vulkan extensions")?;
@@ -141,6 +141,10 @@ impl Window {
         }
 
         Ok(())
+    }
+
+    pub fn clear_resize_callbacks(&mut self){
+        *self.resize_callback.lock().unwrap() = None;
     }
 
     pub fn need_close(&self) -> bool {

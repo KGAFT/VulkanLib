@@ -1,13 +1,14 @@
+#![allow(static_mut_refs)]
+
 use crate::pipelines::shader::VlShader;
 use crate::util::vl_semaphore::VlSemaphore;
 use ash::vk;
-use ash::vk::ShaderModule;
-use shaderc::Error::InternalError;
+
 use shaderc::{
     CompileOptions, Compiler, OptimizationLevel, ResolvedInclude, ShaderKind, SourceLanguage,
     SpirvVersion,
 };
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::fs;
 use std::fs::File;
 use std::io::Read;
@@ -118,6 +119,7 @@ impl VlShaderLoader {
             .name(entry_name);
 
             infos.push(info);
+            i+=1;
         }
         if failed {
             for x in infos.iter() {
@@ -147,12 +149,11 @@ impl VlShaderLoader {
             return None;
         }
         let binary = binary.unwrap();
-        Self::create_vulkan_shader_module_int(device, create_info, binary)
+        Self::create_vulkan_shader_module_int(device, binary)
     }
 
     fn create_vulkan_shader_module_int(
         device: &ash::Device,
-        create_info: &VlShaderCreateInfo,
         binary: Vec<u32>,
     ) -> Option<vk::ShaderModule> {
         let shader_create_info = vk::ShaderModuleCreateInfo {
@@ -170,7 +171,7 @@ impl VlShaderLoader {
     }
 
     pub fn read_spv_shader<P: AsRef<Path>>(path: P) -> Option<Vec<u32>> {
-        let mut file = File::open(&path);
+        let file = File::open(&path);
         if file.is_err() {
             eprintln!(
                 "Failed to open shader spv shader: {}",
@@ -333,7 +334,7 @@ struct CompileOptionsStub {
 }
 
 impl CompileOptionsStub {
-    fn get_compile_options(&self) -> CompileOptions {
+    fn get_compile_options(&self) -> CompileOptions<'_> {
         let mut compile_options = CompileOptions::new().unwrap();
         compile_options.set_optimization_level(self.optimization_level);
         compile_options.set_include_callback(include_callback);
@@ -358,7 +359,7 @@ impl Default for CompileOptionsStub {
 
 fn include_callback(
     requested: &str,
-    include_type: shaderc::IncludeType,
+    _include_type: shaderc::IncludeType,
     _source_name: &str,
     _depth: usize,
 ) -> Result<ResolvedInclude, String> {
@@ -376,7 +377,7 @@ fn include_callback(
             let inc_directories = INCLUDE_DIRECTORIES.as_ref().unwrap();
             INCLUDE_SEM.release();
             for dir in inc_directories.iter() {
-                let mut res_path = construct_path_and_check_exists(dir, requested);
+                let res_path = construct_path_and_check_exists(dir, requested);
                 if res_path.is_some() {
                     path = res_path;
                     break;

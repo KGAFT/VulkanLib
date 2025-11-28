@@ -41,7 +41,7 @@ impl ImageCreateInfoOwned {
             initial_layout: base.initial_layout,
         }
     }
-    pub fn to_base(&self) -> vk::ImageCreateInfo {
+    pub fn to_base(&self) -> vk::ImageCreateInfo<'_> {
         vk::ImageCreateInfo{
             s_type: self.s_type,
             p_next: self.p_next,

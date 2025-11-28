@@ -1,5 +1,4 @@
 use ash::vk;
-use ash::Device;
 use crate::pipelines::shader_stage_create_info_owned::PipelineShaderStageCreateInfoOwned;
 
 pub struct VlShader {
@@ -30,7 +29,7 @@ impl VlShader {
         &mut self.create_infos
     }
     
-    pub fn create_infos_vk(&self) -> Vec<vk::PipelineShaderStageCreateInfo>{
+    pub fn create_infos_vk(&self) -> Vec<vk::PipelineShaderStageCreateInfo<'_>>{
         let mut result = Vec::with_capacity(self.create_infos.len());
         self.create_infos.iter().for_each(|info|{
             result.push(info.as_vulkan())

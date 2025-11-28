@@ -1,6 +1,6 @@
 use ash::vk;
 use crate::pipelines::graphics_pipeline::config::VlGraphicsPipelineConfig;
-use crate::pipelines::pipeline_config::pipeline_builder::{VlPipelineBuilder, VlSamplerInfo, VlStorageBufferInfo, VlStorageImageInfo, VlUniformBufferInfo, VlVertexInput};
+use crate::pipelines::pipeline_config::pipeline_builder::{VlPipelineBuilder, VlPushConstantInfo, VlSamplerInfo, VlStorageBufferInfo, VlStorageImageInfo, VlUniformBufferInfo, VlVertexInput};
 
 pub struct VlGraphicsPipelineBuilder{
     builder: VlPipelineBuilder,
@@ -42,8 +42,10 @@ impl VlGraphicsPipelineBuilder{
     pub fn add_storage_buffer(&mut self, info: VlStorageBufferInfo){
         self.builder.add_storage_buffer(info);
     }
-    
-    
+
+    pub fn add_push_constant(&mut self, info: VlPushConstantInfo){
+        self.builder.add_push_constant_info(info);
+    }
     pub fn add_uniform_buffer(&mut self, info: VlUniformBufferInfo){
         self.builder.add_uniform_buffer(info);
     }

@@ -173,6 +173,8 @@ impl VlSwapChain {
         self.create_swap_chain(width, height, self.frame_lock, self.surface);
     }
 
+
+
     fn cleanup_images(&mut self) {
         while let Some(view) = self.image_views.pop() {
             drop(view)
@@ -313,5 +315,13 @@ impl VlSwapChain {
                 height: clamped_height,
             }
         }
+    }
+
+    pub fn swap_chain_loader(&self) -> &swapchain::Device {
+        &self.swap_chain_loader
+    }
+
+    pub fn swap_chain(&self) -> vk::SwapchainKHR {
+        self.swap_chain
     }
 }

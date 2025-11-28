@@ -1,6 +1,6 @@
 use std::ffi::c_void;
 use ash::vk;
-use ash::vk::{Bool32, CullModeFlags, FrontFace, PipelineInputAssemblyStateCreateFlags, PipelineInputAssemblyStateCreateInfo, PipelineRasterizationStateCreateFlags, PipelineRasterizationStateCreateInfo, PolygonMode, PrimitiveTopology, StructureType};
+use ash::vk::{Bool32, PipelineInputAssemblyStateCreateFlags, PipelineInputAssemblyStateCreateInfo, PrimitiveTopology, StructureType};
 
 
 #[derive(Clone, Copy, Default)]
@@ -23,7 +23,7 @@ impl PipelineInputAssemblyStateCreateInfoOwned {
         }
     }
 
-    pub fn to_base(&self) -> PipelineInputAssemblyStateCreateInfo {
+    pub fn to_base(&self) -> PipelineInputAssemblyStateCreateInfo<'_> {
         PipelineInputAssemblyStateCreateInfo{
             s_type: self.s_type,
             p_next: self.p_next,
@@ -70,7 +70,7 @@ impl PipelineRasterizationStateCreateInfoOwned {
         }
     }
 
-    pub fn to_base(&self) -> vk::PipelineRasterizationStateCreateInfo {
+    pub fn to_base(&self) -> vk::PipelineRasterizationStateCreateInfo<'_> {
         vk::PipelineRasterizationStateCreateInfo {
             s_type: self.s_type,
             p_next: self.p_next,
@@ -118,7 +118,7 @@ impl PipelineMultisampleStateCreateInfoOwned {
         }
     }
 
-    pub fn to_base(&self) -> vk::PipelineMultisampleStateCreateInfo {
+    pub fn to_base(&self) -> vk::PipelineMultisampleStateCreateInfo<'_> {
         vk::PipelineMultisampleStateCreateInfo {
             s_type: self.s_type,
             p_next: self.p_next,
@@ -160,7 +160,7 @@ impl PipelineColorBlendStateCreateInfoOwned {
         }
     }
 
-    pub fn to_base(&self) -> vk::PipelineColorBlendStateCreateInfo {
+    pub fn to_base(&self) -> vk::PipelineColorBlendStateCreateInfo<'_> {
         vk::PipelineColorBlendStateCreateInfo {
             s_type: self.s_type,
             p_next: self.p_next,
@@ -209,7 +209,7 @@ impl PipelineDepthStencilStateCreateInfoOwned {
         }
     }
 
-    pub fn to_base(&self) -> vk::PipelineDepthStencilStateCreateInfo {
+    pub fn to_base(&self) -> vk::PipelineDepthStencilStateCreateInfo<'_> {
         vk::PipelineDepthStencilStateCreateInfo {
             s_type: self.s_type,
             p_next: self.p_next,

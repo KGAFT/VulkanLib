@@ -11,7 +11,7 @@ pub struct PipelineShaderStageCreateInfoOwned {
 }
 
 impl PipelineShaderStageCreateInfoOwned {
-    pub fn as_vulkan(&self) -> vk::PipelineShaderStageCreateInfo {
+    pub fn as_vulkan(&self) -> vk::PipelineShaderStageCreateInfo<'_> {
         vk::PipelineShaderStageCreateInfo {
             s_type: self.s_type,
             p_next: self.p_next.unwrap_or(std::ptr::null()),

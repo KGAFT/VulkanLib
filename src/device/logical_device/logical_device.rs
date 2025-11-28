@@ -3,7 +3,6 @@ use crate::device::logical_device::logical_queue::VlLogicalQueue;
 use crate::device::physical_device::device_suitability::VlQueueFamilyInfo;
 use crate::device::physical_device::physical_device::VlPhysicalDevice;
 use crate::instance::instance::VlInstance;
-use crate::util::c_string_vec_to_ptr;
 use ash::vk;
 use std::ffi::c_void;
 use std::sync::{Arc, Mutex};
@@ -210,7 +209,7 @@ impl VlLogicalDevice {
         self.base_device.clone()
     }
 
-    fn suit_res_to_c_info(suit_res: &Vec<VlQueueFamilyInfo>) -> Vec<vk::DeviceQueueCreateInfo> {
+    fn suit_res_to_c_info(suit_res: &'_ Vec<VlQueueFamilyInfo>) -> Vec<vk::DeviceQueueCreateInfo<'_>> {
         let mut res = Vec::with_capacity(suit_res.len());
         suit_res.iter().for_each(|queue_family| {
             let create_info = vk::DeviceQueueCreateInfo {
