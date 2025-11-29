@@ -16,6 +16,12 @@ impl RenderImagePool {
             cube_images: Vec::new(),
         }
     }
+    
+    pub fn cleanup_all(&mut self) {
+        self.color_images.clear();
+        self.depth_images.clear();
+        self.cube_images.clear();
+    }
 
     pub fn acquire_depth_image(&mut self, device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
         for x in self.depth_images.iter_mut() {
@@ -149,7 +155,7 @@ impl RenderImagePool {
     }
 
     fn create_color_attachment(device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
-        let mut create_info = default_color_image_create_info(extent.0, extent.1);
+        let create_info = default_color_image_create_info(extent.0, extent.1);
         let mut image = VlImage::new(device, create_info);
         let view_info = default_color_view_create_info(image.image());
         image.create_image_view(view_info);

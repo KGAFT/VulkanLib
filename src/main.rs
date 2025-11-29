@@ -1,13 +1,12 @@
 #![allow(dead_code)]
 
-
 mod device;
 mod instance;
 mod pipelines;
+mod render_pipeline;
 mod shader;
 pub mod util;
 mod window;
-mod render_pipeline;
 use crate::device::device_builder::VlDeviceBuilder;
 use crate::device::logical_device::logical_device::VlLogicalDevice;
 use crate::device::physical_device::device_suitability::VlDeviceSuitability;
@@ -16,8 +15,10 @@ use crate::device::swapchain::VlSwapChain;
 use crate::instance::instance::VlInstance;
 use crate::instance::instance_builder::VlInstanceBuilder;
 use crate::pipelines::graphics_pipeline::config::graph_pipeline_builder::VlGraphicsPipelineBuilder;
-use crate::pipelines::graphics_pipeline::VlGraphicsPipeline;
-use crate::pipelines::pipeline_config::pipeline_builder::{VlPushConstantInfo, VlSamplerInfo, VlVertexInput};
+use crate::pipelines::pipeline_config::pipeline_builder::{
+    VlPushConstantInfo, VlSamplerInfo, VlVertexInput,
+};
+use crate::render_pipeline::graphics_render_pipeline::VlGraphicsRenderPipeline;
 use crate::shader::VlShaderFileType::SrcFile;
 use crate::shader::{VlShaderCreateInfo, VlShaderLoader};
 use crate::window::Window;
@@ -78,7 +79,7 @@ pub fn main() {
             instance.get_instance_r(),
         )
     }
-        .expect("Failed to create Vulkan surface");
+    .expect("Failed to create Vulkan surface");
     dev_builder.require_graphics();
     dev_builder.require_compute();
     dev_builder.require_raytracing();
@@ -86,8 +87,7 @@ pub fn main() {
 
     let suit = VlDeviceSuitability::is_device_suitable(&instance, &dev_builder, &devices[0]);
     if suit.0 {
-        let device =
-            VlLogicalDevice::new(&instance, devices.pop().unwrap(), &dev_builder, suit);
+        let device = VlLogicalDevice::new(&instance, devices.pop().unwrap(), &dev_builder, suit);
         println!("{:?}", device.find_depth_format());
         let swap_chain = Arc::new(Mutex::new(VlSwapChain::new(
             device.clone(),
@@ -128,8 +128,8 @@ pub fn main() {
             window.get_physical_size().1,
             true,
         );
-        graph_builder.add_color_attachment(vk::Format::R32G32B32A32_SFLOAT);
-        graph_builder.set_depth_attachment(vk::Format::D32_SFLOAT);
+        //    graph_builder.add_color_attachment(vk::Format::R32G32B32A32_SFLOAT);
+        //  graph_builder.set_depth_attachment(vk::Format::D32_SFLOAT);
         graph_builder.add_vertex_input(VlVertexInput {
             location: 0,
             coordinates_amount: 3,
@@ -157,15 +157,26 @@ pub fn main() {
             descriptor_count: 1,
             shader_stages: vk::ShaderStageFlags::FRAGMENT,
         });
-        graph_builder.add_push_constant(VlPushConstantInfo{ shader_stages: vk::ShaderStageFlags::FRAGMENT, size: size_of::<i32>()*4 });
-
-        let graphics_pipeline = VlGraphicsPipeline::new(device.device(), shader, graph_builder);
+        graph_builder.add_push_constant(VlPushConstantInfo {
+            shader_stages: vk::ShaderStageFlags::FRAGMENT,
+            size: size_of::<i32>() * 4,
+        });
+        let frames_in_flight = swap_chain.lock().unwrap().images().len() as u32;
+        let render_pipeline = VlGraphicsRenderPipeline::new(
+            &device,
+            Some(swap_chain.clone()),
+            graph_builder,
+            shader,
+            vk::Extent2D { width: 800, height: 600 },
+            frames_in_flight
+        );
 
         while !window.need_close() {
             let _ = window.poll_events();
         }
         window.clear_resize_callbacks();
-        drop(graphics_pipeline);
+        drop(render_pipeline);
+        VlGraphicsRenderPipeline::clean_image_pool();
         drop(swap_chain);
         drop(device);
         drop(window);

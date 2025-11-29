@@ -166,6 +166,10 @@ impl VlSwapChain {
         self.destroy();
         self.create_swap_chain(width, height, self.frame_lock, self.surface);
     }
+    
+    
+
+
 
     pub fn recreate_swap_chain_framelock(&mut self, width: u32, height: u32, frame_lock: bool){
         self.frame_lock = frame_lock;
@@ -323,5 +327,17 @@ impl VlSwapChain {
 
     pub fn swap_chain(&self) -> vk::SwapchainKHR {
         self.swap_chain
+    }
+
+    pub fn format(&self) -> vk::SurfaceFormatKHR {
+        self.format
+    }
+
+    pub fn images(&self) -> &Vec<VlImage> {
+        &self.images
+    }
+
+    pub fn image_views(&self) -> &Vec<VlImageView> {
+        &self.image_views
     }
 }
