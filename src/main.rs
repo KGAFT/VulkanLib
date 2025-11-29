@@ -7,7 +7,7 @@ mod pipelines;
 mod shader;
 pub mod util;
 mod window;
-
+mod render_pipeline;
 use crate::device::device_builder::VlDeviceBuilder;
 use crate::device::logical_device::logical_device::VlLogicalDevice;
 use crate::device::physical_device::device_suitability::VlDeviceSuitability;
@@ -38,6 +38,7 @@ pub fn main() {
     let mut builder = VlInstanceBuilder::new();
     builder.set_app_name(CString::new("hello app name").unwrap());
     builder.set_engine_name(CString::new("Vulkan Engine").unwrap());
+    builder.preset_hdr();
     let mut exts = Window::get_required_instance_extensions().unwrap();
     while let Some(ext) = exts.pop() {
         builder.add_enabled_extension(ext);

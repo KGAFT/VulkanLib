@@ -126,6 +126,8 @@ impl VlImage {
         self.image_views.push(view);
         res
     }
+    
+    
 
     #[allow(unused_assignments)]
     pub fn resize(&mut self, device: &VlLogicalDevice, width: u32, height: u32) {
@@ -242,7 +244,7 @@ impl VlImage {
     }
 
     pub fn transition_image_layout_q(
-        &self,
+        &mut self,
         queue: &VlLogicalQueue,
         old_layout: vk::ImageLayout,
         new_layout: vk::ImageLayout,
@@ -254,7 +256,7 @@ impl VlImage {
     }
 
     pub fn transition_image_layout_s(
-        &self,
+        &mut self,
         command_buffer: vk::CommandBuffer,
         old_layout: vk::ImageLayout,
         new_layout: vk::ImageLayout,
@@ -277,6 +279,7 @@ impl VlImage {
                 array_layers,
                 mip_levels,
             );
+            self.image_info.initial_layout = new_layout;
         }
     }
 
@@ -385,5 +388,9 @@ impl VlImage {
                 std::slice::from_ref(&barrier), // image memory barriers
             );
         }
+    }
+
+    pub fn image_info(&self) -> ImageCreateInfoOwned {
+        self.image_info
     }
 }

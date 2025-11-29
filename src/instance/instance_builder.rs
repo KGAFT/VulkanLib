@@ -1,7 +1,7 @@
 use crate::instance::debug_messenger::DebugCall;
+use crate::util::c_string_vec_to_ptr;
 use std::ffi::{c_char, CString};
 use std::sync::{Arc, Mutex};
-use crate::util::c_string_vec_to_ptr;
 
 pub struct VlInstanceBuilder {
     enabled_layers: Vec<CString>,
@@ -48,6 +48,11 @@ impl VlInstanceBuilder {
             .push(CString::new("VK_EXT_debug_utils").unwrap());
 
         self.debug_enabled = true;
+    }
+
+    pub fn preset_hdr(&mut self) {
+        self.enabled_extensions
+            .push(CString::new("VK_EXT_swapchain_colorspace").unwrap());
     }
 
     pub fn initial_callbacks(&mut self) -> Vec<Arc<Mutex<DebugCall>>> {

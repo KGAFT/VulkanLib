@@ -5,6 +5,7 @@ mod pipelines;
 mod shader;
 pub mod util;
 mod window;
+mod render_pipeline;
 
 #[cfg(test)]
 mod tests {
