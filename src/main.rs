@@ -7,11 +7,13 @@ mod render_pipeline;
 mod shader;
 pub mod util;
 mod window;
+use crate::device::buffer::vertex_buffer::VlVertexBuffer;
 use crate::device::device_builder::VlDeviceBuilder;
 use crate::device::logical_device::logical_device::VlLogicalDevice;
 use crate::device::physical_device::device_suitability::VlDeviceSuitability;
 use crate::device::physical_device::physical_device::VlPhysicalDevice;
 use crate::device::swapchain::VlSwapChain;
+use crate::device::synchronization::sync_manager::VlSyncManager;
 use crate::instance::instance::VlInstance;
 use crate::instance::instance_builder::VlInstanceBuilder;
 use crate::pipelines::graphics_pipeline::config::graph_pipeline_builder::VlGraphicsPipelineBuilder;
@@ -24,14 +26,15 @@ use crate::shader::{VlShaderCreateInfo, VlShaderLoader};
 use crate::window::Window;
 use ash::vk;
 use std::borrow::Cow;
-use std::ffi::CString;
+use std::ffi::{c_void, CString};
 use std::io::Write;
+use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 pub fn main() {
     let shader_loader = VlShaderLoader::new();
-    VlShaderLoader::add_include_directory("glsl".as_ref());
+    VlShaderLoader::add_include_directory("/mnt/ssd/RustProjects/VulkanLib/glsl".as_ref());
     // shader_loader.set_optimization_level(OptimizationLevel::Performance);
 
     let mut window = Window::new(800, 600).unwrap();
@@ -87,10 +90,14 @@ pub fn main() {
 
     let suit = VlDeviceSuitability::is_device_suitable(&instance, &dev_builder, &devices[0]);
     if suit.0 {
-        let device = VlLogicalDevice::new(&instance, devices.pop().unwrap(), &dev_builder, suit);
-        println!("{:?}", device.find_depth_format());
+        let device = Arc::new(Mutex::new(VlLogicalDevice::new(
+            &instance,
+            devices.pop().unwrap(),
+            &dev_builder,
+            suit,
+        )));
         let swap_chain = Arc::new(Mutex::new(VlSwapChain::new(
-            device.clone(),
+            device.lock().unwrap().clone(),
             instance.clone(),
             surface.clone(),
             800,
@@ -98,28 +105,23 @@ pub fn main() {
             true,
         )));
         let swap_chain_clone = swap_chain.clone();
-        window.set_resize_callback(move |width, height| {
-            swap_chain_clone
-                .lock()
-                .unwrap()
-                .recreate_swap_chain(width, height);
-        });
+
         let create_infos = vec![
             VlShaderCreateInfo {
-                path: PathBuf::from("glsl/OutputPipeline/main.vert"),
+                path: PathBuf::from("/mnt/ssd/RustProjects/VulkanLib/glsl/OutputPipeline/main.vert"),
                 file_type: SrcFile,
                 stage: vk::ShaderStageFlags::VERTEX,
                 entry_point: "main".to_string(),
             },
             VlShaderCreateInfo {
-                path: PathBuf::from("glsl/OutputPipeline/main.frag"),
+                path: PathBuf::from("/mnt/ssd/RustProjects/VulkanLib/glsl/OutputPipeline/main.frag"),
                 file_type: SrcFile,
                 stage: vk::ShaderStageFlags::FRAGMENT,
                 entry_point: "main".to_string(),
             },
         ];
         let shader = shader_loader
-            .create_shader(device.device_r(), &create_infos)
+            .create_shader(device.lock().unwrap().device_r(), &create_infos)
             .unwrap();
 
         let mut graph_builder = VlGraphicsPipelineBuilder::new(
@@ -136,42 +138,88 @@ pub fn main() {
             type_size: size_of::<f32>(),
             format: vk::Format::R32G32B32_SFLOAT,
         });
-        graph_builder.add_vertex_input(VlVertexInput {
-            location: 1,
-            coordinates_amount: 2,
-            type_size: size_of::<f32>(),
-            format: vk::Format::R32G32_SFLOAT,
-        });
-        graph_builder.add_sample_info(VlSamplerInfo {
-            binding: 0,
-            descriptor_count: 1,
-            shader_stages: vk::ShaderStageFlags::FRAGMENT,
-        });
-        graph_builder.add_sample_info(VlSamplerInfo {
-            binding: 1,
-            descriptor_count: 1,
-            shader_stages: vk::ShaderStageFlags::FRAGMENT,
-        });
-        graph_builder.add_sample_info(VlSamplerInfo {
-            binding: 2,
-            descriptor_count: 1,
-            shader_stages: vk::ShaderStageFlags::FRAGMENT,
-        });
+
         graph_builder.add_push_constant(VlPushConstantInfo {
             shader_stages: vk::ShaderStageFlags::FRAGMENT,
             size: size_of::<i32>() * 4,
         });
         let frames_in_flight = swap_chain.lock().unwrap().images().len() as u32;
-        let render_pipeline = VlGraphicsRenderPipeline::new(
-            &device,
+        let mut render_pipeline = Arc::new(Mutex::new(VlGraphicsRenderPipeline::new(
+            &device.lock().unwrap(),
             Some(swap_chain.clone()),
             graph_builder,
             shader,
-            vk::Extent2D { width: 800, height: 600 },
-            frames_in_flight
+            vk::Extent2D {
+                width: 800,
+                height: 600,
+            },
+            frames_in_flight,
+        )));
+        let dev_lock = device.lock().unwrap();
+        let mut sync_manager = Arc::new(Mutex::new(VlSyncManager::new(
+            dev_lock.device(),
+            swap_chain.clone(),
+            dev_lock.find_present_queue_r().unwrap(),
+            frames_in_flight,
+        )));
+        let sn_clocne = sync_manager.clone();
+        window.set_resize_callback(move |width, height| {
+            sn_clocne.lock().unwrap().resized(width, height);
+        });
+
+        let rp_clone = render_pipeline.clone();
+        drop(dev_lock);
+        let d_clone = device.clone();
+        sync_manager
+            .lock()
+            .unwrap()
+            .add_resize_callback(Box::new(move |width, height| {
+                let d_lock = d_clone.lock().unwrap();
+                rp_clone
+                    .lock()
+                    .unwrap()
+                    .resize(d_lock.deref(), (width, height))
+            }));
+
+        let mut cur_cmd: u32 = 0;
+
+        let TRIANGLE_VERTICES: [f32; 9] = [
+            //    X      Y     Z
+            0.0, 0.5, 0.0, // top
+            -0.5, -0.5, 0.0, // bottom-left
+            0.5, -0.5, 0.0, // bottom-right
+        ];
+
+        let vertex_buffer = VlVertexBuffer::new(
+            device.lock().unwrap().deref(),
+            (TRIANGLE_VERTICES.as_slice() as &_ as *const _) as *const c_void,
+            3,
+            size_of::<f32>() * 3,
+            vk::Format::R32G32B32_SFLOAT,
+            false
         );
 
         while !window.need_close() {
+            let cmd = sync_manager
+                .lock()
+                .unwrap()
+                .begin_render(&mut cur_cmd)
+                .unwrap();
+            render_pipeline.lock().unwrap().begin(
+                device.lock().unwrap().device_r(),
+                cmd.clone(),
+                cur_cmd,
+            );
+
+            vertex_buffer.bind(cmd.clone());
+            vertex_buffer.draw_all(cmd.clone());
+
+            render_pipeline.lock().unwrap().end_render(
+                device.lock().unwrap().device_r(),
+                cmd,
+                cur_cmd,
+            );
+            sync_manager.lock().unwrap().end_render();
             let _ = window.poll_events();
         }
         window.clear_resize_callbacks();

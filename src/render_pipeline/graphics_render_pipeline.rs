@@ -124,6 +124,7 @@ impl VlGraphicsRenderPipeline {
             depth_clear.depth_stencil.depth = 1.0f32;
             depth_clear.depth_stencil.stencil = 0;
             color_clear.color.float32[3] = 1.0f32;
+            color_clear.color.float32[2] = 1.0f32;
             viewport.width = render_area.width as f32;
             viewport.height = render_area.height as f32;
             scissor.extent.width = render_area.width;
@@ -168,6 +169,24 @@ impl VlGraphicsRenderPipeline {
             let barriers = self.prepare_barriers_after_rendering(current_image);
             Self::bind_barriers(device, cmd, barriers);
         }
+    }
+
+    pub fn resize(&mut self, device: &VlLogicalDevice, (width, height): (u32, u32)) {
+        self.d = false;
+        self.first_render = true;
+        self.graphics_pipeline.resize(width, height);
+        self.render_area.width = width;
+        self.render_area.height = height;
+        self.scissor.extent.width = self.render_area.width;
+        self.scissor.extent.height = self.render_area.height;
+        self.viewport.width = width as f32;
+        self.viewport.height = height as f32;
+        if self.swapchain.is_none() {
+            self.render_images.iter_mut().for_each(|image| {
+                image.resize(device, width, height);
+            });
+        }
+        self.depth_images.iter_mut().for_each(|image| {image.resize(device, width, height);});
     }
 
     fn bind_barriers(

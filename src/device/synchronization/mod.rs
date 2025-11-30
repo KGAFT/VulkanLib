@@ -1,2 +1,2 @@
-mod classic_sync;
-mod sync_manager;
+pub mod classic_sync;
+pub mod sync_manager;

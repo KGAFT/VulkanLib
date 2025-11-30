@@ -5,9 +5,8 @@ use crate::device::logical_device::logical_queue::VlLogicalQueue;
 use crate::device::swapchain::VlSwapChain;
 use crate::device::synchronization::classic_sync::VlMultiFrameSync;
 
-pub struct VlSyncManager<F>
-where
-    F: FnMut(u32, u32),
+pub struct VlSyncManager
+
 {
     command_buffers: Vec<vk::CommandBuffer>,
     sync: VlMultiFrameSync,
@@ -15,7 +14,7 @@ where
     swapchain: Arc<Mutex<VlSwapChain>>,
     queue:  vk::Queue,
     current_cmd: u32,
-    resize_callbacks: Vec<Box<F>>,
+    resize_callbacks: Vec<Box<dyn FnMut(u32, u32)>>,
     stop: bool,
     width: u32,
     height: u32,
@@ -23,9 +22,16 @@ where
     command_pool: CommandPool
 }
 
-impl<F> VlSyncManager<F>
-where
-    F: FnMut(u32, u32),
+unsafe impl Send for VlSyncManager {
+
+}
+
+unsafe impl Sync for VlSyncManager {
+
+}
+
+impl VlSyncManager
+
 {
     pub fn new(
         device: ash::Device,
@@ -120,8 +126,8 @@ where
         );
     }
 
-    pub fn add_resize_callback(&mut self, callback: F) {
-        self.resize_callbacks.push(Box::new(callback));
+    pub fn add_resize_callback(&mut self, callback: Box<dyn FnMut(u32, u32)>) {
+        self.resize_callbacks.push(callback);
     }
 
     pub fn resized(&mut self, w: u32, h: u32) {
