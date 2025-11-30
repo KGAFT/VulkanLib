@@ -2,7 +2,6 @@ use crate::device::image::image::VlImage;
 use crate::device::logical_device::logical_device::VlLogicalDevice;
 use ash::vk;
 
-
 //@TODO gain full control to pipeline of image!!!
 pub struct RenderImagePool {
     color_images: Vec<(VlImage, bool)>,
@@ -11,61 +10,83 @@ pub struct RenderImagePool {
 }
 
 impl RenderImagePool {
-    pub fn new() -> Self {
-        Self {
-            color_images: Vec::new(),
-            depth_images: Vec::new(),
-            cube_images: Vec::new(),
-        }
-    }
-    
-    pub fn cleanup_all(&mut self) {
-        self.color_images.clear();
-        self.depth_images.clear();
-        self.cube_images.clear();
-    }
+    /*
+  pub fn new() -> Self {
+      Self {
+          color_images: Vec::new(),
+          depth_images: Vec::new(),
+          cube_images: Vec::new(),
+      }
+  }
 
-    pub fn acquire_depth_image(&mut self, device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
-        for x in self.depth_images.iter_mut() {
-            if !x.1 {
-                x.0.resize(device, extent.0, extent.1);
-                x.1 = true;
-                return x.0.clone();
-            }
-        }
-        let image = Self::create_depth_attachment(device, extent);
-        self.depth_images.push((image, true));
-        self.cleanup_depth();
-        return self.depth_images.last().unwrap().0.clone();
-    }
+  pub fn cleanup_all(&mut self) {
+      self.color_images.clear();
+      self.depth_images.clear();
+      self.cube_images.clear();
+  }
 
-    pub fn acquire_color_image(&mut self, device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
-        for x in self.color_images.iter_mut() {
-            if !x.1 {
-                x.0.resize(device, extent.0, extent.1);
-                x.1 = true;
-                return x.0.clone();
-            }
-        }
-        let image = Self::create_color_attachment(device, extent);
-        self.color_images.push((image, true));
-        self.cleanup_color();
-        return self.color_images.last().unwrap().0.clone();
-    }
+  pub fn acquire_depth_image(&mut self, device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
+      /*
+      for x in self.depth_images.iter_mut() {
+          if !x.1 {
+              x.0.resize(device, extent.0, extent.1);
+              x.1 = true;
+              return x.0.clone();
+          }
+      }
 
-    pub fn acquire_cube_image(&mut self, device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
-        for x in self.cube_images.iter_mut() {
-            if !x.1 {
-                x.0.resize(device, extent.0, extent.1);
-                x.1 = true;
-                return x.0.clone();
-            }
-        }
-        let image = Self::create_cube_attachment(device, extent);
+        */
+      return Self::create_depth_attachment(device, extent);
+      /*
+      self.depth_images.push((image, true));
+      self.cleanup_depth();
+      return self.depth_images.last().unwrap().0.clone();
+
+        */
+  }
+
+  pub fn acquire_color_image(&mut self, device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
+      /*
+      for x in self.color_images.iter_mut() {
+          if !x.1 {
+              x.0.resize(device, extent.0, extent.1);
+              x.1 = true;
+              return x.0.clone();
+          }
+      }
+
+        */
+      return Self::create_color_attachment(device, extent);
+      /*
+      self.color_images.push((image, true));
+      self.cleanup_color();
+      return self.color_images.last().unwrap().0.clone();
+
+        */
+  }
+
+  pub fn acquire_cube_image(&mut self, device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
+
+      for x in self.cube_images.iter_mut() {
+          if !x.1 {
+              x.0.resize(device, extent.0, extent.1);
+              x.1 = true;
+              return x.0.clone();
+          }
+      }
+
+
+        return Self::create_cube_attachment(device, extent);
+        /*
         self.cube_images.push((image, true));
         self.cleanup_cube();
         return self.cube_images.last().unwrap().0.clone();
+
+
     }
+    */
+
+    /*
 
     pub fn release_cube_image(&mut self, image: &VlImage) {
         for x in self.cube_images.iter_mut() {
@@ -136,7 +157,9 @@ impl RenderImagePool {
         }
     }
 
-    fn create_depth_attachment(device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
+     */
+*/
+    pub fn create_depth_attachment(device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
         let format = device
             .find_depth_format()
             .expect("Failed to find depth format");
@@ -156,7 +179,7 @@ impl RenderImagePool {
         image
     }
 
-    fn create_color_attachment(device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
+    pub fn create_color_attachment(device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
         let create_info = default_color_image_create_info(extent.0, extent.1);
         let mut image = VlImage::new(device, create_info);
         let view_info = default_color_view_create_info(image.image());
@@ -172,7 +195,7 @@ impl RenderImagePool {
         image
     }
 
-    fn create_cube_attachment(device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
+    pub fn create_cube_attachment(device: &VlLogicalDevice, extent: (u32, u32)) -> VlImage {
         let create_info = default_cube_color_image_create_info(extent.0, extent.1);
         let mut image = VlImage::new(device, create_info);
         let cb_view_info = default_cube_view_create_info(image.image());

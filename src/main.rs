@@ -34,7 +34,7 @@ use std::sync::{Arc, Mutex};
 
 pub fn main() {
     let shader_loader = VlShaderLoader::new();
-    VlShaderLoader::add_include_directory("E:/RustProjects/VulkanLib/glsl".as_ref());
+    VlShaderLoader::add_include_directory("glsl/".as_ref());
     // shader_loader.set_optimization_level(OptimizationLevel::Performance);
 
     let mut window = Window::new(800, 600).unwrap();
@@ -108,13 +108,13 @@ pub fn main() {
 
         let create_infos = vec![
             VlShaderCreateInfo {
-                path: PathBuf::from("E:/RustProjects/VulkanLib/glsl/OutputPipeline/main.vert"),
+                path: PathBuf::from("glsl/OutputPipeline/main.vert"),
                 file_type: SrcFile,
                 stage: vk::ShaderStageFlags::VERTEX,
                 entry_point: "main".to_string(),
             },
             VlShaderCreateInfo {
-                path: PathBuf::from("E:/RustProjects/VulkanLib/glsl/OutputPipeline/main.frag"),
+                path: PathBuf::from("glsl/OutputPipeline/main.frag"),
                 file_type: SrcFile,
                 stage: vk::ShaderStageFlags::FRAGMENT,
                 entry_point: "main".to_string(),
@@ -223,11 +223,12 @@ pub fn main() {
             let _ = window.poll_events();
         }
         window.clear_resize_callbacks();
+        drop(window);
         drop(render_pipeline);
-        VlGraphicsRenderPipeline::clean_image_pool();
+        drop(sync_manager);
+        drop(vertex_buffer);
         drop(swap_chain);
         drop(device);
-        drop(window);
         drop(instance);
     }
 }

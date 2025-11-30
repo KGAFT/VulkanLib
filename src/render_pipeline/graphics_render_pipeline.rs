@@ -1,4 +1,3 @@
-#![allow(static_mut_refs)]
 use crate::device::image::image::VlImage;
 use crate::device::logical_device::logical_device::VlLogicalDevice;
 use crate::device::swapchain::VlSwapChain;
@@ -11,8 +10,7 @@ use ash::vk;
 use ash::vk::RenderingAttachmentInfo;
 use std::sync::{Arc, Mutex};
 
-static mut IMAGE_POOL: Option<RenderImagePool> = None;
-static mut IMAGE_SEM: VlSemaphore = VlSemaphore::new(1);
+
 
 pub struct VlGraphicsRenderPipeline {
     swapchain: Option<Arc<Mutex<VlSwapChain>>>,
@@ -34,16 +32,6 @@ pub struct VlGraphicsRenderPipeline {
 }
 
 impl VlGraphicsRenderPipeline {
-    pub fn clean_image_pool() {
-        unsafe {
-            if IMAGE_POOL.is_some() {
-                IMAGE_SEM.acquire();
-                IMAGE_POOL.as_mut().unwrap().cleanup_all();
-                IMAGE_POOL = None;
-                IMAGE_SEM.release();
-            }
-        }
-    }
 
     /**
     Do not populate the  color attachment info of VlGraphicsPipelineBuilder,
@@ -57,7 +45,6 @@ impl VlGraphicsRenderPipeline {
         render_area: vk::Extent2D,
         max_frames_in_flight: u32,
     ) -> Self {
-        Self::initialize_pool();
 
         let mut color_images = Vec::with_capacity(if swapchain.is_none() {
             (max_frames_in_flight * builder.attachments_per_step_amount()) as usize
@@ -69,36 +56,25 @@ impl VlGraphicsRenderPipeline {
             let swapchain_lock = swapchain.as_ref().unwrap().lock().unwrap();
             builder.add_color_attachment(swapchain_lock.format().format);
             unsafe {
-                IMAGE_SEM.acquire();
                 for _ in 0..max_frames_in_flight {
-                    let depth_image = IMAGE_POOL
-                        .as_mut()
-                        .unwrap()
-                        .acquire_depth_image(device, (render_area.width, render_area.height));
+                    let depth_image = RenderImagePool::create_depth_attachment(device, (render_area.width, render_area.height));
                     builder.set_depth_attachment(depth_image.image_info().format);
                     depth_images.push(depth_image);
                 }
-                IMAGE_SEM.release();
             }
         } else {
             unsafe {
-                IMAGE_SEM.acquire();
                 let mut populated = false;
                 for _ in 0..max_frames_in_flight {
                     for _ in 0..builder.attachments_per_step_amount() {
-                        let color_image = IMAGE_POOL
-                            .as_mut()
-                            .unwrap()
-                            .acquire_color_image(device, (render_area.width, render_area.height));
+                        let color_image =
+                        RenderImagePool::create_color_attachment(device, (render_area.width, render_area.height));
                         if !populated {
                             builder.add_color_attachment(color_image.image_info().format);
                         }
                         color_images.push(color_image);
                     }
-                    let mut depth_image = IMAGE_POOL
-                        .as_mut()
-                        .unwrap()
-                        .acquire_depth_image(device, (render_area.width, render_area.height));
+                    let mut depth_image = RenderImagePool::create_depth_attachment(device, (render_area.width, render_area.height));
                     builder.set_depth_attachment(depth_image.image_info().format);
                     populated = true;
                     depth_image.transition_image_layout_q(
@@ -111,7 +87,6 @@ impl VlGraphicsRenderPipeline {
                     );
                     depth_images.push(depth_image);
                 }
-                IMAGE_SEM.release();
             }
         }
 
@@ -366,11 +341,4 @@ impl VlGraphicsRenderPipeline {
             .depth_attachment(depth_info)
     }
 
-    fn initialize_pool() {
-        unsafe {
-            if IMAGE_POOL.is_none() {
-                IMAGE_POOL = Some(RenderImagePool::new());
-            }
-        }
-    }
 }
