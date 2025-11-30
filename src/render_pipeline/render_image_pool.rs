@@ -2,6 +2,8 @@ use crate::device::image::image::VlImage;
 use crate::device::logical_device::logical_device::VlLogicalDevice;
 use ash::vk;
 
+
+//@TODO gain full control to pipeline of image!!!
 pub struct RenderImagePool {
     color_images: Vec<(VlImage, bool)>,
     depth_images: Vec<(VlImage, bool)>,
