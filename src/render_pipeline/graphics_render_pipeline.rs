@@ -5,12 +5,9 @@ use crate::pipelines::graphics_pipeline::config::graph_pipeline_builder::VlGraph
 use crate::pipelines::graphics_pipeline::VlGraphicsPipeline;
 use crate::pipelines::shader::VlShader;
 use crate::render_pipeline::render_image_pool::RenderImagePool;
-use crate::util::vl_semaphore::VlSemaphore;
 use ash::vk;
 use ash::vk::RenderingAttachmentInfo;
 use std::sync::{Arc, Mutex};
-
-
 
 pub struct VlGraphicsRenderPipeline {
     swapchain: Option<Arc<Mutex<VlSwapChain>>>,
@@ -32,7 +29,6 @@ pub struct VlGraphicsRenderPipeline {
 }
 
 impl VlGraphicsRenderPipeline {
-
     /**
     Do not populate the  color attachment info of VlGraphicsPipelineBuilder,
     it will be filled automatically!
@@ -45,7 +41,6 @@ impl VlGraphicsRenderPipeline {
         render_area: vk::Extent2D,
         max_frames_in_flight: u32,
     ) -> Self {
-
         let mut color_images = Vec::with_capacity(if swapchain.is_none() {
             (max_frames_in_flight * builder.attachments_per_step_amount()) as usize
         } else {
@@ -55,38 +50,42 @@ impl VlGraphicsRenderPipeline {
         if swapchain.is_some() {
             let swapchain_lock = swapchain.as_ref().unwrap().lock().unwrap();
             builder.add_color_attachment(swapchain_lock.format().format);
-            unsafe {
-                for _ in 0..max_frames_in_flight {
-                    let depth_image = RenderImagePool::create_depth_attachment(device, (render_area.width, render_area.height));
-                    builder.set_depth_attachment(depth_image.image_info().format);
-                    depth_images.push(depth_image);
-                }
+            for _ in 0..max_frames_in_flight {
+                let depth_image = RenderImagePool::create_depth_attachment(
+                    device,
+                    (render_area.width, render_area.height),
+                );
+                builder.set_depth_attachment(depth_image.image_info().format);
+                depth_images.push(depth_image);
             }
         } else {
-            unsafe {
-                let mut populated = false;
-                for _ in 0..max_frames_in_flight {
-                    for _ in 0..builder.attachments_per_step_amount() {
-                        let color_image =
-                        RenderImagePool::create_color_attachment(device, (render_area.width, render_area.height));
-                        if !populated {
-                            builder.add_color_attachment(color_image.image_info().format);
-                        }
-                        color_images.push(color_image);
-                    }
-                    let mut depth_image = RenderImagePool::create_depth_attachment(device, (render_area.width, render_area.height));
-                    builder.set_depth_attachment(depth_image.image_info().format);
-                    populated = true;
-                    depth_image.transition_image_layout_q(
-                        device
-                            .find_queue_by_type_r(vk::QueueFlags::GRAPHICS)
-                            .unwrap(),
-                        vk::ImageLayout::UNDEFINED,
-                        vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                        vk::ImageAspectFlags::DEPTH,
+            let mut populated = false;
+            for _ in 0..max_frames_in_flight {
+                for _ in 0..builder.attachments_per_step_amount() {
+                    let color_image = RenderImagePool::create_color_attachment(
+                        device,
+                        (render_area.width, render_area.height),
                     );
-                    depth_images.push(depth_image);
+                    if !populated {
+                        builder.add_color_attachment(color_image.image_info().format);
+                    }
+                    color_images.push(color_image);
                 }
+                let mut depth_image = RenderImagePool::create_depth_attachment(
+                    device,
+                    (render_area.width, render_area.height),
+                );
+                builder.set_depth_attachment(depth_image.image_info().format);
+                populated = true;
+                depth_image.transition_image_layout_q(
+                    device
+                        .find_queue_by_type_r(vk::QueueFlags::GRAPHICS)
+                        .unwrap(),
+                    vk::ImageLayout::UNDEFINED,
+                    vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                    vk::ImageAspectFlags::DEPTH,
+                );
+                depth_images.push(depth_image);
             }
         }
 
@@ -161,7 +160,9 @@ impl VlGraphicsRenderPipeline {
                 image.resize(device, width, height);
             });
         }
-        self.depth_images.iter_mut().for_each(|image| {image.resize(device, width, height);});
+        self.depth_images.iter_mut().for_each(|image| {
+            image.resize(device, width, height);
+        });
     }
 
     fn bind_barriers(
@@ -340,5 +341,4 @@ impl VlGraphicsRenderPipeline {
             .color_attachments(color_infos)
             .depth_attachment(depth_info)
     }
-
 }

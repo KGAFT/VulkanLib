@@ -1,11 +1,11 @@
 #![allow(dead_code)]
-mod device;
-mod instance;
-mod pipelines;
-mod shader;
+pub mod device;
+pub mod instance;
+pub mod pipelines;
+pub mod render_pipeline;
+pub mod shader;
 pub mod util;
-mod window;
-mod render_pipeline;
+pub mod window;
 
 #[cfg(test)]
 mod tests {

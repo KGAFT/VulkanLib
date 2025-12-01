@@ -27,7 +27,7 @@ impl VlVertexBuffer {
             .size((vertices_amount * step_size) as DeviceSize)
             .usage(vk::BufferUsageFlags::TRANSFER_SRC)
             .sharing_mode(vk::SharingMode::EXCLUSIVE);
-        let mut stg_buffer = VlBuffer::new(
+        let stg_buffer = VlBuffer::new(
             device,
             &create_info,
             vk::MemoryPropertyFlags::HOST_VISIBLE | vk::MemoryPropertyFlags::HOST_COHERENT,

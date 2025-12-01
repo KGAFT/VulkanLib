@@ -18,7 +18,7 @@ use crate::instance::instance::VlInstance;
 use crate::instance::instance_builder::VlInstanceBuilder;
 use crate::pipelines::graphics_pipeline::config::graph_pipeline_builder::VlGraphicsPipelineBuilder;
 use crate::pipelines::pipeline_config::pipeline_builder::{
-    VlPushConstantInfo, VlSamplerInfo, VlVertexInput,
+    VlPushConstantInfo, VlVertexInput,
 };
 use crate::render_pipeline::graphics_render_pipeline::VlGraphicsRenderPipeline;
 use crate::shader::VlShaderFileType::SrcFile;
@@ -104,7 +104,6 @@ pub fn main() {
             600,
             true,
         )));
-        let swap_chain_clone = swap_chain.clone();
 
         let create_infos = vec![
             VlShaderCreateInfo {
@@ -144,7 +143,7 @@ pub fn main() {
             size: size_of::<i32>() * 4,
         });
         let frames_in_flight = swap_chain.lock().unwrap().images().len() as u32;
-        let mut render_pipeline = Arc::new(Mutex::new(VlGraphicsRenderPipeline::new(
+        let render_pipeline = Arc::new(Mutex::new(VlGraphicsRenderPipeline::new(
             &device.lock().unwrap(),
             Some(swap_chain.clone()),
             graph_builder,
@@ -156,7 +155,7 @@ pub fn main() {
             frames_in_flight,
         )));
         let dev_lock = device.lock().unwrap();
-        let mut sync_manager = Arc::new(Mutex::new(VlSyncManager::new(
+        let sync_manager = Arc::new(Mutex::new(VlSyncManager::new(
             dev_lock.device(),
             swap_chain.clone(),
             dev_lock.find_present_queue_r().unwrap(),
@@ -183,7 +182,7 @@ pub fn main() {
 
         let mut cur_cmd: u32 = 0;
 
-        let TRIANGLE_VERTICES: [f32; 9] = [
+        let triangle_vertices: [f32; 9] = [
             //    X      Y     Z
             0.0, 0.5, 0.0, // top
             -0.5, -0.5, 0.0, // bottom-left
@@ -192,7 +191,7 @@ pub fn main() {
 
         let vertex_buffer = VlVertexBuffer::new(
             device.lock().unwrap().deref(),
-            (TRIANGLE_VERTICES.as_slice() as &_ as *const _) as *const c_void,
+            (triangle_vertices.as_slice() as &_ as *const _) as *const c_void,
             3,
             size_of::<f32>() * 3,
             vk::Format::R32G32B32_SFLOAT,
@@ -223,12 +222,13 @@ pub fn main() {
             let _ = window.poll_events();
         }
         window.clear_resize_callbacks();
-        drop(window);
+
         drop(render_pipeline);
         drop(sync_manager);
         drop(vertex_buffer);
         drop(swap_chain);
-        drop(device);
-        drop(instance);
+        unsafe { let _ = device.lock().unwrap().device_r().device_wait_idle(); }
+        drop(window);
+
     }
 }
