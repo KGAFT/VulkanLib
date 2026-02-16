@@ -31,7 +31,6 @@ use std::io::Write;
 use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
-use rand::{random, rng, RngExt};
 
 pub fn main() {
     let shader_loader = VlShaderLoader::new();
