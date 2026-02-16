@@ -57,26 +57,32 @@ impl VlMultiFrameSync {
         &mut self,
         swapchain: vk::SwapchainKHR,
         swapchain_loader: &swapchain::Device,
-    ) -> u32 {
+    ) -> Option<u32> {
         unsafe {
-            self.device
+            let mut res = self.device
                 .wait_for_fences(
                     &[self.in_flight_fences[self.current_frame]],
                     true,
                     u64::MAX,
-                )
-                .expect("Failed waiting for frame fence");
-
-            let (image_index, _suboptimal) = swapchain_loader
+                );
+            if res.is_err() {
+                eprintln!("Wait for fence lost {}", res.unwrap_err());
+                return None;
+            }
+            let mut res = swapchain_loader
                 .acquire_next_image(
                     swapchain,
                     u64::MAX,
                     self.image_available_semaphores[self.current_frame],
                     vk::Fence::null(),
-                )
-                .expect("Failed acquiring next image");
-
-            image_index
+                );
+            if res.is_err(){
+                eprintln!("Failed to acquire swapchain image {}", res.unwrap_err());
+                return None;
+            }
+            
+            let (image_index, _suboptimal) = res.unwrap();
+            Some(image_index)
         }
     }
 
@@ -86,21 +92,29 @@ impl VlMultiFrameSync {
         swapchain: vk::SwapchainKHR,
         swapchain_loader: &swapchain::Device,
         current_image: u32,
-    ) {
+    ) -> Option<()>{
         unsafe {
             let img_fence = self.images_in_flight[current_image as usize];
+            
             if img_fence != vk::Fence::null() {
-                self.device
-                    .wait_for_fences(&[img_fence], true, u64::MAX)
-                    .expect("Failed to wait for image fence");
+                let res = self.device
+                    .wait_for_fences(&[img_fence], true, u64::MAX);
+                if res.is_err() {
+                    eprintln!("Failed to wait for fences {}", res.unwrap_err());
+                    return None;
+                }
             }
 
             self.images_in_flight[current_image as usize] =
                 self.in_flight_fences[self.current_frame];
 
-            self.device
-                .reset_fences(&[self.in_flight_fences[self.current_frame]])
-                .expect("Failed to reset frame fence");
+            let res = self.device
+                .reset_fences(&[self.in_flight_fences[self.current_frame]]);
+            
+            if res.is_err() {
+                eprintln!("Failed to reset fences {}", res.unwrap_err());
+                return None;
+            }
 
             let wait_stages = [vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT];
 
@@ -113,13 +127,17 @@ impl VlMultiFrameSync {
                 .command_buffers(&command_buffers)
                 .signal_semaphores(&signal_semaphores);
 
-            self.device
+            let res = self.device
                 .queue_submit(
                     self.present_queue,
                     &[submit_info],
                     self.in_flight_fences[self.current_frame],
-                )
-                .expect("Failed to submit queue");
+                );
+            
+            if res.is_err() {
+                eprintln!("Failed to submit queue {}", res.unwrap_err());
+                return None;
+            }
 
             let wait_semaphores2 = [self.render_finished_semaphores[self.current_frame]];
             let swapchains = [swapchain];
@@ -129,11 +147,16 @@ impl VlMultiFrameSync {
                 .swapchains(&swapchains)
                 .image_indices(&indices);
 
-            swapchain_loader
-                .queue_present(self.present_queue, &present_info)
-                .expect("Failed to present");
+            let res = swapchain_loader
+                .queue_present(self.present_queue, &present_info);
+            
+            if res.is_err() {
+                eprintln!("Failed to present queue {}", res.unwrap_err());
+                return None;
+            }
 
             self.current_frame = (self.current_frame + 1) % self.max_frames_in_flight;
+            Some(())
         }
     }
 

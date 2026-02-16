@@ -31,6 +31,7 @@ use std::io::Write;
 use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
+use rand::{random, rng, RngExt};
 
 pub fn main() {
     let shader_loader = VlShaderLoader::new();
@@ -161,9 +162,10 @@ pub fn main() {
             dev_lock.find_present_queue_r().unwrap(),
             frames_in_flight,
         )));
-        let sn_clocne = sync_manager.clone();
+        let sn_clone = sync_manager.clone();
         window.set_resize_callback(move |width, height| {
-            sn_clocne.lock().unwrap().resized(width, height);
+            eprintln!("Resized {} {}", width, height);
+            sn_clone.lock().unwrap().resized(width, height);
         });
 
         let rp_clone = render_pipeline.clone();
@@ -198,6 +200,8 @@ pub fn main() {
             false
         );
 
+       // let mut counter = 0;
+
         while !window.need_close() {
             let cmd = sync_manager
                 .lock()
@@ -219,7 +223,21 @@ pub fn main() {
                 cur_cmd,
             );
             sync_manager.lock().unwrap().end_render();
+
+            /*
+            if counter == 30{
+                let mut rng = rng();
+
+                window.resize_window(rng.random_range(1280..1920), rng.random_range(720..1080));
+                counter = 0;
+            }
+
+             */
+
+           // counter+=1;
+
             let _ = window.poll_events();
+
         }
         window.clear_resize_callbacks();
 

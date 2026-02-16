@@ -142,7 +142,9 @@ impl Window {
 
         Ok(())
     }
-
+    pub fn resize_window(&mut self, width: u32, height: u32) {
+        self.window.set_size(width as i32, height as i32);
+    }
     pub fn clear_resize_callbacks(&mut self){
         *self.resize_callback.lock().unwrap() = None;
     }

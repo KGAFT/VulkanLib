@@ -76,7 +76,33 @@ impl VlSyncManager
         if self.stop {
             return None;
         }
+        self.check_resize_callbacks();
 
+        let swap_chain_lock = self.swapchain.lock().unwrap();
+        let mut cur_cmd  = self.sync.prepare_for_next_image(swap_chain_lock.swap_chain(), swap_chain_lock.swap_chain_loader());
+        drop(swap_chain_lock);
+        while cur_cmd.is_none(){
+            self.check_resize_callbacks();
+            let swap_chain_lock = self.swapchain.lock().unwrap();
+            cur_cmd  = self.sync.prepare_for_next_image(swap_chain_lock.swap_chain(), swap_chain_lock.swap_chain_loader());
+            drop(swap_chain_lock);
+        }
+        self.current_cmd = cur_cmd.unwrap();
+
+        *out_cmd = self.current_cmd;
+
+        let cmd = self.command_buffers[self.current_cmd as usize];
+
+        unsafe {
+            self.device
+                .begin_command_buffer(cmd, &begin_info)
+                .expect("Begin command buffer failed");
+        }
+
+        Some(cmd)
+    }
+
+    fn check_resize_callbacks(&mut self){
         if self.is_resized {
             self.stop = true;
             unsafe {
@@ -91,20 +117,6 @@ impl VlSyncManager
             self.is_resized = false;
             self.stop = false;
         }
-        let swap_chain_lock = self.swapchain.lock().unwrap();
-        self.current_cmd = self.sync.prepare_for_next_image(swap_chain_lock.swap_chain(), swap_chain_lock.swap_chain_loader());
-        drop(swap_chain_lock);
-        *out_cmd = self.current_cmd;
-
-        let cmd = self.command_buffers[self.current_cmd as usize];
-
-        unsafe {
-            self.device
-                .begin_command_buffer(cmd, &begin_info)
-                .expect("Begin command buffer failed");
-        }
-
-        Some(cmd)
     }
 
     pub fn end_render(&mut self) {
@@ -117,13 +129,17 @@ impl VlSyncManager
         unsafe {
             let _ = self.device.end_command_buffer(cmd);
         }
-        let swap_chain_lock = self.swapchain.lock().unwrap();
-        self.sync.submit_command_buffers(
+        let mut swap_chain_lock = self.swapchain.lock().unwrap();
+        while self.sync.submit_command_buffers(
             self.command_buffers[self.current_cmd as usize],
             swap_chain_lock.swap_chain(),
             swap_chain_lock.swap_chain_loader(),
             self.current_cmd,
-        );
+        ).is_none(){
+            drop(swap_chain_lock);
+            self.check_resize_callbacks();
+            swap_chain_lock  = self.swapchain.lock().unwrap();
+        }
     }
 
     pub fn add_resize_callback(&mut self, callback: Box<dyn FnMut(u32, u32)>) {
