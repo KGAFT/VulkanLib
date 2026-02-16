@@ -46,7 +46,6 @@ impl Window {
         glfw.window_hint(glfw::WindowHint::ClientApi(glfw::ClientApiHint::NoApi));
         glfw.window_hint(glfw::WindowHint::Resizable(true));
         glfw.window_hint(glfw::WindowHint::Decorated(true));
-        glfw.window_hint(glfw::WindowHint::TransparentFramebuffer(true));
         let (mut window, events) = glfw
             .create_window(width, height, "Vulkan Window", glfw::WindowMode::Windowed)
             .ok_or("Failed to create window")?;

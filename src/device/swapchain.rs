@@ -236,8 +236,8 @@ impl VlSwapChain {
             vk::Format::R32G32B32A32_SFLOAT,
             vk::Format::R32G32B32A32_SFLOAT,
             // HDR10 / HDR formats
-       //     vk::Format::A2B10G10R10_UNORM_PACK32,
-          //  vk::Format::A2R10G10B10_UNORM_PACK32,
+            vk::Format::A2B10G10R10_UNORM_PACK32,
+            vk::Format::A2R10G10B10_UNORM_PACK32,
             vk::Format::R16G16B16A16_SFLOAT,
             vk::Format::R16G16B16A16_UNORM,
             vk::Format::R16G16B16A16_SNORM,

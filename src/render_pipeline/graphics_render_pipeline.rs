@@ -97,8 +97,8 @@ impl VlGraphicsRenderPipeline {
         unsafe {
             depth_clear.depth_stencil.depth = 1.0f32;
             depth_clear.depth_stencil.stencil = 0;
-            color_clear.color.float32[3] = 0.0f32;
-            color_clear.color.float32[2] = 0.0f32;
+            color_clear.color.float32[3] = 1.0f32;
+            color_clear.color.float32[2] = 1.0f32;
             viewport.width = render_area.width as f32;
             viewport.height = render_area.height as f32;
             scissor.extent.width = render_area.width;
