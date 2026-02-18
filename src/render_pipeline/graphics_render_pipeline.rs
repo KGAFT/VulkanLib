@@ -89,6 +89,11 @@ impl VlGraphicsRenderPipeline {
             }
         }
 
+        let image_per_step_amount = if swapchain.is_some() {
+            1
+        } else {
+            builder.attachments_per_step_amount()
+        };
         let graphics_pipeline = VlGraphicsPipeline::new(device.device(), shader, builder);
         let mut depth_clear = vk::ClearValue::default();
         let mut color_clear = vk::ClearValue::default();
@@ -98,20 +103,20 @@ impl VlGraphicsRenderPipeline {
             depth_clear.depth_stencil.depth = 1.0f32;
             depth_clear.depth_stencil.stencil = 0;
             color_clear.color.float32[3] = 1.0f32;
-            color_clear.color.float32[2] = 1.0f32;
             viewport.width = render_area.width as f32;
             viewport.height = render_area.height as f32;
+            viewport.max_depth = 1.0f32;
             scissor.extent.width = render_area.width;
             scissor.extent.height = render_area.height;
         }
         return Self {
             swapchain,
-            render_images: Vec::new(),
+            render_images: color_images,
             depth_images,
             graphics_pipeline,
             color_clear,
             depth_clear,
-            image_per_step_amount: 1,
+            image_per_step_amount,
             render_area,
             scissor,
             viewport,
@@ -168,20 +173,18 @@ impl VlGraphicsRenderPipeline {
     fn bind_barriers(
         device: &ash::Device,
         cmd: vk::CommandBuffer,
-        mut barriers: Vec<vk::ImageMemoryBarrier>,
+        barriers: Vec<vk::ImageMemoryBarrier>,
     ) {
-        for i in 0..barriers.len() {
-            let barrier = [barriers.remove(i)];
-            let memory_barrier = Vec::new();
-            let buffer_barrier = Vec::new();
+        for barrier in barriers {
+            let barrier = [barrier];
             unsafe {
                 device.cmd_pipeline_barrier(
                     cmd,
                     vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT,
                     vk::PipelineStageFlags::TOP_OF_PIPE,
                     vk::DependencyFlags::empty(),
-                    memory_barrier.as_slice(),
-                    buffer_barrier.as_slice(),
+                    &[],
+                    &[],
                     &barrier,
                 );
             }
@@ -325,6 +328,23 @@ impl VlGraphicsRenderPipeline {
                     .base(),
             );
         (color_infos, depth_info)
+    }
+
+    pub fn destroy(&mut self) {
+        self.render_images.clear();
+        self.depth_images.clear();
+    }
+
+    pub fn render_images(&self) -> &Vec<VlImage> {
+        &self.render_images
+    }
+
+    pub fn depth_images(&self) -> &Vec<VlImage> {
+        &self.depth_images
+    }
+
+    pub fn graphics_pipeline(&self) -> &VlGraphicsPipeline {
+        &self.graphics_pipeline
     }
 
     fn create_images_and_rendering_infos<'a>(
