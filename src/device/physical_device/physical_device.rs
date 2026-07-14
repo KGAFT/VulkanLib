@@ -10,14 +10,13 @@ pub struct VlPhysicalDevice {
 }
 
 impl VlPhysicalDevice {
-    pub fn enumerate(instance: &Instance) -> Vec<Self> {
-        let mut pre_res = unsafe { instance.enumerate_physical_devices() }
-            .expect("Failed to enumerate physical devices");
+    pub fn enumerate(instance: &Instance) -> Result<Vec<Self>, vk::Result> {
+        let mut pre_res = unsafe { instance.enumerate_physical_devices() }?;
         let mut res: Vec<VlPhysicalDevice> = Vec::with_capacity(pre_res.len());
         while let Some(dev) = pre_res.pop() {
             res.push(Self::new(instance, dev));
         }
-        res
+        Ok(res)
     }
 
     pub fn new(instance: &ash::Instance, inner: vk::PhysicalDevice) -> Self {
@@ -57,7 +56,7 @@ impl VlPhysicalDevice {
     }
 
     pub fn raytracing_pipeline_properties(
-        & self,
+        &self,
         instance: &Instance,
     ) -> vk::PhysicalDeviceRayTracingPipelinePropertiesKHR<'_> {
         let mut res = vk::PhysicalDeviceRayTracingPipelinePropertiesKHR::default();

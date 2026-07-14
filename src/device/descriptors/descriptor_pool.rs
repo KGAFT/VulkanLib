@@ -186,10 +186,12 @@ impl VlDescriptorSet {
         write_infos: &mut Vec<vk::WriteDescriptorSet<'a>>,
         as_infos: &'a mut Vec<WriteDescriptorSetAccelerationStructureKHR<'a>>,
     ) {
-        let start = write_infos.len() - as_infos.len() - 1;
-        let mut as_infos_iter = as_infos.iter_mut();
-        for i in start..write_infos.len() {
-            write_infos[i] = write_infos[i].push_next(as_infos_iter.next().unwrap());
+        if !as_infos.is_empty(){
+            let start = write_infos.len() - as_infos.len() - 1;
+            let mut as_infos_iter = as_infos.iter_mut();
+            for i in start..write_infos.len() {
+                write_infos[i] = write_infos[i].push_next(as_infos_iter.next().unwrap());
+            }
         }
     }
 

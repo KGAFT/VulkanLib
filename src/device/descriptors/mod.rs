@@ -1,2 +1,2 @@
 pub mod descriptor_pool;
-mod descriptors_infos;
+pub mod descriptors_infos;

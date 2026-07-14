@@ -228,6 +228,8 @@ impl VlSwapChain {
         res.formats = formats;
     }
 
+
+
     fn choose_surface_format(formats: &[vk::SurfaceFormatKHR]) -> vk::SurfaceFormatKHR {
         // Expanded preferred formats list (HDR → High → Basic)
         let preferred_formats = [
@@ -339,5 +341,9 @@ impl VlSwapChain {
 
     pub fn image_views(&self) -> &Vec<VlImageView> {
         &self.image_views
+    }
+
+    pub fn extent(&self) -> vk::Extent2D {
+        self.extent
     }
 }

@@ -18,7 +18,7 @@ impl VlDeviceSuitability {
         instance: &VlInstance,
         builder: &VlDeviceBuilder,
         device: &VlPhysicalDevice,
-    ) -> (bool, Vec<VlQueueFamilyInfo>) {
+    ) -> Option<Vec<VlQueueFamilyInfo>> {
         for e in builder.request_extension().iter() {
             let mut found = false;
             for x in device.extension_properties().iter() {
@@ -28,7 +28,7 @@ impl VlDeviceSuitability {
                 }
             }
             if !found {
-                return (false, vec![]);
+                return None;
             }
         }
         let mut graphics_found = false;
@@ -67,7 +67,7 @@ impl VlDeviceSuitability {
                         eprintln!(
                             "Surface support required in device, but not enabled in instance!"
                         );
-                        return (false, vec![]);
+                        return None;
                     }
                     let loader = loader.unwrap();
                     let support = loader.get_physical_device_surface_support(
@@ -80,7 +80,7 @@ impl VlDeviceSuitability {
                             "Failed to request surface support: {}",
                             support.unwrap_err()
                         );
-                        return (false, vec![]);
+                        return None;
                     }
                     let support = support.unwrap();
                     if support {
@@ -105,11 +105,12 @@ impl VlDeviceSuitability {
             }
             queue_counter = queue_counter + 1;
         }
-        return (
-            graphics_found == builder.require_graphics()
-                && present_found == !builder.require_present().is_null()
-                && compute_found == builder.require_compute(),
-            pre_res,
-        );
+
+        if graphics_found == builder.require_graphics()
+            && present_found == !builder.require_present().is_null()
+            && compute_found == builder.require_compute() {
+            return Some(pre_res);
+        }
+        return None;
     }
 }

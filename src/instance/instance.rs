@@ -1,8 +1,8 @@
 use crate::instance::debug_messenger::VlDebugMessenger;
 use crate::instance::instance_builder::VlInstanceBuilder;
+use ash::khr::surface;
 use ash::{vk, Entry};
 use std::ffi::CString;
-use ash::khr::surface;
 
 pub struct VlInstance {
     entry: Entry,
@@ -11,12 +11,12 @@ pub struct VlInstance {
     enabled_layers: Vec<CString>,
     enabled_extensions: Vec<CString>,
     debug_messenger: Option<VlDebugMessenger>,
-    original: bool
+    original: bool,
 }
 
 impl Clone for VlInstance {
     fn clone(&self) -> Self {
-        let res = Self{
+        let res = Self {
             entry: self.entry.clone(),
             instance: self.instance.clone(),
             surface_loader: self.surface_loader.clone(),
@@ -30,7 +30,7 @@ impl Clone for VlInstance {
 }
 
 impl VlInstance {
-    pub fn new(mut builder: VlInstanceBuilder) -> Self {
+    pub fn new(mut builder: VlInstanceBuilder) -> Result<Self, vk::Result> {
         let entry = Entry::linked();
         let mut app_info = vk::ApplicationInfo {
             api_version: vk::API_VERSION_1_3,
@@ -50,14 +50,13 @@ impl VlInstance {
         .application_info(&app_info)
         .enabled_layer_names(&enabled_layers)
         .enabled_extension_names(&enabled_extensions);
-        let instance = unsafe { entry.create_instance(&create_info, None) }
-            .expect("failed to create vulkan instance");
+        let instance = unsafe { entry.create_instance(&create_info, None) }?;
         let debug_messenger = if builder.debug_enabled() {
             Some(VlDebugMessenger::new(
                 &entry,
                 &instance,
                 builder.initial_callbacks(),
-            ))
+            )?)
         } else {
             None
         };
@@ -66,7 +65,7 @@ impl VlInstance {
         } else {
             None
         };
-        Self {
+        Ok(Self {
             entry,
             instance,
             enabled_layers: builder.c_enabled_layers(),
@@ -74,7 +73,7 @@ impl VlInstance {
             debug_messenger,
             surface_loader,
             original: true,
-        }
+        })
     }
 
     pub fn get_instance_r(&self) -> &ash::Instance {

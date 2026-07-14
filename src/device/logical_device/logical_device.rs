@@ -36,9 +36,9 @@ impl VlLogicalDevice {
         instance: &VlInstance,
         base_device: VlPhysicalDevice,
         builder: &VlDeviceBuilder,
-        suit_res: (bool, Vec<VlQueueFamilyInfo>),
+        suit_res: Vec<VlQueueFamilyInfo>,
     ) -> Self {
-        let queue_infos = Self::suit_res_to_c_info(&suit_res.1);
+        let queue_infos = Self::suit_res_to_c_info(&suit_res);
         let mut features = vk::PhysicalDeviceFeatures::default();
         features.shader_int64 = vk::TRUE;
 
@@ -95,7 +95,7 @@ impl VlLogicalDevice {
         .expect("Failed to create device");
         let mut queues = Vec::new();
         unsafe {
-            suit_res.1.iter().for_each(|queue_info| {
+            suit_res.iter().for_each(|queue_info| {
                 let queue = device.get_device_queue(queue_info.index, 0);
                 queues.push(VlLogicalQueue::new(
                     queue,

@@ -25,12 +25,12 @@ pub struct VlDebugMessenger {
     debug_utils_loader: debug_utils::Instance,
     debug_messenger: DebugUtilsMessengerEXT,
     debug_callbacks: *mut CbContainer,
-    original: bool
+    original: bool,
 }
 
 impl Clone for VlDebugMessenger {
     fn clone(&self) -> Self {
-        Self{
+        Self {
             active: false,
             debug_utils_loader: self.debug_utils_loader.clone(),
             debug_messenger: self.debug_messenger.clone(),
@@ -45,7 +45,7 @@ impl VlDebugMessenger {
         entry: &Entry,
         instance: &Instance,
         mut initial_callbacks: Vec<Arc<Mutex<DebugCall>>>,
-    ) -> Self {
+    ) -> Result<Self, vk::Result> {
         let debug_utils_loader = debug_utils::Instance::new(entry, instance);
         let mut cbs = Vec::with_capacity(initial_callbacks.len());
         while let Some(callback) = initial_callbacks.pop() {
@@ -80,10 +80,9 @@ impl VlDebugMessenger {
         let debug_messenger = unsafe {
             res.debug_utils_loader
                 .create_debug_utils_messenger(&debug_info, None)
-        }
-        .expect("Unable to create debug utils Messenger");
+        }?;
         res.debug_messenger = debug_messenger;
-        res
+        Ok(res)
     }
 }
 
@@ -109,7 +108,7 @@ unsafe extern "system" fn vulkan_debug_callback(
     let self_ref = self_ref.as_mut().unwrap();
 
     let callback_data = *p_callback_data;
-     let message_id_number = callback_data.message_id_number;
+    let message_id_number = callback_data.message_id_number;
 
     let message_id_name = if callback_data.p_message_id_name.is_null() {
         Cow::from("")
